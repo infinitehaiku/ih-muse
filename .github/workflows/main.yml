@@ -23,17 +23,37 @@ jobs:
             target
           key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-python-env
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          rust-version: "stable"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install pip
+          uv pip install maturin
+          uv sync
 
       - name: Build Rust extension with maturin
-        run: uv run maturin develop -m py-ih-muse/Cargo.toml
+        run: |
+          source .venv/bin/activate
+          maturin develop -m py-ih-muse/Cargo.toml
 
       - name: Run code quality checks
-        run: make check
+        run: |
+          source .venv/bin/activate
+          make check
 
       - name: Run Rust formatting check
         run: cargo fmt --all -- --check
@@ -56,21 +76,68 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-python-env
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          rust-version: ${{ matrix.rust-version }}
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+        if: runner.os != 'Windows'
+
+      - name: Install uv (Windows)
+        run: |
+          iwr https://astral.sh/uv/install.ps1 -useb | iex
+        if: runner.os == 'Windows'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install pip
+          uv pip install maturin
+          uv sync
+        shell: bash
 
       - name: Build and install the package with maturin
-        run: uv run maturin develop -m py-ih-muse/Cargo.toml
+        run: |
+          source .venv/bin/activate
+          maturin develop -m py-ih-muse/Cargo.toml
+        if: runner.os != 'Windows'
+
+      - name: Build and install the package with maturin (Windows)
+        run: |
+          .venv\Scripts\activate
+          maturin develop -m py-ih-muse/Cargo.toml
+        if: runner.os == 'Windows'
 
       - name: Run Python tests with coverage
-        run: uv run pytest tests --cov=ih_muse --cov-report=xml
+        run: |
+          source .venv/bin/activate
+          pytest tests --cov=ih_muse --cov-report=xml
+        if: runner.os != 'Windows'
+
+      - name: Run Python tests with coverage (Windows)
+        run: |
+          .venv\Scripts\activate
+          pytest tests --cov=ih_muse --cov-report=xml
+        if: runner.os == 'Windows'
 
       - name: Run typing checks with mypy
-        run: uv run mypy py-ih-muse
-        if: ${{ matrix.python-version != '3.12' }}
+        run: |
+          source .venv/bin/activate
+          mypy py-ih-muse
+        if: ${{ matrix.python-version != '3.12' && runner.os != 'Windows' }}
+
+      - name: Run typing checks with mypy (Windows)
+        run: |
+          .venv\Scripts\activate
+          mypy py-ih-muse
+        if: ${{ matrix.python-version != '3.12' && runner.os == 'Windows' }}
 
       - name: Upload coverage reports to Codecov (Python 3.11 on Ubuntu only)
         uses: codecov/codecov-action@v4
@@ -82,14 +149,32 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-python-env
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          rust-version: "stable"
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install pip
+          uv pip install maturin
+          uv sync
 
       - name: Build Rust extension with maturin
-        run: uv run maturin develop -m py-ih-muse/Cargo.toml
+        run: |
+          source .venv/bin/activate
+          maturin develop -m py-ih-muse/Cargo.toml
 
       - name: Validate documentation build
-        run: uv run mkdocs build -s
+        run: |
+          source .venv/bin/activate
+          mkdocs build -s
