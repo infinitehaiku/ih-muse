@@ -18,4 +18,4 @@ ADD . /app
 # Sync the project
 RUN uv sync --frozen
 
-CMD [ "python", "muse_python/foo.py"]
+CMD [ "python", "ih_muse/foo.py"]

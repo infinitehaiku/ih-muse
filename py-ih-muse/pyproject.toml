@@ -1,0 +1,51 @@
+[project]
+name = "ih-muse"
+version = "0.0.2"
+description = "Common muse library for python"
+authors = [{ name = "Luis Diaz", email = "code.luis.diaz@proton.me" }]
+readme = "README.md"
+keywords = ['python']
+requires-python = ">=3.9,<4.0"
+classifiers = [
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://infinitehaiku.github.io/ih-muse/"
+Repository = "https://github.com/infinitehaiku/ih-muse"
+Documentation = "https://infinitehaiku.github.io/ih-muse/"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.2.0",
+    "pre-commit>=2.20.0",
+    "tox-uv>=1.11.3",
+    "deptry>=0.20.0",
+    "mypy>=0.991",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.6.9",
+    "mkdocs>=1.4.2",
+    "mkdocs-material>=8.5.10",
+    "mkdocstrings[python]>=0.26.1",
+]
+
+[build-system]
+build-backend = "maturin"
+requires = ["maturin>=1,<2"]
+
+[tool.maturin]
+module-name = "ih_muse"
+bindings = "pyo3"
+include = [
+    # { path = "rust-toolchain.toml", format = "sdist" },
+    { path = "README.md", format = "sdist" },
+    { path = "ih_muse/py.typed", format = "sdist" },
+]

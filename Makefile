@@ -15,31 +15,37 @@ check: ## Run code quality tools.
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
 	@uv run deptry .
 
-.PHONY: test
-test: ## Test the code with pytest
-	@echo "🚀 Testing code: Running pytest"
-	@uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml
-
 .PHONY: build
 build: clean-build ## Build wheel file
 	@echo "🚀 Creating wheel file"
-	@uvx --from build pyproject-build --installer uv
+	@uvx maturin build --release -m py-ih-muse/Cargo.toml --out dist
+
+.PHONY: develop
+develop: ## Build and install the package in develop mode
+	@echo "🚀 Building and installing package in develop mode"
+	@uvx maturin develop --release -m py-ih-muse/Cargo.toml
+
+.PHONY: test
+test: develop ## Test the code with pytest
+	@echo "🚀 Testing code: Running pytest"
+	@uv run pytest --cov --cov-config=pyproject.toml --cov-report=xml
 
 .PHONY: clean-build
 clean-build: ## Clean build artifacts
 	@echo "🚀 Removing build artifacts"
-	@uv run python -c "import shutil; import os; shutil.rmtree('dist') if os.path.exists('dist') else None"
+	@uv run python -c "import shutil; import os; shutil.rmtree('dist', ignore_errors=True); shutil.rmtree('build', ignore_errors=True); shutil.rmtree('py-ih-muse/target', ignore_errors=True);"
 
 .PHONY: publish
-publish: ## Publish a release to PyPI.
+publish: build ## Publish a release to PyPI.
 	@echo "🚀 Publishing."
-	@uvx twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+	@uvx twine upload dist/*
 
 .PHONY: build-and-publish
 build-and-publish: build publish ## Build and publish.
 
 .PHONY: docs-test
 docs-test: ## Test if documentation can be built without warnings or errors
+	@uv run pip install -e ./py-ih-muse
 	@uv run mkdocs build -s
 
 .PHONY: docs

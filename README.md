@@ -1,15 +1,15 @@
-# muse-python
+# ih-muse
 
-[![Release](https://img.shields.io/github/v/release/infinitehaiku/muse-python)](https://img.shields.io/github/v/release/infinitehaiku/muse-python)
-[![Build status](https://img.shields.io/github/actions/workflow/status/infinitehaiku/muse-python/main.yml?branch=main)](https://github.com/infinitehaiku/muse-python/actions/workflows/main.yml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/infinitehaiku/muse-python/branch/main/graph/badge.svg)](https://codecov.io/gh/infinitehaiku/muse-python)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/infinitehaiku/muse-python)](https://img.shields.io/github/commit-activity/m/infinitehaiku/muse-python)
-[![License](https://img.shields.io/github/license/infinitehaiku/muse-python)](https://img.shields.io/github/license/infinitehaiku/muse-python)
+[![Release](https://img.shields.io/github/v/release/infinitehaiku/ih-muse)](https://img.shields.io/github/v/release/infinitehaiku/ih-muse)
+[![Build status](https://img.shields.io/github/actions/workflow/status/infinitehaiku/ih-muse/main.yml?branch=main)](https://github.com/infinitehaiku/ih-muse/actions/workflows/main.yml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/infinitehaiku/ih-muse/branch/main/graph/badge.svg)](https://codecov.io/gh/infinitehaiku/ih-muse)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/infinitehaiku/ih-muse)](https://img.shields.io/github/commit-activity/m/infinitehaiku/ih-muse)
+[![License](https://img.shields.io/github/license/infinitehaiku/ih-muse)](https://img.shields.io/github/license/infinitehaiku/ih-muse)
 
 Common muse library for python
 
-- **Github repository**: <https://github.com/infinitehaiku/muse-python/>
-- **Documentation** <https://infinitehaiku.github.io/muse-python/>
+- **Github repository**: <https://github.com/infinitehaiku/ih-muse/>
+- **Documentation** <https://infinitehaiku.github.io/ih-muse/>
 
 ## Getting started with your project
 
@@ -21,7 +21,7 @@ First, create a repository on GitHub with the same name as this project, and the
 git init -b main
 git add .
 git commit -m "init commit"
-git remote add origin git@github.com:infinitehaiku/muse-python.git
+git remote add origin git@github.com:infinitehaiku/ih-muse.git
 git push -u origin main
 ```
 
@@ -63,8 +63,8 @@ To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookie
 ## Releasing a new version
 
 - Create an API Token on [PyPI](https://pypi.org/).
-- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting [this page](https://github.com/infinitehaiku/muse-python/settings/secrets/actions/new).
-- Create a [new release](https://github.com/infinitehaiku/muse-python/releases/new) on Github.
+- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting [this page](https://github.com/infinitehaiku/ih-muse/settings/secrets/actions/new).
+- Create a [new release](https://github.com/infinitehaiku/ih-muse/releases/new) on Github.
 - Create a new tag in the form `*.*.*`.
 
 For more details, see [here](https://fpgmaas.github.io/cookiecutter-uv/features/cicd/#how-to-trigger-a-release).

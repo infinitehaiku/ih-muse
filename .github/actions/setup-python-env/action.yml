@@ -1,5 +1,5 @@
-name: "Setup Python Environment"
-description: "Set up Python environment for the given Python version"
+name: "Setup Environment"
+description: "Set up Python and Rust environment"
 
 inputs:
   python-version:
@@ -10,6 +10,10 @@ inputs:
     description: "uv version to use"
     required: true
     default: "0.4.6"
+  rust-version:
+    description: "Rust toolchain version"
+    required: false
+    default: "stable"
 
 runs:
   using: "composite"
@@ -18,12 +22,26 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
 
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ inputs.rust-version }}
+        components: rustfmt, clippy
+
     - name: Install uv
       uses: astral-sh/setup-uv@v2
       with:
         version: ${{ inputs.uv-version }}
         enable-cache: "true"
         cache-suffix: ${{ matrix.python-version }}
+
+    - name: Install cargo-hack
+      uses: taiki-e/install-action@cargo-hack
+      if: ${{ inputs.rust-version != '' }}
+
+    - name: Install maturin
+      run: pip install maturin
+      shell: bash
 
     - name: Install Python dependencies
       run: uv sync --frozen

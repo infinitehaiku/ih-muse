@@ -1,0 +1,16 @@
+
+[package]
+name = "py-ih-muse"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+name = "ih_muse"
+crate-type = ["cdylib"]
+
+[dependencies]
+ih-muse-core = { workspace = true }
+pyo3 = { workspace = true, features = ["abi3-py39", "chrono", "extension-module", "multiple-pymethods"] }
+
+[package.metadata.maturin]
+module-name = "ih_muse"

@@ -1,0 +1,15 @@
+[package]
+name = "ih-muse-core"
+version = { workspace = true }
+publish = true
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+description = "Infinite Haiku Muse Core"
+readme = "../../README.md"
+
+[features]
+python = []

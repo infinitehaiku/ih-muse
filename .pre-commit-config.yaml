@@ -1,4 +1,21 @@
+fail_fast: false
+
 repos:
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.21
+    hooks:
+      - id: validate-pyproject
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.42.0
+    hooks:
+      - id: markdownlint-fix
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.26.0
+    hooks:
+      - id: typos
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: "v4.4.0"
     hooks:

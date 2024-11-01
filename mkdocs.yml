@@ -1,10 +1,10 @@
-site_name: muse-python
-repo_url: https://github.com/infinitehaiku/muse-python
-site_url: https://infinitehaiku.github.io/muse-python
+site_name: ih-muse
+repo_url: https://github.com/infinitehaiku/ih-muse
+site_url: https://infinitehaiku.github.io/ih-muse
 site_description: Common muse library for python
 site_author: Luis Diaz
 edit_uri: edit/main/docs/
-repo_name: infinitehaiku/muse-python
+repo_name: infinitehaiku/ih-muse
 copyright: Maintained by <a href="https://infinitehaiku.com">Florian</a>.
 
 nav:
@@ -15,7 +15,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [muse_python]
+          paths: [ih_muse]
 theme:
   name: material
   feature:
@@ -41,9 +41,9 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/infinitehaiku/muse-python
+      link: https://github.com/infinitehaiku/ih-muse
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/muse-python
+      link: https://pypi.org/project/ih-muse
 
 markdown_extensions:
   - toc:
