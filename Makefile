@@ -4,7 +4,7 @@ install: ## Install the virtual environment and install the pre-commit hooks
 	@uv sync
 	@uv run pre-commit install
 
-.PHONY: check
+.PHONY: check-python
 check: ## Run code quality tools.
 	@echo "🚀 Checking lock file consistency with 'pyproject.toml'"
 	@uv lock --locked
@@ -14,6 +14,16 @@ check: ## Run code quality tools.
 	@uv run mypy
 	@echo "🚀 Checking for obsolete dependencies: Running deptry"
 	@uv run deptry .
+
+.PHONY: check-rust
+check-rust: ## Run Rust specific checks
+	@echo "🚀 Checking Rust formatting"
+	@cargo fmt --all -- --check
+	@echo "🚀 Running Rust clippy checks"
+	@cargo clippy --all-targets --all-features -- -D warnings
+
+.PHONY: check
+check: check-python check-rust
 
 .PHONY: build
 build: clean-build ## Build wheel file
