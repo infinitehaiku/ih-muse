@@ -3,15 +3,15 @@
 use clap::Args;
 
 use super::utils::create_poet_client;
+use crate::common::CommonArgs;
 use ih_muse_core::{time, Error, MetricPayload, Transport};
 use ih_muse_proto::metric_id_from_code;
 use ih_muse_proto::types::*;
 
 #[derive(Args)]
 pub struct SendMetricArgs {
-    /// Poet server URL
-    #[arg(short, long, default_value = "http://localhost:8000")]
-    pub poet_url: String,
+    #[clap(flatten)]
+    pub common: CommonArgs,
     /// Element ID
     #[arg(short, long)]
     pub element_id: ElementId,
@@ -24,7 +24,7 @@ pub struct SendMetricArgs {
 }
 
 pub async fn execute(args: SendMetricArgs) -> Result<(), Error> {
-    let client = create_poet_client(&args.poet_url);
+    let client = create_poet_client(&args.common.poet_url);
 
     let payload = MetricPayload {
         time: time::utc_now_i64(),

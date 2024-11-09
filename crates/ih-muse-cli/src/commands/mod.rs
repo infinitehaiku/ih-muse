@@ -1,3 +1,4 @@
+pub mod get_resolution;
 pub mod is_ready;
 pub mod record;
 pub mod register_element;

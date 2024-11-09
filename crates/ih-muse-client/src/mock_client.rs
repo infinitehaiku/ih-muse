@@ -6,6 +6,7 @@ use once_cell::sync::Lazy;
 use ih_muse_core::{Error, Transport};
 use ih_muse_proto::{
     ElementId, ElementKindRegistration, ElementRegistration, MetricPayload, MetricRegistration,
+    TimestampResolution,
 };
 
 static NEXT_ELEMENT_ID: Lazy<AtomicU64> = Lazy::new(|| AtomicU64::new(0));
@@ -34,6 +35,11 @@ impl Transport for MockClient {
     async fn health_check(&self) -> Result<(), Error> {
         println!("MockClient: health_check called");
         Ok(())
+    }
+
+    async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
+        println!("MockClient: get_finest_resolution called");
+        Ok(TimestampResolution::default())
     }
 
     async fn register_element_kinds(

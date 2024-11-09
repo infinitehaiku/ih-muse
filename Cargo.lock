@@ -678,7 +678,6 @@ name = "ih-muse-core"
 version = "0.0.4"
 dependencies = [
  "async-trait",
- "bincode",
  "chrono",
  "hashbrown",
  "ih-muse-proto",

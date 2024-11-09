@@ -9,7 +9,7 @@ use tokio::task::JoinHandle;
 use ih_muse_client::{MockClient, PoetClient, PoetEndpoint};
 use ih_muse_core::{time, CacheStrategy, Error, Transport};
 use ih_muse_proto::metric_id_from_code;
-use ih_muse_proto::{types::*, ElementId, ElementRegistration, MetricPayload};
+use ih_muse_proto::{types::*, ElementId, ElementRegistration, MetricPayload, TimestampResolution};
 use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replayer};
 
 pub enum ClientType {
@@ -23,6 +23,7 @@ pub struct Config {
     pub client_type: ClientType,
     pub recording_enabled: bool,
     pub recording_path: Option<String>,
+    pub default_resolution: TimestampResolution,
 }
 
 pub struct Muse {

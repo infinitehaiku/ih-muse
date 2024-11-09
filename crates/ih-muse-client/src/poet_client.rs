@@ -6,7 +6,7 @@ use reqwest::{Client, StatusCode};
 use ih_muse_core::{Error, Transport};
 use ih_muse_proto::{
     ElementId, ElementKindRegistration, ElementRegistration, MetricPayload, MetricRegistration,
-    NewElementsResponse,
+    NewElementsResponse, TimestampResolution,
 };
 
 pub struct PoetEndpoint {
@@ -33,6 +33,46 @@ impl PoetClient {
 
 #[async_trait]
 impl Transport for PoetClient {
+    async fn health_check(&self) -> Result<(), Error> {
+        let url = format!("{}/health", self.get_base_url());
+        let response =
+            self.client.get(&url).send().await.map_err(|e| {
+                Error::ClientError(format!("Failed to perform health check: {}", e))
+            })?;
+
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            Err(Error::ClientError(format!(
+                "Health check failed: HTTP {}",
+                response.status()
+            )))
+        }
+    }
+
+    async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
+        let url = format!("{}/config/finest_resolution", self.get_base_url());
+        let response =
+            self.client.get(&url).send().await.map_err(|e| {
+                Error::ClientError(format!("Failed to perform health check: {}", e))
+            })?;
+
+        if response.status().is_success() {
+            let resp_haikus: TimestampResolution = response.json().await.map_err(|e| {
+                Error::ClientError(format!(
+                    "Failed to parse response as TimestampResolution: {}",
+                    e
+                ))
+            })?;
+            Ok(resp_haikus)
+        } else {
+            Err(Error::ClientError(format!(
+                "Get Finest Resolution failed: {}",
+                response.status()
+            )))
+        }
+    }
+
     async fn register_metrics(&self, payload: Vec<MetricRegistration>) -> Result<(), Error> {
         let url = format!("{}/ds/metrics", self.get_base_url());
         let response = self
@@ -131,23 +171,6 @@ impl Transport for PoetClient {
         } else {
             Err(Error::ClientError(format!(
                 "Failed to register element kind: HTTP {}",
-                response.status()
-            )))
-        }
-    }
-
-    async fn health_check(&self) -> Result<(), Error> {
-        let url = format!("{}/health", self.get_base_url());
-        let response =
-            self.client.get(&url).send().await.map_err(|e| {
-                Error::ClientError(format!("Failed to perform health check: {}", e))
-            })?;
-
-        if response.status().is_success() {
-            Ok(())
-        } else {
-            Err(Error::ClientError(format!(
-                "Health check failed: HTTP {}",
                 response.status()
             )))
         }

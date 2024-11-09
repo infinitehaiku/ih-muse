@@ -18,7 +18,6 @@ python = []
 ih-muse-proto = { workspace = true }
 
 async-trait = { workspace = true }
-bincode = "1.3.3"
 chrono = { workspace = true }
 hashbrown = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

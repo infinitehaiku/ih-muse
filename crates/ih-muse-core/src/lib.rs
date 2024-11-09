@@ -10,11 +10,13 @@ pub use cache::{CacheStrategy, DummyCacheStrategy};
 pub use errors::Error;
 pub use ih_muse_proto::{
     types::*, ElementKindRegistration, ElementRegistration, MetricPayload, MetricRegistration,
+    TimestampResolution,
 };
 
 #[async_trait]
 pub trait Transport {
     async fn health_check(&self) -> Result<(), Error>;
+    async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error>;
     async fn register_element_kinds(
         &self,
         element_kinds: Vec<ElementKindRegistration>,

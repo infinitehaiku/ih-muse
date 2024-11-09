@@ -6,9 +6,9 @@ mod commands;
 mod common;
 
 use commands::{
-    is_ready::IsReadyArgs, record::RecordArgs, register_element::RegisterElementArgs,
-    register_element_kind::RegisterElementKindArgs, register_metric::RegisterMetricArgs,
-    replay::ReplayArgs, send_metric::SendMetricArgs,
+    get_resolution::GetFinestResolutionArgs, is_ready::IsReadyArgs, record::RecordArgs,
+    register_element::RegisterElementArgs, register_element_kind::RegisterElementKindArgs,
+    register_metric::RegisterMetricArgs, replay::ReplayArgs, send_metric::SendMetricArgs,
 };
 
 #[derive(Parser)]
@@ -22,6 +22,8 @@ struct Cli {
 enum Commands {
     /// Check if the poet server is up and healthy
     IsReady(IsReadyArgs),
+    /// Register an element kind with the poet server
+    GetFinestResolution(GetFinestResolutionArgs),
     /// Register an element kind with the poet server
     RegisterElementKind(RegisterElementKindArgs),
     /// Register an element with the poet server
@@ -42,6 +44,7 @@ async fn main() {
 
     let result = match cli.command {
         Commands::IsReady(args) => commands::is_ready::execute(args).await,
+        Commands::GetFinestResolution(args) => commands::get_resolution::execute(args).await,
         Commands::RegisterElement(args) => commands::register_element::execute(args).await,
         Commands::RegisterElementKind(args) => commands::register_element_kind::execute(args).await,
         Commands::RegisterMetric(args) => commands::register_metric::execute(args).await,
