@@ -6,3 +6,9 @@
 [![License](https://img.shields.io/github/license/infinitehaiku/ih-muse)](https://img.shields.io/github/license/infinitehaiku/ih-muse)
 
 Common muse library for python
+
+## Project Overview
+
+`ih-muse` is a modular and high-performance library designed to interact with the Poet datastore server, providing a unified interface to send and manage metrics across systems like Kubernetes, Celery, and other infrastructure.
+
+For a detailed architecture overview of `ih-muse`'s crate structure and data flow, see the [Architecture Overview](architecture.md).

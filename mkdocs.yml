@@ -50,3 +50,15 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.superfences:
+      preserve_tabs: true
+      custom_fences:
+        # Mermaid diagrams
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - optionalConfig.js
+  - https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js
+  - extra-loader.js

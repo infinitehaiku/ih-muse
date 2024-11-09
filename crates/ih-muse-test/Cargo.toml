@@ -1,5 +1,5 @@
 [package]
-name = "ih-muse"
+name = "ih-muse-test"
 version = { workspace = true }
 publish = true
 authors = { workspace = true }
@@ -8,19 +8,15 @@ rust-version = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 license = { workspace = true }
-description = "Infinite Haiku Muse"
+description = "Utilities for testing, including recording and replaying metrics, and mock servers"
 readme = "../../README.md"
+
+[features]
+python = []
 
 [dependencies]
 ih-muse-core = { workspace = true }
-ih-muse-client = { workspace = true }
-ih-muse-proto = { workspace = true }
-ih-muse-record = { workspace = true }
 
-chrono = { workspace = true }
-serde = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-tokio = { version = "1.0", features = ["full"] }
-
-[lints]
-workspace = true

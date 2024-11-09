@@ -1,26 +1,24 @@
 [package]
-name = "ih-muse"
+name = "ih-muse-cli"
 version = { workspace = true }
-publish = true
+publish = false
 authors = { workspace = true }
 edition = { workspace = true }
 rust-version = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 license = { workspace = true }
-description = "Infinite Haiku Muse"
+description = "Muse Command Line Interface"
 readme = "../../README.md"
 
 [dependencies]
-ih-muse-core = { workspace = true }
 ih-muse-client = { workspace = true }
+ih-muse-core = { workspace = true }
 ih-muse-proto = { workspace = true }
 ih-muse-record = { workspace = true }
 
+async-trait = { workspace = true }
 chrono = { workspace = true }
-serde = { workspace = true }
+clap = { version = "4.5.20", features = ["derive"] }
 serde_json = { workspace = true }
-tokio = { version = "1.0", features = ["full"] }
-
-[lints]
-workspace = true
+tokio = { workspace = true, features = ["full"] }

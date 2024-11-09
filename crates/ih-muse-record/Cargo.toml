@@ -1,5 +1,5 @@
 [package]
-name = "ih-muse"
+name = "ih-muse-record"
 version = { workspace = true }
 publish = true
 authors = { workspace = true }
@@ -8,19 +8,18 @@ rust-version = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 license = { workspace = true }
-description = "Infinite Haiku Muse"
+description = "Record Muse Api usage for testing purposes"
 readme = "../../README.md"
+
+[features]
+python = []
 
 [dependencies]
 ih-muse-core = { workspace = true }
-ih-muse-client = { workspace = true }
 ih-muse-proto = { workspace = true }
-ih-muse-record = { workspace = true }
 
-chrono = { workspace = true }
-serde = { workspace = true }
+async-trait = { workspace = true }
+bincode = "1.3.3"
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-tokio = { version = "1.0", features = ["full"] }
-
-[lints]
-workspace = true
+tokio = { workspace = true, features = ["full"] }

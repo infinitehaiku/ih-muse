@@ -1,5 +1,5 @@
 [package]
-name = "ih-muse-core"
+name = "ih-muse-client"
 version = { workspace = true }
 publish = true
 authors = { workspace = true }
@@ -8,7 +8,7 @@ rust-version = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 license = { workspace = true }
-description = "Infinite Haiku Muse Core"
+description = "Handle communication with the Poet server(s), including request handling and server discovery"
 readme = "../../README.md"
 
 [features]
@@ -16,12 +16,12 @@ python = []
 
 [dependencies]
 ih-muse-proto = { workspace = true }
+ih-muse-core = { workspace = true }
 
 async-trait = { workspace = true }
-bincode = "1.3.3"
-chrono = { workspace = true }
-hashbrown = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
+once_cell = "1.20.2"
+reqwest = { version = "0.12.9", features = ["json", "rustls-tls"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-thiserror = "1.0.66"
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["full"] }

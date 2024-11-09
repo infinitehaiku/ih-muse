@@ -1,0 +1,39 @@
+// crates/ih-muse-cli/src/commands/register_metric.rs
+
+use clap::Args;
+use ih_muse_core::{Error, Transport};
+use ih_muse_proto::MetricRegistration;
+
+use crate::common::CommonArgs;
+
+#[derive(Args)]
+pub struct RegisterMetricArgs {
+    #[clap(flatten)]
+    pub common: CommonArgs,
+
+    /// Metric code
+    #[arg(short, long)]
+    pub code: String,
+
+    /// Metric name
+    #[arg(short, long)]
+    pub name: String,
+
+    /// Metric description
+    #[arg(short, long)]
+    pub description: String,
+}
+
+pub async fn execute(args: RegisterMetricArgs) -> Result<(), Error> {
+    let client = super::utils::create_poet_client(&args.common.poet_url);
+
+    let payload = vec![MetricRegistration::new(
+        args.code,
+        args.name,
+        args.description,
+    )];
+
+    client.register_metrics(payload).await?;
+    println!("Metric registered successfully");
+    Ok(())
+}

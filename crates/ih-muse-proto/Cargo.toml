@@ -1,5 +1,5 @@
 [package]
-name = "ih-muse-core"
+name = "ih-muse-proto"
 version = { workspace = true }
 publish = true
 authors = { workspace = true }
@@ -8,20 +8,14 @@ rust-version = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 license = { workspace = true }
-description = "Infinite Haiku Muse Core"
+description = "Data structures used for communication and handle serialization"
 readme = "../../README.md"
 
 [features]
 python = []
 
 [dependencies]
-ih-muse-proto = { workspace = true }
-
-async-trait = { workspace = true }
-bincode = "1.3.3"
-chrono = { workspace = true }
-hashbrown = { workspace = true }
+chrono = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-thiserror = "1.0.66"
-tokio = { workspace = true }
+twox-hash = { workspace = true }
