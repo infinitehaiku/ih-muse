@@ -26,7 +26,7 @@ pub async fn execute(args: GetMetricOrderArgs) -> Result<(), Error> {
         }
         Err(e) => {
             eprintln!("Failed to get metric order: {}", e);
-            return Err(e); // Optional: return the error if you want to propagate it
+            return Err(e);
         }
     }
 

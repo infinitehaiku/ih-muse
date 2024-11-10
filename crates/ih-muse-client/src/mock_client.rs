@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 use ih_muse_core::{Error, Transport};
 use ih_muse_proto::{
     ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition, MetricPayload,
-    NodeState, TimestampResolution,
+    NodeElementRange, NodeState, TimestampResolution,
 };
 
 static NEXT_ELEMENT_ID: Lazy<AtomicU64> = Lazy::new(|| AtomicU64::new(0));
@@ -61,6 +61,14 @@ impl Transport for MockClient {
     async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
         println!("MockClient: get_finest_resolution called");
         Ok(*self.finest_resolution.lock().await)
+    }
+
+    async fn get_node_elem_ranges(&self) -> Result<Vec<NodeElementRange>, Error> {
+        println!("MockClient: get_node_elem_ranges called");
+        // TODO made up range(s) based in current register elements
+        Err(Error::ClientError(
+            "get_node_elem_ranges not implemented".to_string(),
+        ))
     }
 
     async fn register_element_kinds(

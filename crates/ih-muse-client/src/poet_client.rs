@@ -5,8 +5,8 @@ use reqwest::{Client, StatusCode};
 
 use ih_muse_core::{Error, Transport};
 use ih_muse_proto::{
-    ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition, MetricPayload,
-    NewElementsResponse, NodeState, TimestampResolution,
+    ElementId, ElementKindRegistration, ElementRegistration, GetRangesRequest, MetricDefinition,
+    MetricPayload, NewElementsResponse, NodeElementRange, NodeState, TimestampResolution,
 };
 
 pub struct PoetEndpoint {
@@ -89,6 +89,32 @@ impl Transport for PoetClient {
         } else {
             Err(Error::ClientError(format!(
                 "Get Finest Resolution failed: {}",
+                response.status()
+            )))
+        }
+    }
+
+    async fn get_node_elem_ranges(&self) -> Result<Vec<NodeElementRange>, Error> {
+        let url = format!("{}/ds/elements/ranges", self.get_base_url());
+        let ranges_request = GetRangesRequest::default();
+        let response = self
+            .client
+            .get(&url)
+            .json(&ranges_request)
+            .send()
+            .await
+            .map_err(|e| Error::ClientError(format!("Failed to retrieve node state: {}", e)))?;
+
+        if response.status().is_success() {
+            let ranges: Vec<NodeElementRange> = response.json().await.map_err(|e| {
+                Error::ClientError(format!(
+                    "Failed to parse response as Vec<NodeElementRange>: {e}"
+                ))
+            })?;
+            Ok(ranges)
+        } else {
+            Err(Error::ClientError(format!(
+                "Get All Element Ranges failed: {}",
                 response.status()
             )))
         }

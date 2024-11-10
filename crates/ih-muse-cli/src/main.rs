@@ -6,10 +6,11 @@ mod commands;
 mod common;
 
 use commands::{
-    get_metric_order::GetMetricOrderArgs, get_node_state::GetNodeStateArgs,
-    get_resolution::GetFinestResolutionArgs, is_ready::IsReadyArgs, record::RecordArgs,
-    register_element::RegisterElementArgs, register_element_kind::RegisterElementKindArgs,
-    register_metric::RegisterMetricArgs, replay::ReplayArgs, send_metric::SendMetricArgs,
+    get_metric_order::GetMetricOrderArgs, get_node_elem_ranges::GetNodeElemRangesArgs,
+    get_node_state::GetNodeStateArgs, get_resolution::GetFinestResolutionArgs,
+    is_ready::IsReadyArgs, record::RecordArgs, register_element::RegisterElementArgs,
+    register_element_kind::RegisterElementKindArgs, register_metric::RegisterMetricArgs,
+    replay::ReplayArgs, send_metric::SendMetricArgs,
 };
 
 #[derive(Parser)]
@@ -31,6 +32,8 @@ enum Commands {
     RegisterElementKind(RegisterElementKindArgs),
     /// Register an element with the poet server
     RegisterElement(RegisterElementArgs),
+    /// Get the Element Ranges Assigned to each node
+    GetNodeElemRanges(GetNodeElemRangesArgs),
     /// Register a metric definition
     RegisterMetric(RegisterMetricArgs),
     /// Get Global Metrics Order
@@ -52,6 +55,7 @@ async fn main() {
         Commands::GetNodeState(args) => commands::get_node_state::execute(args).await,
         Commands::GetFinestResolution(args) => commands::get_resolution::execute(args).await,
         Commands::RegisterElement(args) => commands::register_element::execute(args).await,
+        Commands::GetNodeElemRanges(args) => commands::get_node_elem_ranges::execute(args).await,
         Commands::RegisterElementKind(args) => commands::register_element_kind::execute(args).await,
         Commands::RegisterMetric(args) => commands::register_metric::execute(args).await,
         Commands::GetMetricOrder(args) => commands::get_metric_order::execute(args).await,
