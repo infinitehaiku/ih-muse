@@ -83,6 +83,10 @@ ih-muse/
    - Wraps Rust implementation
    - Provides Python-friendly interface
 
+7. **Record Functionalitiy (`ih-muse-record`)**
+   - Records events (calls to the library in Json or bin)
+   - Replays recorded files
+
 ## Sample Usage Scenario
 
 ```rust

@@ -1,0 +1,19 @@
+// crates/ih-muse-cli/src/commands/register_metric.rs
+
+use clap::Args;
+use ih_muse_core::{Error, Transport};
+
+use crate::common::CommonArgs;
+
+#[derive(Args)]
+pub struct GetNodeStateArgs {
+    #[clap(flatten)]
+    pub common: CommonArgs,
+}
+
+pub async fn execute(args: GetNodeStateArgs) -> Result<(), Error> {
+    let client = super::utils::create_poet_client(&args.common.poet_url);
+    let node_state = client.get_node_state().await?;
+    println!("{node_state}");
+    Ok(())
+}

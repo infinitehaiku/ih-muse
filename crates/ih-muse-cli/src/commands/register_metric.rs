@@ -2,7 +2,7 @@
 
 use clap::Args;
 use ih_muse_core::{Error, Transport};
-use ih_muse_proto::MetricRegistration;
+use ih_muse_proto::MetricDefinition;
 
 use crate::common::CommonArgs;
 
@@ -27,7 +27,7 @@ pub struct RegisterMetricArgs {
 pub async fn execute(args: RegisterMetricArgs) -> Result<(), Error> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
 
-    let payload = vec![MetricRegistration::new(
+    let payload = vec![MetricDefinition::new(
         args.code,
         args.name,
         args.description,

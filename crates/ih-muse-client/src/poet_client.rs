@@ -5,8 +5,8 @@ use reqwest::{Client, StatusCode};
 
 use ih_muse_core::{Error, Transport};
 use ih_muse_proto::{
-    ElementId, ElementKindRegistration, ElementRegistration, MetricPayload, MetricRegistration,
-    NewElementsResponse, TimestampResolution,
+    ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition, MetricPayload,
+    NewElementsResponse, NodeState, TimestampResolution,
 };
 
 pub struct PoetEndpoint {
@@ -50,6 +50,28 @@ impl Transport for PoetClient {
         }
     }
 
+    async fn get_node_state(&self) -> Result<NodeState, Error> {
+        let url = format!("{}/sync/state", self.get_base_url());
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| Error::ClientError(format!("Failed to retrieve node state: {}", e)))?;
+
+        if response.status().is_success() {
+            let resp_haikus: NodeState = response.json().await.map_err(|e| {
+                Error::ClientError(format!("Failed to parse response as NodeState: {e}"))
+            })?;
+            Ok(resp_haikus)
+        } else {
+            Err(Error::ClientError(format!(
+                "Get Finest Resolution failed: {}",
+                response.status()
+            )))
+        }
+    }
+
     async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
         let url = format!("{}/config/finest_resolution", self.get_base_url());
         let response =
@@ -60,8 +82,7 @@ impl Transport for PoetClient {
         if response.status().is_success() {
             let resp_haikus: TimestampResolution = response.json().await.map_err(|e| {
                 Error::ClientError(format!(
-                    "Failed to parse response as TimestampResolution: {}",
-                    e
+                    "Failed to parse response as TimestampResolution: {e}"
                 ))
             })?;
             Ok(resp_haikus)
@@ -73,7 +94,7 @@ impl Transport for PoetClient {
         }
     }
 
-    async fn register_metrics(&self, payload: Vec<MetricRegistration>) -> Result<(), Error> {
+    async fn register_metrics(&self, payload: Vec<MetricDefinition>) -> Result<(), Error> {
         let url = format!("{}/ds/metrics", self.get_base_url());
         let response = self
             .client
@@ -81,10 +102,34 @@ impl Transport for PoetClient {
             .json(&payload)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to send metric: {}", e)))?;
+            .map_err(|e| Error::ClientError(format!("Failed to send metric: {e}")))?;
 
         if response.status().is_success() {
             Ok(())
+        } else {
+            Err(Error::ClientError(format!(
+                "Failed to send metric: HTTP {}",
+                response.status()
+            )))
+        }
+    }
+
+    async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error> {
+        let url = format!("{}/ds/metrics", self.get_base_url());
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| Error::ClientError(format!("Failed to send metric: {}", e)))?;
+
+        if response.status().is_success() {
+            let metric_defs: Vec<MetricDefinition> = response.json().await.map_err(|e| {
+                Error::ClientError(format!(
+                    "Failed to parse response as Vec<MetricDefinition>: {e}"
+                ))
+            })?;
+            Ok(metric_defs)
         } else {
             Err(Error::ClientError(format!(
                 "Failed to send metric: HTTP {}",

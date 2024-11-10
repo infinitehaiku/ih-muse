@@ -10,14 +10,14 @@ pub fn metric_id_from_code(code: &str) -> u32 {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct MetricRegistration {
+pub struct MetricDefinition {
     pub id: MetricId,
     pub code: String,
     pub name: String,
     pub description: String,
 }
 
-impl MetricRegistration {
+impl MetricDefinition {
     pub fn new(code: String, name: String, description: String) -> Self {
         Self {
             id: metric_id_from_code(&code),
