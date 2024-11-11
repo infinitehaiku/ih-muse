@@ -73,7 +73,7 @@ impl Transport for MockClient {
 
     async fn register_element_kinds(
         &self,
-        element_kinds: Vec<ElementKindRegistration>,
+        element_kinds: &[ElementKindRegistration],
     ) -> Result<(), Error> {
         println!(
             "MockClient: register_element_kinds called with {:?}",
@@ -84,20 +84,17 @@ impl Transport for MockClient {
 
     async fn register_elements(
         &self,
-        elements: Vec<ElementRegistration>,
+        elements: &[ElementRegistration],
     ) -> Result<Vec<Result<ElementId, Error>>, Error> {
         println!("MockClient: register_elements called with {:?}", elements);
-        let results = elements
-            .into_iter()
-            .map(|_| Ok(get_new_element_id()))
-            .collect();
+        let results = elements.iter().map(|_| Ok(get_new_element_id())).collect();
         Ok(results)
     }
 
-    async fn register_metrics(&self, payload: Vec<MetricDefinition>) -> Result<(), Error> {
+    async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error> {
         println!("MockClient: register_metrics called with {:?}", payload);
         let mut metrics = self.metrics.lock().await;
-        metrics.extend(payload);
+        metrics.extend(payload.iter().cloned());
         Ok(())
     }
 

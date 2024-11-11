@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
 
@@ -64,6 +63,35 @@ impl TimestampResolution {
             TimestampResolution::Seconds => "Seconds",
             TimestampResolution::Milliseconds => "Milliseconds",
             TimestampResolution::Microseconds => "Microseconds",
+        }
+    }
+
+    pub fn as_u8(&self) -> u8 {
+        match self {
+            TimestampResolution::Years => 0,
+            TimestampResolution::Months => 1,
+            TimestampResolution::Weeks => 2,
+            TimestampResolution::Days => 3,
+            TimestampResolution::Hours => 4,
+            TimestampResolution::Minutes => 5,
+            TimestampResolution::Seconds => 6,
+            TimestampResolution::Milliseconds => 7,
+            TimestampResolution::Microseconds => 8,
+        }
+    }
+
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            0 => TimestampResolution::Years,
+            1 => TimestampResolution::Months,
+            2 => TimestampResolution::Weeks,
+            3 => TimestampResolution::Days,
+            4 => TimestampResolution::Hours,
+            5 => TimestampResolution::Minutes,
+            6 => TimestampResolution::Seconds,
+            7 => TimestampResolution::Milliseconds,
+            8 => TimestampResolution::Microseconds,
+            _ => panic!("Unexpected value: {value}"),
         }
     }
 }

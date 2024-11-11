@@ -17,10 +17,13 @@ python = []
 [dependencies]
 ih-muse-proto = { workspace = true }
 
+arc-swap = "1.7"
 async-trait = { workspace = true }
 chrono = { workspace = true }
 hashbrown = { workspace = true }
+imbl = "3.0"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 thiserror = "1.0.66"
 tokio = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }

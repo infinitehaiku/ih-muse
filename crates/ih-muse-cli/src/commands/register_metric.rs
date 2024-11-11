@@ -27,13 +27,13 @@ pub struct RegisterMetricArgs {
 pub async fn execute(args: RegisterMetricArgs) -> Result<(), Error> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
 
-    let payload = vec![MetricDefinition::new(
+    let payload = [MetricDefinition::new(
         args.code,
         args.name,
         args.description,
     )];
 
-    client.register_metrics(payload).await?;
+    client.register_metrics(&payload).await?;
     println!("Metric registered successfully");
     Ok(())
 }

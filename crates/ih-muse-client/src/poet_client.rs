@@ -9,25 +9,21 @@ use ih_muse_proto::{
     MetricPayload, NewElementsResponse, NodeElementRange, NodeState, TimestampResolution,
 };
 
-pub struct PoetEndpoint {
-    pub url: String,
-}
-
 pub struct PoetClient {
     client: Client,
-    endpoints: Vec<PoetEndpoint>,
+    endpoints: Vec<String>,
     // You can add cache_strategy here if needed in the future
 }
 
 impl PoetClient {
-    pub fn new(endpoints: Vec<PoetEndpoint>) -> Self {
+    pub fn new(endpoints: Vec<String>) -> Self {
         let client = Client::new();
         Self { client, endpoints }
     }
 
-    fn get_base_url(&self) -> String {
+    fn get_base_url(&self) -> &str {
         // For simplicity, use the first endpoint
-        self.endpoints.first().unwrap().url.clone()
+        &self.endpoints.first().unwrap()
     }
 }
 
@@ -120,12 +116,12 @@ impl Transport for PoetClient {
         }
     }
 
-    async fn register_metrics(&self, payload: Vec<MetricDefinition>) -> Result<(), Error> {
+    async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error> {
         let url = format!("{}/ds/metrics", self.get_base_url());
         let response = self
             .client
             .post(&url)
-            .json(&payload)
+            .json(payload)
             .send()
             .await
             .map_err(|e| Error::ClientError(format!("Failed to send metric: {e}")))?;
@@ -186,13 +182,13 @@ impl Transport for PoetClient {
 
     async fn register_elements(
         &self,
-        elements: Vec<ElementRegistration>,
+        elements: &[ElementRegistration],
     ) -> Result<Vec<Result<ElementId, Error>>, Error> {
         let url = format!("{}/ds/elements", self.get_base_url());
         let response = self
             .client
             .post(&url)
-            .json(&elements)
+            .json(elements)
             .send()
             .await
             .map_err(|e| Error::ClientError(format!("Failed to register elements: {}", e)))?;
@@ -226,13 +222,13 @@ impl Transport for PoetClient {
 
     async fn register_element_kinds(
         &self,
-        element_kind: Vec<ElementKindRegistration>,
+        element_kind: &[ElementKindRegistration],
     ) -> Result<(), Error> {
         let url = format!("{}/ds/element_kinds", self.get_base_url());
         let response = self
             .client
             .post(&url)
-            .json(&element_kind)
+            .json(element_kind)
             .send()
             .await
             .map_err(|e| Error::ClientError(format!("Failed to register element kind: {}", e)))?;

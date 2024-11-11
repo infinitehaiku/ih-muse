@@ -31,14 +31,14 @@ pub struct RegisterElementKindArgs {
 pub async fn execute(args: RegisterElementKindArgs) -> Result<(), Error> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
 
-    let payload = vec![ElementKindRegistration::new(
+    let payload = [ElementKindRegistration::new(
         args.code,
         args.parent_code,
         args.name,
         args.description,
     )];
 
-    client.register_element_kinds(payload).await?;
+    client.register_element_kinds(&payload).await?;
     println!("Element kind registered successfully");
     Ok(())
 }

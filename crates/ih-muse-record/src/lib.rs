@@ -4,6 +4,8 @@ mod file_format;
 mod file_recorder;
 mod file_replayer;
 
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
@@ -12,7 +14,6 @@ pub use file_recorder::FileRecorder;
 pub use file_replayer::FileReplayer;
 use ih_muse_core::Error;
 use ih_muse_proto::types::*;
-use ih_muse_proto::ElementRegistration;
 
 #[async_trait]
 pub trait Recorder {
@@ -27,7 +28,12 @@ pub trait Replayer {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RecordedEvent {
-    ElementRegistration(ElementRegistration),
+    ElementRegistration {
+        kind_code: String,
+        name: String,
+        metadata: HashMap<String, String>,
+        parent_id: Option<ElementId>,
+    },
     SendMetric {
         element_id: ElementId,
         metric_code: String,

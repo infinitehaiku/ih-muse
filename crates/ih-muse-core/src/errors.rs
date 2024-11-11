@@ -18,4 +18,8 @@ pub enum Error {
     ReplayingError(String),
     #[error("File has an invalid extension {0:?}")]
     InvalidFileExtension(Option<String>),
+    #[error("Invalid Element Kind Code {0}")]
+    InvalidElementKindCode(String),
+    #[error("Invalid Metric Code {0}")]
+    InvalidMetricCode(String),
 }

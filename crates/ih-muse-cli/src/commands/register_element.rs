@@ -37,14 +37,14 @@ pub async fn execute(args: RegisterElementArgs) -> Result<(), Error> {
         None => HashMap::new(),
     };
 
-    let elements = vec![ElementRegistration::new(
+    let elements = [ElementRegistration::new(
         &args.kind,
         args.name,
         metadata,
         args.parent_id,
     )];
 
-    let result = client.register_elements(elements).await?;
+    let result = client.register_elements(&elements).await?;
     println!("Element registered with IDs: {:?}", result);
     Ok(())
 }

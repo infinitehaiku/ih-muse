@@ -1,15 +1,23 @@
-use std::path::Path;
-use std::sync::Arc;
-use std::time::Duration;
+// crates/ih-muse/src/lib.rs
 
-use tokio::sync::mpsc;
+mod tasks;
+
+use std::collections::HashMap;
+use std::path::Path;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 
-use ih_muse_client::{MockClient, PoetClient, PoetEndpoint};
-use ih_muse_core::{time, CacheStrategy, Error, Transport};
+use ih_muse_client::{MockClient, PoetClient};
+use ih_muse_core::{time, Error, State, Transport};
 use ih_muse_proto::metric_id_from_code;
-use ih_muse_proto::{types::*, ElementId, ElementRegistration, MetricPayload, TimestampResolution};
+use ih_muse_proto::{
+    types::*, ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition,
+    MetricPayload, TimestampResolution,
+};
 use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replayer};
 
 pub enum ClientType {
@@ -19,32 +27,38 @@ pub enum ClientType {
 
 pub struct Config {
     pub endpoints: Vec<String>,
-    pub cache_strategy: Arc<dyn CacheStrategy + Send + Sync>,
     pub client_type: ClientType,
     pub recording_enabled: bool,
     pub recording_path: Option<String>,
     pub default_resolution: TimestampResolution,
+    pub element_kinds: Vec<ElementKindRegistration>,
+    pub metric_definitions: Vec<MetricDefinition>,
 }
 
 pub struct Muse {
     client: Arc<dyn Transport + Send + Sync>,
+    state: Arc<State>,
     recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>>,
-    cache_strategy: Arc<dyn CacheStrategy + Send + Sync>,
-    metric_tx: mpsc::Sender<MetricPayload>,
-    metric_task: Option<JoinHandle<()>>,
+    tasks: Vec<JoinHandle<()>>,
+    cancellation_token: CancellationToken,
+    is_initialized: Arc<AtomicBool>,
+}
+
+impl Drop for Muse {
+    fn drop(&mut self) {
+        self.cancellation_token.cancel();
+        for task in &self.tasks {
+            task.abort();
+        }
+    }
 }
 
 impl Muse {
     pub fn new(config: Config) -> Self {
+        // TODO validate element_kinds and metric_definitions
+
         let client: Arc<dyn Transport + Send + Sync> = match config.client_type {
-            ClientType::Poet => {
-                let endpoints = config
-                    .endpoints
-                    .into_iter()
-                    .map(|url| PoetEndpoint { url })
-                    .collect();
-                Arc::new(PoetClient::new(endpoints))
-            }
+            ClientType::Poet => Arc::new(PoetClient::new(config.endpoints)),
             ClientType::Mock => Arc::new(MockClient::new()),
         };
 
@@ -60,57 +74,85 @@ impl Muse {
             None
         };
 
-        let cache_strategy = config.cache_strategy.clone();
+        // Create the cancellation token
+        let cancellation_token = CancellationToken::new();
 
-        let (metric_tx, mut metric_rx) = mpsc::channel::<MetricPayload>(100);
-        let client_clone = client.clone();
-
-        // Start background task to send metrics
-        let metric_task = tokio::spawn(async move {
-            let mut buffer = Vec::new();
-            let mut interval = tokio::time::interval(Duration::from_secs(1));
-
-            loop {
-                tokio::select! {
-                    Some(payload) = metric_rx.recv() => {
-                        buffer.push(payload);
-                        if buffer.len() >= 100 {
-                            // Send metrics
-                            let _ = client_clone.send_metrics(buffer.clone()).await;
-                            buffer.clear();
-                        }
-                    },
-                    _ = interval.tick() => {
-                        if !buffer.is_empty() {
-                            // Send metrics
-                            let _ = client_clone.send_metrics(buffer.clone()).await;
-                            buffer.clear();
-                        }
-                    }
-                }
-            }
-        });
-
-        Self {
+        let mut muse = Self {
             client,
+            state: Arc::new(State::new()),
             recorder,
-            cache_strategy,
-            metric_tx,
-            metric_task: Some(metric_task),
-        }
+            tasks: Vec::new(),
+            cancellation_token: cancellation_token.clone(),
+            is_initialized: Arc::new(AtomicBool::new(false)),
+        };
+
+        muse.start_tasks(config.element_kinds, config.metric_definitions);
+
+        muse
+    }
+
+    fn start_tasks(
+        &mut self,
+        element_kinds: Vec<ElementKindRegistration>,
+        metric_definitions: Vec<MetricDefinition>,
+    ) {
+        let cancellation_token = self.cancellation_token.clone();
+        let client = self.client.clone();
+        let state = self.state.clone();
+        let is_initialized = self.is_initialized.clone();
+
+        // Start the initialization task
+        let init_task_handle = tokio::spawn(tasks::init_task::start_init_task(
+            cancellation_token.clone(),
+            client,
+            state,
+            element_kinds,
+            metric_definitions,
+            is_initialized,
+        ));
+
+        self.tasks.push(init_task_handle);
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self.is_initialized.load(Ordering::SeqCst)
     }
 
     pub async fn register_element(
         &self,
-        element: ElementRegistration,
-    ) -> Result<Vec<Result<ElementId, Error>>, Error> {
+        kind_code: &str,
+        name: String,
+        metadata: HashMap<String, String>,
+        parent_id: Option<ElementId>,
+    ) -> Result<ElementId, Error> {
         // Record the event if recorder is enabled
         if let Some(recorder) = &self.recorder {
-            let event = RecordedEvent::ElementRegistration(element.clone());
+            let event = RecordedEvent::ElementRegistration {
+                kind_code: kind_code.to_string(),
+                name: name.clone(),
+                metadata: metadata.clone(),
+                parent_id: parent_id.clone(),
+            };
             recorder.lock().await.record(event).await?;
         }
-        // Directly call client for simplicity; you can batch these calls similarly
-        self.client.register_elements(vec![element]).await
+
+        if !self.state.is_valid_element_kind_code(kind_code) {
+            return Err(Error::InvalidElementKindCode(kind_code.to_string()));
+        }
+
+        // Create the element registration
+        let element = ElementRegistration::new(kind_code, name, metadata, parent_id);
+
+        // // Register the element immediately using the client
+        // let result = self.client.register_elements([element.clone()]).await?;
+        // let element_id = result.first().ok_or(Error::RegistrationFailed)?.clone()?;
+
+        // // Update state with the new element
+        // self.state
+        //     .update_elements(&[element], &[Ok(element_id)])
+        //     .await;
+
+        Ok(0)
     }
 
     pub async fn send_metric(
@@ -129,18 +171,17 @@ impl Muse {
             recorder.lock().await.record(event).await?;
         }
 
+        if !self.state.is_valid_metric_code(metric_code) {
+            return Err(Error::InvalidMetricCode(metric_code.to_string()));
+        }
+
         let payload = MetricPayload {
             time: time::utc_now_i64(),
             element_id,
             metric_ids: vec![metric_id_from_code(metric_code)],
             values: vec![Some(value)],
         };
-
-        // Send the payload to the metric_tx
-        self.metric_tx
-            .send(payload)
-            .await
-            .map_err(|e| Error::ClientError(format!("Failed to send metric to buffer: {}", e)))?;
+        // TODO accumulate the metric in the metric buffer
 
         Ok(())
     }
@@ -152,8 +193,14 @@ impl Muse {
         let mut replayer = FileReplayer::new(replay_path)?;
         while let Some(event) = replayer.next_event().await? {
             match event {
-                RecordedEvent::ElementRegistration(element) => {
-                    self.register_element(element).await?;
+                RecordedEvent::ElementRegistration {
+                    kind_code,
+                    name,
+                    metadata,
+                    parent_id,
+                } => {
+                    self.register_element(&kind_code, name, metadata, parent_id)
+                        .await?;
                 }
                 RecordedEvent::SendMetric {
                     element_id,
