@@ -101,6 +101,12 @@ impl State {
         self.metric_order.store(Arc::new(ordered_metrics));
     }
 
+    // Retrieve a Vec<&MetricDefinition> slice for cases where that's required.
+    /// Returns a reference to the ordered metric definitions as a slice.
+    pub fn get_metric_order(&self) -> Arc<Vector<Arc<MetricDefinition>>> {
+        self.metric_order.load_full()
+    }
+
     pub async fn update_element_ids(&self, min_id: ElementId, max_id: ElementId) {
         self.min_element_id.store(Some(Arc::new(min_id)));
         self.max_element_id.store(Some(Arc::new(max_id)));

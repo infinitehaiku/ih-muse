@@ -6,10 +6,7 @@ use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 
 use ih_muse_core::{Error, Transport};
-use ih_muse_proto::{
-    ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition, MetricPayload,
-    NodeElementRange, NodeState, TimestampResolution,
-};
+use ih_muse_proto::*;
 
 static NEXT_ELEMENT_ID: Lazy<AtomicU64> = Lazy::new(|| AtomicU64::new(0));
 
@@ -20,6 +17,7 @@ pub fn get_new_element_id() -> u64 {
 
 pub struct MockClient {
     metrics: Arc<Mutex<Vec<MetricDefinition>>>,
+    sent_metrics: Arc<Mutex<Vec<MetricPayload>>>,
     finest_resolution: Arc<Mutex<TimestampResolution>>,
 }
 
@@ -33,6 +31,7 @@ impl MockClient {
     pub fn new() -> Self {
         MockClient {
             metrics: Arc::new(Mutex::new(Vec::new())),
+            sent_metrics: Arc::new(Mutex::new(Vec::new())),
             finest_resolution: Arc::new(Mutex::new(TimestampResolution::default())),
         }
     }
@@ -112,8 +111,48 @@ impl Transport for MockClient {
         Ok(metrics.clone())
     }
 
+    async fn get_metrics(&self, query: &MetricQuery) -> Result<Vec<MetricPayload>, Error> {
+        log::info!("MockClient: get_metrics called with query: {:?}", query);
+        if query.parent_id.is_some() {
+            return Err(Error::ClientError(
+                "parent_id not implemented in MockClient".to_string(),
+            ));
+        }
+        let mut results = Vec::new();
+        for payload in self.sent_metrics.lock().await.iter() {
+            // Filter by time range
+            if let Some(start_time) = query.start_time {
+                if payload.time < start_time {
+                    continue;
+                }
+            }
+            if let Some(end_time) = query.end_time {
+                if payload.time > end_time {
+                    continue;
+                }
+            }
+            // Filter by element_id
+            if let Some(query_element_id) = query.element_id {
+                if payload.element_id != query_element_id {
+                    continue;
+                }
+            }
+            // Filter by metric_id if specified
+            if let Some(query_metric_id) = query.metric_id {
+                // Check if any metric_id in the payload matches `query_metric_id`
+                if !payload.metric_ids.contains(&query_metric_id) {
+                    continue;
+                }
+            }
+            results.push(payload.clone());
+        }
+        Ok(results)
+    }
+
     async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error> {
         log::info!("MockClient: send_metrics called with {:?}", payload);
+        let mut sent_metrics = self.sent_metrics.lock().await;
+        sent_metrics.extend(payload);
         Ok(())
     }
 }

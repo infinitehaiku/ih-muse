@@ -8,12 +8,12 @@ pub mod time;
 
 use async_trait::async_trait;
 
-pub use buffer::ElementBuffer;
+pub use buffer::{ElementBuffer, MetricBuffer};
 pub use cache::{CacheStrategy, DummyCacheStrategy};
 pub use errors::Error;
 pub use ih_muse_proto::{
     types::*, ElementKindRegistration, ElementRegistration, MetricDefinition, MetricPayload,
-    NodeElementRange, NodeState, TimestampResolution,
+    MetricQuery, NodeElementRange, NodeState, TimestampResolution,
 };
 pub use state::State;
 
@@ -37,5 +37,6 @@ pub trait Transport {
     ) -> Result<Vec<NodeElementRange>, Error>;
     async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error>;
     async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error>;
+    async fn get_metrics(&self, query: &MetricQuery) -> Result<Vec<MetricPayload>, Error>;
     async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error>;
 }

@@ -14,7 +14,7 @@ use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
 use ih_muse_client::{MockClient, PoetClient};
-use ih_muse_core::{ElementBuffer, Error, State, Transport};
+use ih_muse_core::{ElementBuffer, Error, MetricBuffer, State, Transport};
 use ih_muse_proto::generate_local_element_id;
 use ih_muse_proto::{
     types::*, ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition,
@@ -47,6 +47,7 @@ pub struct Muse {
     cancellation_token: CancellationToken,
     is_initialized: Arc<AtomicBool>,
     element_buffer: Arc<ElementBuffer>,
+    metric_buffer: Arc<MetricBuffer>,
 }
 
 impl Drop for Muse {
@@ -90,6 +91,7 @@ impl Muse {
             cancellation_token: cancellation_token.clone(),
             is_initialized: Arc::new(AtomicBool::new(false)),
             element_buffer: Arc::new(ElementBuffer::new(config.max_reg_elem_retries)),
+            metric_buffer: Arc::new(MetricBuffer::new()),
         };
 
         muse.start_tasks(
@@ -146,11 +148,20 @@ impl Muse {
         // Start element registration task
         let elem_reg_handle = tokio::spawn(tasks::start_element_registration_task(
             cancellation_token.clone(),
-            client,
-            state,
+            client.clone(),
+            state.clone(),
             self.element_buffer.clone(),
         ));
         self.tasks.push(elem_reg_handle);
+
+        // Start metric sender task
+        let metric_sender_handle = tokio::spawn(tasks::start_metric_sender_task(
+            cancellation_token.clone(),
+            client,
+            state,
+            self.metric_buffer.clone(),
+        ));
+        self.tasks.push(metric_sender_handle);
     }
 
     pub fn is_initialized(&self) -> bool {
@@ -185,7 +196,7 @@ impl Muse {
                 kind_code: kind_code.to_string(),
                 name: name.clone(),
                 metadata: metadata.clone(),
-                parent_id: parent_id.clone(),
+                parent_id,
             };
             recorder.lock().await.record(event).await?;
         }
@@ -221,7 +232,10 @@ impl Muse {
         if !self.state.is_valid_metric_code(metric_code) {
             return Err(Error::InvalidMetricCode(metric_code.to_string()));
         }
-        // TODO accumulate the metric in the metric buffer
+
+        self.metric_buffer
+            .add_metric(local_elem_id, metric_code.to_string(), value)
+            .await;
 
         Ok(())
     }

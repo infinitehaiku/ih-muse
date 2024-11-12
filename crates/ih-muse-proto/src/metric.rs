@@ -35,3 +35,12 @@ pub struct MetricPayload {
     pub metric_ids: Vec<MetricId>,
     pub values: Vec<Option<MetricValue>>,
 }
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct MetricQuery {
+    pub start_time: Option<i64>,
+    pub end_time: Option<i64>,
+    pub element_id: Option<u64>,
+    pub parent_id: Option<u64>,
+    pub metric_id: Option<u32>,
+}

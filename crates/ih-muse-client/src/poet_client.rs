@@ -4,10 +4,7 @@ use async_trait::async_trait;
 use reqwest::{Client, StatusCode};
 
 use ih_muse_core::{Error, Transport};
-use ih_muse_proto::{
-    ElementId, ElementKindRegistration, ElementRegistration, GetRangesRequest, MetricDefinition,
-    MetricPayload, NewElementsResponse, NodeElementRange, NodeState, TimestampResolution,
-};
+use ih_muse_proto::*;
 
 pub struct PoetClient {
     client: Client,
@@ -23,7 +20,7 @@ impl PoetClient {
 
     fn get_base_url(&self) -> &str {
         // For simplicity, use the first endpoint
-        &self.endpoints.first().unwrap()
+        self.endpoints.first().unwrap()
     }
 }
 
@@ -178,6 +175,29 @@ impl Transport for PoetClient {
         } else {
             Err(Error::ClientError(format!(
                 "Failed to send metric: HTTP {}",
+                response.status()
+            )))
+        }
+    }
+
+    async fn get_metrics(&self, query: &MetricQuery) -> Result<Vec<MetricPayload>, Error> {
+        let url = format!("{}/ds/abs_metrics", self.get_base_url());
+        let response = self
+            .client
+            .get(&url)
+            .json(query)
+            .send()
+            .await
+            .map_err(|e| Error::ClientError(format!("Failed to get metrics: {}", e)))?;
+
+        if response.status().is_success() {
+            let metrics: Vec<MetricPayload> = response.json().await.map_err(|e| {
+                Error::ClientError(format!("Failed to parse metrics response: {}", e))
+            })?;
+            Ok(metrics)
+        } else {
+            Err(Error::ClientError(format!(
+                "Failed to get metrics: HTTP {}",
                 response.status()
             )))
         }

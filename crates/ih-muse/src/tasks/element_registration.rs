@@ -1,6 +1,5 @@
 // crates/ih-muse/src/tasks/element_registration.rs
 
-use std::collections::HashMap;
 use std::sync::Arc;
 
 use tokio::select;
