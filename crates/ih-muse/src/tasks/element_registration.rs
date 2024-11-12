@@ -59,6 +59,7 @@ async fn process_pending_elements(
     for (entry, result) in pending_entries.into_iter().zip(results.into_iter()) {
         match result {
             Ok(element_id) => {
+                state.update_min_max_element_id(element_id).await;
                 state.update_element_id(entry.id, element_id).await;
                 buffer.mark_succeeded(&entry.id).await;
             }

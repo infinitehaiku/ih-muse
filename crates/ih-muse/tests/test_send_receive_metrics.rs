@@ -35,7 +35,7 @@ async fn test_send_and_receive_metric() {
             "CPU Usage".to_string(),
             "The CPU usage of a server".to_string(),
         )],
-        cluster_monitor_interval: None,
+        cluster_monitor_interval: Some(Duration::from_millis(100)),
         max_reg_elem_retries: 3,
     };
 

@@ -1,5 +1,6 @@
 // crates/ih-muse/src/state.rs
 
+use std::cmp;
 use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
@@ -108,9 +109,24 @@ impl State {
         self.metric_order.load_full()
     }
 
-    pub async fn update_element_ids(&self, min_id: ElementId, max_id: ElementId) {
-        self.min_element_id.store(Some(Arc::new(min_id)));
-        self.max_element_id.store(Some(Arc::new(max_id)));
+    /// Updates `min_element_id` and `max_element_id` based on the provided `element_id`.
+    /// If either is `None`, it will set both to the `element_id`.
+    /// Otherwise, it updates `min_element_id` if `element_id` is smaller,
+    /// and `max_element_id` if `element_id` is larger.
+    pub async fn update_min_max_element_id(&self, element_id: ElementId) {
+        self.min_element_id.rcu(|current_min| {
+            Some(Arc::new(match current_min.as_deref() {
+                Some(&min_id) => cmp::min(min_id, element_id),
+                None => element_id,
+            }))
+        });
+
+        self.max_element_id.rcu(|current_max| {
+            Some(Arc::new(match current_max.as_deref() {
+                Some(&max_id) => cmp::max(max_id, element_id),
+                None => element_id,
+            }))
+        });
     }
 
     pub async fn get_element_id_range(&self) -> (Option<ElementId>, Option<ElementId>) {
