@@ -1,5 +1,7 @@
 // crates/ih-muse-client/src/poet_client.rs
 
+use std::net::SocketAddr;
+
 use async_trait::async_trait;
 use reqwest::{Client, StatusCode};
 
@@ -19,8 +21,16 @@ impl PoetClient {
     }
 
     fn get_base_url(&self) -> &str {
-        // For simplicity, use the first endpoint
+        // TODO rotate endpoints on failure
         self.endpoints.first().unwrap()
+    }
+
+    /// Returns the base URL or constructs it from `node_addr` if provided.
+    fn build_url(&self, path: &str, node_addr: Option<SocketAddr>) -> String {
+        match node_addr {
+            Some(addr) => format!("http://{}{}", addr, path),
+            None => format!("{}{}", self.get_base_url(), path),
+        }
     }
 }
 
@@ -160,8 +170,12 @@ impl Transport for PoetClient {
         }
     }
 
-    async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error> {
-        let url = format!("{}/ds/abs_metrics", self.get_base_url());
+    async fn send_metrics(
+        &self,
+        payload: Vec<MetricPayload>,
+        node_addr: Option<SocketAddr>,
+    ) -> Result<(), Error> {
+        let url = self.build_url("/ds/abs_metrics", node_addr);
         let response = self
             .client
             .post(&url)
@@ -180,8 +194,12 @@ impl Transport for PoetClient {
         }
     }
 
-    async fn get_metrics(&self, query: &MetricQuery) -> Result<Vec<MetricPayload>, Error> {
-        let url = format!("{}/ds/abs_metrics", self.get_base_url());
+    async fn get_metrics(
+        &self,
+        query: &MetricQuery,
+        node_addr: Option<SocketAddr>,
+    ) -> Result<Vec<MetricPayload>, Error> {
+        let url = self.build_url("/ds/abs_metrics", node_addr);
         let response = self
             .client
             .get(&url)

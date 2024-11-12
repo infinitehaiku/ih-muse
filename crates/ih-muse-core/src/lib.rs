@@ -6,6 +6,8 @@ mod errors;
 mod state;
 pub mod time;
 
+use std::net::SocketAddr;
+
 use async_trait::async_trait;
 
 pub use buffer::{ElementBuffer, MetricBuffer};
@@ -37,6 +39,14 @@ pub trait Transport {
     ) -> Result<Vec<NodeElementRange>, Error>;
     async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error>;
     async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error>;
-    async fn get_metrics(&self, query: &MetricQuery) -> Result<Vec<MetricPayload>, Error>;
-    async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error>;
+    async fn get_metrics(
+        &self,
+        query: &MetricQuery,
+        node_addr: Option<SocketAddr>,
+    ) -> Result<Vec<MetricPayload>, Error>;
+    async fn send_metrics(
+        &self,
+        payload: Vec<MetricPayload>,
+        node_addr: Option<SocketAddr>,
+    ) -> Result<(), Error>;
 }

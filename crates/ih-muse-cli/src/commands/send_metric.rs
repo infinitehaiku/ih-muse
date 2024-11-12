@@ -33,5 +33,5 @@ pub async fn execute(args: SendMetricArgs) -> Result<(), Error> {
         values: vec![Some(args.value)],
     };
 
-    client.send_metrics(vec![payload]).await
+    client.send_metrics(vec![payload], None).await
 }

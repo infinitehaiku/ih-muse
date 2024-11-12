@@ -16,7 +16,7 @@ pub struct GetMetricsArgs {
 pub async fn execute(args: GetMetricsArgs) -> Result<(), Error> {
     let client = create_poet_client(&args.common.poet_url);
 
-    match client.get_metrics(&MetricQuery::default()).await {
+    match client.get_metrics(&MetricQuery::default(), None).await {
         Ok(metrics) => {
             println!("Getting all Metrics:");
             for metric in metrics {

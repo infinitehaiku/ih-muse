@@ -94,7 +94,7 @@ async fn test_send_and_receive_metric() {
     };
 
     let metrics = poet_client
-        .get_metrics(&query)
+        .get_metrics(&query, None)
         .await
         .expect("Failed to get metrics");
 

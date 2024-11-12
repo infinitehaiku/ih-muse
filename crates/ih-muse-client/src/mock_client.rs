@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
@@ -111,8 +112,16 @@ impl Transport for MockClient {
         Ok(metrics.clone())
     }
 
-    async fn get_metrics(&self, query: &MetricQuery) -> Result<Vec<MetricPayload>, Error> {
-        log::info!("MockClient: get_metrics called with query: {:?}", query);
+    async fn get_metrics(
+        &self,
+        query: &MetricQuery,
+        node_addr: Option<SocketAddr>,
+    ) -> Result<Vec<MetricPayload>, Error> {
+        log::info!(
+            "MockClient: get_metrics from {:?} called with query: {:?}",
+            node_addr,
+            query
+        );
         if query.parent_id.is_some() {
             return Err(Error::ClientError(
                 "parent_id not implemented in MockClient".to_string(),
@@ -149,8 +158,16 @@ impl Transport for MockClient {
         Ok(results)
     }
 
-    async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error> {
-        log::info!("MockClient: send_metrics called with {:?}", payload);
+    async fn send_metrics(
+        &self,
+        payload: Vec<MetricPayload>,
+        node_addr: Option<SocketAddr>,
+    ) -> Result<(), Error> {
+        log::info!(
+            "MockClient: send_metrics to {:?} called with {:?}",
+            node_addr,
+            payload
+        );
         let mut sent_metrics = self.sent_metrics.lock().await;
         sent_metrics.extend(payload);
         Ok(())

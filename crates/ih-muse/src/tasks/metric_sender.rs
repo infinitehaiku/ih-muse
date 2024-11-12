@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+use std::net::SocketAddr;
 use std::sync::Arc;
+
 use tokio::select;
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
 use super::calculate_interval_duration;
 use ih_muse_core::{time, Error, MetricBuffer, State, Transport};
-use ih_muse_proto::{MetricPayload, Timestamp};
+use ih_muse_proto::MetricPayload;
 
 pub async fn start_metric_sender_task(
     cancellation_token: CancellationToken,
@@ -45,27 +48,24 @@ async fn send_metrics(
     }
     log::debug!("Processing metrics for {} elements", buffered_metrics.len());
     let metric_order = state.get_metric_order();
-    let mut payloads = Vec::new();
     let timestamp = time::utc_now_i64();
+    let mut metrics_per_node: HashMap<Option<SocketAddr>, Vec<MetricPayload>> = HashMap::new();
     for (local_elem_id, metrics) in buffered_metrics {
         if let Some(element_id) = state.get_element_id(&local_elem_id) {
-            let mut metric_ids = Vec::new();
-            let mut values = Vec::new();
-            for metric_def in &*metric_order {
-                metric_ids.push(metric_def.id);
-                if let Some(value) = metrics.get(&metric_def.code) {
-                    values.push(Some(value.clone()));
-                } else {
-                    values.push(None);
-                }
-            }
+            let node_addr = state.find_element_node_addr(element_id);
+            let metric_ids = metric_order.iter().map(|def| def.id).collect();
+            let values = metric_order
+                .iter()
+                .map(|def| metrics.get(&def.code).cloned())
+                .collect();
+
             let payload = MetricPayload {
                 time: timestamp,
                 element_id,
                 metric_ids,
                 values,
             };
-            payloads.push(payload);
+            metrics_per_node.entry(node_addr).or_default().push(payload);
         } else {
             log::warn!(
                 "Skipping metrics for not registered Element {:?}.",
@@ -73,11 +73,14 @@ async fn send_metrics(
             );
         }
     }
-    if payloads.is_empty() {
-        log::debug!("No metrics to send after filtering unregistered elements.");
-        return Ok(());
+    for (node_addr, payloads) in metrics_per_node {
+        log::debug!(
+            "Sending {} metrics to node {:?}.",
+            payloads.len(),
+            node_addr
+        );
+        client.send_metrics(payloads, node_addr).await?;
     }
-    log::debug!("Sending {} metric payloads.", payloads.len());
-    client.send_metrics(payloads).await?;
+
     Ok(())
 }

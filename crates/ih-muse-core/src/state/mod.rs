@@ -1,5 +1,6 @@
 // crates/ih-muse/src/state.rs
 
+use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use std::sync::OnceLock;
@@ -131,6 +132,28 @@ impl State {
     pub async fn get_node_elem_ranges(&self) -> OrdMap<OrdRangeInc, Uuid> {
         let ranges = self.range_to_node.load();
         (**ranges).clone()
+    }
+
+    /// Find the node ID corresponding to a given element ID
+    pub fn find_node(&self, element_id: u64) -> Option<Uuid> {
+        let map = self.range_to_node.load();
+        let bound = OrdRangeInc::new_bound(element_id);
+
+        // Find the last range that starts before or at `element_id`
+        map.range(..=bound).last().and_then(|(range, node_id)| {
+            if range.contains(&element_id) {
+                Some(*node_id)
+            } else {
+                None
+            }
+        })
+    }
+
+    /// Find the node address corresponding to a given element ID
+    pub fn find_element_node_addr(&self, element_id: u64) -> Option<SocketAddr> {
+        let node_id = self.find_node(element_id)?;
+        let nodes = self.nodes.load();
+        nodes.get(&node_id).map(|node_info| node_info.node_addr)
     }
 
     /// Update `finest_resolution` atomically.
