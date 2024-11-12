@@ -1,4 +1,5 @@
 pub mod get_metric_order;
+pub mod get_metrics;
 pub mod get_node_elem_ranges;
 pub mod get_node_state;
 pub mod get_resolution;

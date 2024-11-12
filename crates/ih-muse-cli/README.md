@@ -20,4 +20,6 @@ cargo run -- get-metric-order
 
 cargo run -- send-metric --element-id 1 --metric-code "CPU" --value 5.5
 
+cargo run -- get-metrics
+
 ```

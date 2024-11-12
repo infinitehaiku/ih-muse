@@ -6,11 +6,11 @@ mod commands;
 mod common;
 
 use commands::{
-    get_metric_order::GetMetricOrderArgs, get_node_elem_ranges::GetNodeElemRangesArgs,
-    get_node_state::GetNodeStateArgs, get_resolution::GetFinestResolutionArgs,
-    is_ready::IsReadyArgs, record::RecordArgs, register_element::RegisterElementArgs,
-    register_element_kind::RegisterElementKindArgs, register_metric::RegisterMetricArgs,
-    replay::ReplayArgs, send_metric::SendMetricArgs,
+    get_metric_order::GetMetricOrderArgs, get_metrics::GetMetricsArgs,
+    get_node_elem_ranges::GetNodeElemRangesArgs, get_node_state::GetNodeStateArgs,
+    get_resolution::GetFinestResolutionArgs, is_ready::IsReadyArgs, record::RecordArgs,
+    register_element::RegisterElementArgs, register_element_kind::RegisterElementKindArgs,
+    register_metric::RegisterMetricArgs, replay::ReplayArgs, send_metric::SendMetricArgs,
 };
 
 #[derive(Parser)]
@@ -40,6 +40,8 @@ enum Commands {
     GetMetricOrder(GetMetricOrderArgs),
     /// Register a metric with the poet server
     SendMetric(SendMetricArgs),
+    /// Get registered metrics with the poet server
+    GetMetrics(GetMetricsArgs),
     /// Record a session
     Record(RecordArgs),
     /// Replay a recorded session
@@ -60,6 +62,7 @@ async fn main() {
         Commands::RegisterMetric(args) => commands::register_metric::execute(args).await,
         Commands::GetMetricOrder(args) => commands::get_metric_order::execute(args).await,
         Commands::SendMetric(args) => commands::send_metric::execute(args).await,
+        Commands::GetMetrics(args) => commands::get_metrics::execute(args).await,
         Commands::Record(args) => commands::record::execute(args).await,
         Commands::Replay(args) => commands::replay::execute(args).await,
     };

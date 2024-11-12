@@ -36,7 +36,7 @@ pub struct MetricPayload {
     pub values: Vec<Option<MetricValue>>,
 }
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct MetricQuery {
     pub start_time: Option<i64>,
     pub end_time: Option<i64>,
