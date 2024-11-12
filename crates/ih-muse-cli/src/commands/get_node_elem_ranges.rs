@@ -13,7 +13,7 @@ pub struct GetNodeElemRangesArgs {
 
 pub async fn execute(args: GetNodeElemRangesArgs) -> Result<(), Error> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
-    match client.get_node_elem_ranges().await {
+    match client.get_node_elem_ranges(None, None).await {
         Ok(node_elem_ranges) => {
             println!("All nodes element ranges:");
             for node_elem_range in node_elem_ranges {

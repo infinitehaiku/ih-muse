@@ -2,9 +2,8 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
 
-use tokio::select;
+use tokio::time::{interval, Duration};
 use tokio_util::sync::CancellationToken;
 
 use ih_muse_core::{Error, State, Transport};
@@ -18,23 +17,22 @@ pub async fn start_init_task(
     metric_definitions: Vec<MetricDefinition>,
     is_initialized: Arc<AtomicBool>,
 ) {
-    // Track the initialization step
     let mut step = InitializationStep::HealthCheck;
-
+    let mut interval = interval(Duration::from_secs(1));
     loop {
-        select! {
+        tokio::select! {
             _ = cancellation_token.cancelled() => {
-                eprintln!("Initialization task was cancelled.");
+                println!("Initialization task was cancelled.");
                 break;
             }
-            result = perform_initialization_step(
-                &client,
-                &state,
-                &element_kinds,
-                &metric_definitions,
-                &mut step,
-            ) => {
-                match result {
+            _ = interval.tick() => {
+                match perform_initialization_step(
+                    &client,
+                    &state,
+                    &element_kinds,
+                    &metric_definitions,
+                    &mut step,
+                ).await {
                     Ok(_) => {
                         if step == InitializationStep::Done {
                             is_initialized.store(true, Ordering::SeqCst);
@@ -43,9 +41,7 @@ pub async fn start_init_task(
                         }
                     }
                     Err(e) => {
-                        eprintln!("Initialization error at step {:?}: {:?}", step, e);
-                        // Wait before retrying the same step
-                        tokio::time::sleep(Duration::from_secs(5)).await;
+                        println!("Initialization error at step {:?}: {}", step, e);
                     }
                 }
             }

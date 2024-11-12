@@ -23,7 +23,7 @@ impl FileRecorder {
             .write(true)
             .open(path)
             .map_err(|e| Error::RecordingError(format!("Failed to open file: {}", e)))?;
-        println!("Using {:?} format for recording.", format);
+        log::info!("Using {:?} format for recording.", format);
         Ok(Self {
             writer: BufWriter::new(file),
             format,

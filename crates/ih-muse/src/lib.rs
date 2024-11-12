@@ -1,6 +1,7 @@
 // crates/ih-muse/src/lib.rs
 
 mod tasks;
+pub mod test_utils;
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -9,14 +10,15 @@ use std::sync::Arc;
 
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
 use ih_muse_client::{MockClient, PoetClient};
-use ih_muse_core::{time, Error, State, Transport};
-use ih_muse_proto::metric_id_from_code;
+use ih_muse_core::{ElementBuffer, Error, State, Transport};
+use ih_muse_proto::generate_local_element_id;
 use ih_muse_proto::{
     types::*, ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition,
-    MetricPayload, TimestampResolution,
+    TimestampResolution,
 };
 use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replayer};
 
@@ -33,6 +35,8 @@ pub struct Config {
     pub default_resolution: TimestampResolution,
     pub element_kinds: Vec<ElementKindRegistration>,
     pub metric_definitions: Vec<MetricDefinition>,
+    pub cluster_monitor_interval: Option<Duration>,
+    pub max_reg_elem_retries: usize,
 }
 
 pub struct Muse {
@@ -42,6 +46,7 @@ pub struct Muse {
     tasks: Vec<JoinHandle<()>>,
     cancellation_token: CancellationToken,
     is_initialized: Arc<AtomicBool>,
+    element_buffer: Arc<ElementBuffer>,
 }
 
 impl Drop for Muse {
@@ -84,17 +89,33 @@ impl Muse {
             tasks: Vec::new(),
             cancellation_token: cancellation_token.clone(),
             is_initialized: Arc::new(AtomicBool::new(false)),
+            element_buffer: Arc::new(ElementBuffer::new(config.max_reg_elem_retries)),
         };
 
-        muse.start_tasks(config.element_kinds, config.metric_definitions);
+        muse.start_tasks(
+            config.element_kinds,
+            config.metric_definitions,
+            config.cluster_monitor_interval,
+        );
 
         muse
+    }
+
+    /// Get a reference to the internal State.
+    pub fn get_state(&self) -> Arc<State> {
+        self.state.clone()
+    }
+
+    /// Get a reference to the internal Transport client.
+    pub fn get_client(&self) -> Arc<dyn Transport + Send + Sync> {
+        self.client.clone()
     }
 
     fn start_tasks(
         &mut self,
         element_kinds: Vec<ElementKindRegistration>,
         metric_definitions: Vec<MetricDefinition>,
+        cluster_monitor_interval: Option<Duration>,
     ) {
         let cancellation_token = self.cancellation_token.clone();
         let client = self.client.clone();
@@ -102,16 +123,34 @@ impl Muse {
         let is_initialized = self.is_initialized.clone();
 
         // Start the initialization task
-        let init_task_handle = tokio::spawn(tasks::init_task::start_init_task(
+        let init_task_handle = tokio::spawn(tasks::start_init_task(
+            cancellation_token.clone(),
+            client.clone(),
+            state.clone(),
+            element_kinds,
+            metric_definitions,
+            is_initialized.clone(),
+        ));
+        self.tasks.push(init_task_handle);
+
+        // Start the cluster monitoring task
+        let cluster_monitoring_handle = tokio::spawn(tasks::start_cluster_monitor(
+            cancellation_token.clone(),
+            client.clone(),
+            state.clone(),
+            is_initialized,
+            cluster_monitor_interval.unwrap_or(Duration::from_secs(60)),
+        ));
+        self.tasks.push(cluster_monitoring_handle);
+
+        // Start element registration task
+        let elem_reg_handle = tokio::spawn(tasks::start_element_registration_task(
             cancellation_token.clone(),
             client,
             state,
-            element_kinds,
-            metric_definitions,
-            is_initialized,
+            self.element_buffer.clone(),
         ));
-
-        self.tasks.push(init_task_handle);
+        self.tasks.push(elem_reg_handle);
     }
 
     pub fn is_initialized(&self) -> bool {
@@ -124,10 +163,25 @@ impl Muse {
         name: String,
         metadata: HashMap<String, String>,
         parent_id: Option<ElementId>,
-    ) -> Result<ElementId, Error> {
+    ) -> Result<LocalElementId, Error> {
+        let local_elem_id = generate_local_element_id();
+        self.register_element_inner(local_elem_id, kind_code, name, metadata, parent_id)
+            .await?;
+        Ok(local_elem_id)
+    }
+
+    async fn register_element_inner(
+        &self,
+        local_elem_id: LocalElementId,
+        kind_code: &str,
+        name: String,
+        metadata: HashMap<String, String>,
+        parent_id: Option<ElementId>,
+    ) -> Result<(), Error> {
         // Record the event if recorder is enabled
         if let Some(recorder) = &self.recorder {
             let event = RecordedEvent::ElementRegistration {
+                local_elem_id,
                 kind_code: kind_code.to_string(),
                 name: name.clone(),
                 metadata: metadata.clone(),
@@ -140,31 +194,24 @@ impl Muse {
             return Err(Error::InvalidElementKindCode(kind_code.to_string()));
         }
 
-        // Create the element registration
         let element = ElementRegistration::new(kind_code, name, metadata, parent_id);
+        self.element_buffer
+            .add_element(local_elem_id, element)
+            .await;
 
-        // // Register the element immediately using the client
-        // let result = self.client.register_elements([element.clone()]).await?;
-        // let element_id = result.first().ok_or(Error::RegistrationFailed)?.clone()?;
-
-        // // Update state with the new element
-        // self.state
-        //     .update_elements(&[element], &[Ok(element_id)])
-        //     .await;
-
-        Ok(0)
+        Ok(())
     }
 
     pub async fn send_metric(
         &self,
-        element_id: ElementId,
+        local_elem_id: LocalElementId,
         metric_code: &str,
         value: MetricValue,
     ) -> Result<(), Error> {
         // Record the event if recorder is enabled
         if let Some(recorder) = &self.recorder {
             let event = RecordedEvent::SendMetric {
-                element_id,
+                local_elem_id,
                 metric_code: metric_code.to_string(),
                 value,
             };
@@ -174,13 +221,6 @@ impl Muse {
         if !self.state.is_valid_metric_code(metric_code) {
             return Err(Error::InvalidMetricCode(metric_code.to_string()));
         }
-
-        let payload = MetricPayload {
-            time: time::utc_now_i64(),
-            element_id,
-            metric_ids: vec![metric_id_from_code(metric_code)],
-            values: vec![Some(value)],
-        };
         // TODO accumulate the metric in the metric buffer
 
         Ok(())
@@ -194,20 +234,27 @@ impl Muse {
         while let Some(event) = replayer.next_event().await? {
             match event {
                 RecordedEvent::ElementRegistration {
+                    local_elem_id,
                     kind_code,
                     name,
                     metadata,
                     parent_id,
                 } => {
-                    self.register_element(&kind_code, name, metadata, parent_id)
-                        .await?;
+                    self.register_element_inner(
+                        local_elem_id,
+                        &kind_code,
+                        name,
+                        metadata,
+                        parent_id,
+                    )
+                    .await?;
                 }
                 RecordedEvent::SendMetric {
-                    element_id,
+                    local_elem_id,
                     metric_code,
                     value,
                 } => {
-                    self.send_metric(element_id, &metric_code, value).await?;
+                    self.send_metric(local_elem_id, &metric_code, value).await?;
                 }
                 RecordedEvent::EndpointUpdate(_endpoints) => {
                     // Handle endpoint updates if needed

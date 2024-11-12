@@ -90,13 +90,16 @@ impl Transport for PoetClient {
         }
     }
 
-    async fn get_node_elem_ranges(&self) -> Result<Vec<NodeElementRange>, Error> {
+    async fn get_node_elem_ranges(
+        &self,
+        ini: Option<u64>,
+        end: Option<u64>,
+    ) -> Result<Vec<NodeElementRange>, Error> {
         let url = format!("{}/ds/elements/ranges", self.get_base_url());
-        let ranges_request = GetRangesRequest::default();
         let response = self
             .client
             .get(&url)
-            .json(&ranges_request)
+            .json(&GetRangesRequest { ini, end })
             .send()
             .await
             .map_err(|e| Error::ClientError(format!("Failed to retrieve node state: {}", e)))?;

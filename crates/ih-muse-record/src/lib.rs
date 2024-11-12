@@ -29,13 +29,14 @@ pub trait Replayer {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RecordedEvent {
     ElementRegistration {
+        local_elem_id: LocalElementId,
         kind_code: String,
         name: String,
         metadata: HashMap<String, String>,
         parent_id: Option<ElementId>,
     },
     SendMetric {
-        element_id: ElementId,
+        local_elem_id: LocalElementId,
         metric_code: String,
         value: MetricValue,
     },

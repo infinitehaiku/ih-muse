@@ -29,7 +29,9 @@ ih-muse-test = { version = "0.0.4", path = "crates/ih-muse-test" }
 
 async-trait = "0.1"
 chrono = "0.4.38"
+env_logger = "0.11.5"
 hashbrown = "0.15.0"
+log = "0.4"
 pyo3 = "0.20.0" # TODO upgrade if pyo2-asyncio is not required : "0.22.5"
 pyo3-asyncio = "0.20.0" # TODO is it required?
 serde = "1.0.214"

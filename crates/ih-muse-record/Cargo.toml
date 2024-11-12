@@ -20,6 +20,7 @@ ih-muse-proto = { workspace = true }
 
 async-trait = { workspace = true }
 bincode = "1.3.3"
+log = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

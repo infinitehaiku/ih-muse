@@ -1,26 +1,25 @@
 // crates/ih-muse/src/state.rs
 
-use std::net::SocketAddr;
 use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::Arc;
 use std::sync::OnceLock;
 
-use arc_swap::ArcSwap;
-use imbl::{HashMap, HashSet, Vector};
-use tokio::sync::RwLock;
+use arc_swap::{ArcSwap, ArcSwapOption};
+use imbl::{HashMap, HashSet, OrdMap, Vector};
 use uuid::Uuid;
 
 use ih_muse_proto::*;
 
 pub struct State {
-    pub nodes: RwLock<HashMap<Uuid, SocketAddr>>,
-    pub element_kinds: OnceLock<Arc<HashSet<String>>>,
-    pub registered_metrics: OnceLock<Arc<HashMap<String, Arc<MetricDefinition>>>>,
-    pub metric_order: Arc<ArcSwap<Vector<Arc<MetricDefinition>>>>,
-    pub min_element_id: RwLock<Option<ElementId>>,
-    pub max_element_id: RwLock<Option<ElementId>>,
-    pub node_elem_ranges: RwLock<Vec<NodeElementRange>>,
-    pub finest_resolution: AtomicU8,
+    nodes: Arc<ArcSwap<HashMap<Uuid, NodeInfo>>>,
+    element_kinds: OnceLock<Arc<HashSet<String>>>,
+    registered_metrics: OnceLock<Arc<HashMap<String, Arc<MetricDefinition>>>>,
+    metric_order: Arc<ArcSwap<Vector<Arc<MetricDefinition>>>>,
+    min_element_id: Arc<ArcSwapOption<ElementId>>,
+    max_element_id: Arc<ArcSwapOption<ElementId>>,
+    range_to_node: Arc<ArcSwap<OrdMap<OrdRangeInc, Uuid>>>,
+    finest_resolution: AtomicU8,
+    element_id_map: Arc<ArcSwap<HashMap<LocalElementId, ElementId>>>,
 }
 
 impl Default for State {
@@ -32,15 +31,26 @@ impl Default for State {
 impl State {
     pub fn new() -> Self {
         Self {
-            nodes: RwLock::new(HashMap::new()),
+            nodes: Arc::new(ArcSwap::from_pointee(HashMap::new())),
             element_kinds: OnceLock::new(),
             registered_metrics: OnceLock::new(),
             metric_order: Arc::new(ArcSwap::from_pointee(Vector::new())),
-            min_element_id: RwLock::new(None),
-            max_element_id: RwLock::new(None),
-            node_elem_ranges: RwLock::new(Vec::new()),
+            min_element_id: Arc::new(ArcSwapOption::empty()),
+            max_element_id: Arc::new(ArcSwapOption::empty()),
+            range_to_node: Arc::new(ArcSwap::from_pointee(OrdMap::new())),
             finest_resolution: TimestampResolution::default().as_u8().into(),
+            element_id_map: Arc::new(ArcSwap::from_pointee(HashMap::new())),
         }
+    }
+
+    /// Update the nodes
+    pub async fn update_nodes(&self, new_nodes: HashMap<Uuid, NodeInfo>) {
+        self.nodes.store(Arc::new(new_nodes));
+    }
+
+    pub async fn get_nodes(&self) -> HashMap<Uuid, NodeInfo> {
+        let nodes = self.nodes.load();
+        (**nodes).clone()
     }
 
     /// Inits `element_kinds` only once. Subsequent calls will return an error.
@@ -91,6 +101,32 @@ impl State {
         self.metric_order.store(Arc::new(ordered_metrics));
     }
 
+    pub async fn update_element_ids(&self, min_id: ElementId, max_id: ElementId) {
+        self.min_element_id.store(Some(Arc::new(min_id)));
+        self.max_element_id.store(Some(Arc::new(max_id)));
+    }
+
+    pub async fn get_element_id_range(&self) -> (Option<ElementId>, Option<ElementId>) {
+        let min_id = self.min_element_id.load_full().as_deref().cloned();
+        let max_id = self.max_element_id.load_full().as_deref().cloned();
+        (min_id, max_id)
+    }
+
+    pub async fn update_node_elem_ranges(&self, ranges: &[NodeElementRange]) {
+        self.range_to_node.rcu(|current| {
+            let mut new_map = (**current).clone();
+            for node_range in ranges {
+                new_map.insert(node_range.range.clone(), node_range.node_id);
+            }
+            Arc::new(new_map)
+        });
+    }
+
+    pub async fn get_node_elem_ranges(&self) -> OrdMap<OrdRangeInc, Uuid> {
+        let ranges = self.range_to_node.load();
+        (**ranges).clone()
+    }
+
     /// Update `finest_resolution` atomically.
     pub async fn update_finest_resolution(&self, finest_resolution: TimestampResolution) {
         self.finest_resolution
@@ -100,5 +136,19 @@ impl State {
     /// Retrieve the current `finest_resolution` as `TimestampResolution`.
     pub fn get_finest_resolution(&self) -> TimestampResolution {
         TimestampResolution::from_u8(self.finest_resolution.load(Ordering::SeqCst))
+    }
+
+    pub async fn update_element_id(&self, local_id: LocalElementId, element_id: ElementId) {
+        self.element_id_map.rcu(|current| {
+            let mut new_map = (**current).clone();
+            new_map.insert(local_id, element_id);
+            Arc::new(new_map)
+        });
+    }
+
+    // Retrieve an ElementId from a LocalElementId
+    pub fn get_element_id(&self, local_id: &LocalElementId) -> Option<ElementId> {
+        let element_map = self.element_id_map.load();
+        element_map.get(local_id).cloned()
     }
 }

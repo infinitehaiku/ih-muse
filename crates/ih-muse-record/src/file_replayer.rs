@@ -21,7 +21,7 @@ impl FileReplayer {
 
         let file = File::open(path)
             .map_err(|e| Error::ReplayingError(format!("Failed to open file: {}", e)))?;
-        println!("Using {:?} format for replaying.", format);
+        log::info!("Using {:?} format for replaying.", format);
         Ok(Self {
             reader: BufReader::new(file),
             format,

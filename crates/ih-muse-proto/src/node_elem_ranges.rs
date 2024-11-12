@@ -1,9 +1,10 @@
-use std::ops::RangeInclusive;
+use std::cmp::Ordering;
+use std::ops::{RangeBounds, RangeInclusive};
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use uuid::Uuid;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct NodeElementRange {
     pub node_id: Uuid,
     pub range: OrdRangeInc,
@@ -16,7 +17,7 @@ pub struct GetRangesRequest {
 }
 
 /// Wrapper around `RangeInclusive<u64>` to implement `Ord` and `PartialOrd`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 pub struct OrdRangeInc(RangeInclusive<u64>);
 
 impl OrdRangeInc {
@@ -27,6 +28,10 @@ impl OrdRangeInc {
             panic!("Range len cannot be smaller than {}", OrdRangeInc::MIN_SIZE)
         }
         OrdRangeInc(start..=end)
+    }
+
+    pub fn new_bound(bound: u64) -> Self {
+        OrdRangeInc(bound..=bound)
     }
 
     pub fn len(&self) -> u64 {
@@ -47,6 +52,10 @@ impl OrdRangeInc {
 
     pub fn contains(&self, item: &u64) -> bool {
         self.0.contains(item)
+    }
+
+    pub fn is_bound(&self) -> bool {
+        *self.start() == *self.end()
     }
 }
 
@@ -76,5 +85,70 @@ impl<'de> Deserialize<'de> for OrdRangeInc {
     {
         let (start, end) = <(u64, u64)>::deserialize(deserializer)?;
         Ok(OrdRangeInc::new(start, end))
+    }
+}
+
+fn check_bound(bound: &u64, range: &OrdRangeInc, inverted: bool) -> Ordering {
+    if bound < range.start() {
+        if inverted {
+            return Ordering::Greater;
+        }
+        return Ordering::Less;
+    }
+    if bound > range.end() {
+        if inverted {
+            return Ordering::Less;
+        }
+        return Ordering::Greater;
+    }
+    Ordering::Equal
+}
+
+impl Ord for OrdRangeInc {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.is_bound() && other.is_bound() {
+            panic!("Trying two reserved OrdRangeInc::bound");
+        }
+        if self.is_bound() {
+            return check_bound(self.start(), other, false);
+        }
+        if other.is_bound() {
+            return check_bound(other.start(), self, true);
+        }
+        // This works because in OrdRangeInc the ranges should never collide
+        // u64 in one range will never exists in another range
+        let start_cmp = self.start().cmp(other.start());
+        if start_cmp == Ordering::Equal {
+            self.end().cmp(other.end())
+        } else {
+            start_cmp
+        }
+    }
+}
+
+impl PartialOrd for OrdRangeInc {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for OrdRangeInc {
+    fn eq(&self, other: &Self) -> bool {
+        if self.is_bound() {
+            return other.contains(self.start());
+        } else if other.is_bound() {
+            return self.contains(other.start());
+        }
+        self.start() == other.start() && self.end() == other.end()
+    }
+}
+
+impl RangeBounds<u64> for OrdRangeInc {
+    fn start_bound(&self) -> std::ops::Bound<&u64> {
+        std::ops::Bound::Included(self.start())
+    }
+
+    fn end_bound(&self) -> std::ops::Bound<&u64> {
+        std::ops::Bound::Included(self.end())
     }
 }

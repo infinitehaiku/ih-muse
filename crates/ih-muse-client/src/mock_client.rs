@@ -47,24 +47,32 @@ impl MockClient {
 #[async_trait]
 impl Transport for MockClient {
     async fn health_check(&self) -> Result<(), Error> {
-        println!("MockClient: health_check called");
+        log::info!("MockClient: health_check called");
         Ok(())
     }
 
     async fn get_node_state(&self) -> Result<NodeState, Error> {
-        println!("MockClient: get_node_state called");
+        log::info!("MockClient: get_node_state called");
         Err(Error::ClientError(
             "NodeState not implemented for mock client yet".to_string(),
         ))
     }
 
     async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
-        println!("MockClient: get_finest_resolution called");
+        log::info!("MockClient: get_finest_resolution called");
         Ok(*self.finest_resolution.lock().await)
     }
 
-    async fn get_node_elem_ranges(&self) -> Result<Vec<NodeElementRange>, Error> {
-        println!("MockClient: get_node_elem_ranges called");
+    async fn get_node_elem_ranges(
+        &self,
+        ini: Option<u64>,
+        end: Option<u64>,
+    ) -> Result<Vec<NodeElementRange>, Error> {
+        log::info!(
+            "MockClient: get_node_elem_ranges called with {:?}..{:?}",
+            ini,
+            end
+        );
         // TODO made up range(s) based in current register elements
         Err(Error::ClientError(
             "get_node_elem_ranges not implemented".to_string(),
@@ -75,7 +83,7 @@ impl Transport for MockClient {
         &self,
         element_kinds: &[ElementKindRegistration],
     ) -> Result<(), Error> {
-        println!(
+        log::info!(
             "MockClient: register_element_kinds called with {:?}",
             element_kinds
         );
@@ -86,26 +94,26 @@ impl Transport for MockClient {
         &self,
         elements: &[ElementRegistration],
     ) -> Result<Vec<Result<ElementId, Error>>, Error> {
-        println!("MockClient: register_elements called with {:?}", elements);
+        log::info!("MockClient: register_elements called with {:?}", elements);
         let results = elements.iter().map(|_| Ok(get_new_element_id())).collect();
         Ok(results)
     }
 
     async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error> {
-        println!("MockClient: register_metrics called with {:?}", payload);
+        log::info!("MockClient: register_metrics called with {:?}", payload);
         let mut metrics = self.metrics.lock().await;
         metrics.extend(payload.iter().cloned());
         Ok(())
     }
 
     async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error> {
-        println!("MockClient: get_metric_order called");
+        log::info!("MockClient: get_metric_order called");
         let metrics = self.metrics.lock().await;
         Ok(metrics.clone())
     }
 
     async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error> {
-        println!("MockClient: send_metrics called with {:?}", payload);
+        log::info!("MockClient: send_metrics called with {:?}", payload);
         Ok(())
     }
 }

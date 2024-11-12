@@ -3,9 +3,14 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::types::*;
 use crate::utils::deterministic_u64_from_str;
+
+pub fn generate_local_element_id() -> Uuid {
+    Uuid::new_v4()
+}
 
 // src/lib.rs
 #[derive(Debug, Serialize, Deserialize, Clone)]

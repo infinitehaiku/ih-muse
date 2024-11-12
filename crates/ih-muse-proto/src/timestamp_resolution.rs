@@ -1,5 +1,6 @@
 use std::fmt;
 use std::str::FromStr;
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
@@ -92,6 +93,21 @@ impl TimestampResolution {
             7 => TimestampResolution::Milliseconds,
             8 => TimestampResolution::Microseconds,
             _ => panic!("Unexpected value: {value}"),
+        }
+    }
+
+    /// Converts the `TimestampResolution` to a `Duration`.
+    pub fn to_duration(&self) -> Duration {
+        match *self {
+            TimestampResolution::Years => Duration::from_secs(31_536_000), // 365 days
+            TimestampResolution::Months => Duration::from_secs(2_592_000), // 30 days
+            TimestampResolution::Weeks => Duration::from_secs(604_800),    // 7 days
+            TimestampResolution::Days => Duration::from_secs(86_400),      // 24 hours
+            TimestampResolution::Hours => Duration::from_secs(3_600),      // 1 hour
+            TimestampResolution::Minutes => Duration::from_secs(60),       // 1 minute
+            TimestampResolution::Seconds => Duration::from_secs(1),        // 1 second
+            TimestampResolution::Milliseconds => Duration::from_millis(1), // 1 millisecond
+            TimestampResolution::Microseconds => Duration::from_micros(1), // 1 microsecond
         }
     }
 }

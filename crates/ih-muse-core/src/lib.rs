@@ -1,5 +1,6 @@
 // crates/ih-muse-core/src/lib.rs
 
+mod buffer;
 mod cache;
 mod errors;
 mod state;
@@ -7,6 +8,7 @@ pub mod time;
 
 use async_trait::async_trait;
 
+pub use buffer::ElementBuffer;
 pub use cache::{CacheStrategy, DummyCacheStrategy};
 pub use errors::Error;
 pub use ih_muse_proto::{
@@ -28,7 +30,11 @@ pub trait Transport {
         &self,
         elements: &[ElementRegistration],
     ) -> Result<Vec<Result<ElementId, Error>>, Error>;
-    async fn get_node_elem_ranges(&self) -> Result<Vec<NodeElementRange>, Error>;
+    async fn get_node_elem_ranges(
+        &self,
+        ini: Option<u64>,
+        end: Option<u64>,
+    ) -> Result<Vec<NodeElementRange>, Error>;
     async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error>;
     async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error>;
     async fn send_metrics(&self, payload: Vec<MetricPayload>) -> Result<(), Error>;
