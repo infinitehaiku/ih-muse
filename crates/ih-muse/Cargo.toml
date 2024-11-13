@@ -18,12 +18,14 @@ ih-muse-proto = { workspace = true }
 ih-muse-record = { workspace = true }
 
 chrono = { workspace = true }
-env_logger = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tokio = { version = "1.0", features = ["full"] }
 tokio-util = { version = "0.7.12", features = ["io"] }
+
+[dev-dependencies]
+env_logger = { workspace = true }
 
 [lints]
 workspace = true

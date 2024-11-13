@@ -1,7 +1,6 @@
 // crates/ih-muse/src/lib.rs
 
 mod tasks;
-pub mod test_utils;
 
 use std::collections::HashMap;
 use std::path::Path;
