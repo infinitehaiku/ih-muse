@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use clap::Args;
 
 use ih_muse_core::Error;
-use ih_muse_record::{FileReplayer, RecordedEvent, Replayer}; // Import from ih_muse_record
+use ih_muse_record::FileReplayer;
 
 #[derive(Args)]
 pub struct ReplayArgs {
@@ -16,7 +16,7 @@ pub struct ReplayArgs {
 }
 
 pub async fn execute(args: ReplayArgs) -> Result<(), Error> {
-    let mut replayer = FileReplayer::new(&args.input)?;
+    let _replayer = FileReplayer::new(&args.input)?;
     // TODO
     // Create instance of ih_muse::Muse and replay
     Ok(())

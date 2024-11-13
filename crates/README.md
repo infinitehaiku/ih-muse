@@ -1,6 +1,6 @@
 # ih-muse Project Structure
 
-```
+```sh
 ih-muse/
 │
 ├── Cargo.toml                  # Workspace configuration
@@ -28,13 +28,6 @@ ih-muse/
 │   │       ├── metric.rs       # Metric payload definitions
 │   │       └── serialization.rs
 │   │
-│   ├── ih-muse-test/           # Testing utilities
-│   │   ├── Cargo.toml
-│   │   └── src/
-│   │       ├── lib.rs
-│   │       ├── mock_server.rs  # Mock Poet server
-│   │       └── replay.rs       # Session replay logic
-│   │
 │   ├── ih-muse-cli/            # Command-line interface
 │   │   ├── Cargo.toml
 │   │   └── src/
@@ -56,30 +49,36 @@ ih-muse/
 ## Integration Workflow
 
 1. **Core Functionality (`ih-muse-core`)**
+
    - Defines fundamental traits
    - Provides recording mechanism
    - Implements caching strategies
 
 2. **Client Implementation (`ih-muse-client`)**
+
    - Uses proto types and messages and core traits
    - Handles API communication
    - Implements rate limiting
 
 3. **Protocol Definition (`ih-muse-proto`)**
+
    - Provides serialization
    - Defines data structures and types
    - Ensures consistent data representation
 
 4. **Main Library (`ih-muse`)**
+
    - Coordinates between core, client, and proto
    - Provides high-level public API
    - Manages configuration
 
 5. **CLI Tool (`ih-muse-cli`)**
+
    - Uses core recording mechanisms
    - Provides replay and recording commands
 
 6. **Python Bindings (`py-ih-muse`)**
+
    - Wraps Rust implementation
    - Provides Python-friendly interface
 
@@ -95,15 +94,15 @@ use ih_muse::{Muse, RecordingContext};
 
 fn collect_k8s_metrics() {
     // Create Muse instance with configuration
-    let muse = Muse::new(config);
-    
+    let muse = Muse::new(config).expect("Failed to create the Muse");
+
     // Start recording session
     let _recording = RecordingContext::start_recording();
-    
+
     // Collect and send metrics
     muse.send_metric("node1", "cpu_usage", 75.5);
     muse.send_metric("node1", "memory_usage", 60.3);
-    
+
     // Recording automatically saved when context is dropped
 }
 ```

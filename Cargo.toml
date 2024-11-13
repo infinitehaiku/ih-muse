@@ -25,7 +25,6 @@ ih-muse-core = { version = "0.0.4", path = "crates/ih-muse-core" }
 ih-muse-python = { version = "0.0.4", path = "crates/ih-muse-python" }
 ih-muse-proto = { version = "0.0.4", path = "crates/ih-muse-proto" }
 ih-muse-record = { version = "0.0.4", path = "crates/ih-muse-record" }
-ih-muse-test = { version = "0.0.4", path = "crates/ih-muse-test" }
 
 async-trait = "0.1"
 chrono = "0.4.38"

@@ -42,7 +42,7 @@ impl TestContext {
             max_reg_elem_retries: 3,
         };
 
-        let muse = Muse::new(config);
+        let muse = Muse::new(config).expect("Failed to create the Muse");
         Self::wait_for_init(&muse).await;
 
         Self {

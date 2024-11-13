@@ -1,7 +1,7 @@
 // crates/ih-muse-core/src/buffer/metric_buffer.rs
 
 use std::collections::HashMap;
-use std::sync::Arc;
+
 use tokio::sync::Mutex;
 
 use ih_muse_proto::{LocalElementId, MetricValue};

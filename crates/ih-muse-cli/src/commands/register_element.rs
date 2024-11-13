@@ -6,8 +6,8 @@ use clap::Args;
 use serde_json::from_str;
 
 use super::utils::create_poet_client;
-use ih_muse_core::{ElementRegistration, Error, Transport};
-use ih_muse_proto::types::*;
+use ih_muse_core::{Error, Transport};
+use ih_muse_proto::{types::*, ElementRegistration};
 
 #[derive(Args)]
 pub struct RegisterElementArgs {

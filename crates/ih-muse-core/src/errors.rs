@@ -4,6 +4,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("Configuration error {0}")]
+    ConfigurationError(String),
     #[error("Invalid data provided")]
     InvalidData,
     #[error("Network error occurred")]

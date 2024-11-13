@@ -4,9 +4,7 @@ use clap::Args;
 
 use super::utils::create_poet_client;
 use crate::common::CommonArgs;
-use ih_muse_core::{time, Error, MetricPayload, Transport};
-use ih_muse_proto::metric_id_from_code;
-use ih_muse_proto::types::*;
+use ih_muse_core::{Error, Transport};
 
 #[derive(Args)]
 pub struct GetMetricOrderArgs {

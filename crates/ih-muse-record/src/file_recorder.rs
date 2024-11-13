@@ -20,6 +20,7 @@ impl FileRecorder {
         let format = SerializationFormat::from_extension(ext)?;
         let file = OpenOptions::new()
             .create(true)
+            .truncate(true)
             .write(true)
             .open(path)
             .map_err(|e| Error::RecordingError(format!("Failed to open file: {}", e)))?;

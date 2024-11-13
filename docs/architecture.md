@@ -25,11 +25,6 @@ flowchart TB
         - Data serialization
         - Protocol definitions"]
 
-        test["ih-muse-test
-        - Test helpers
-        - Recording/Replay
-        - Mock servers"]
-
         main["ih-muse
         - High-level interface
         - Feature coordination"]

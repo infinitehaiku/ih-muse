@@ -71,7 +71,7 @@ async fn test_muse_initialization_with_custom_config() {
         max_reg_elem_retries: 5,
     };
 
-    let muse = Muse::new(config);
+    let muse = Muse::new(config).expect("Failed to create the Muse");
     TestContext::wait_for_init(&muse).await;
 
     assert!(
@@ -116,7 +116,7 @@ async fn test_muse_initialization_timeout() {
         max_reg_elem_retries: 1, // Set low retry count for faster test
     };
 
-    let muse = Muse::new(config);
+    let muse = Muse::new(config).expect("Failed to create the Muse");
 
     // Wait for a short time to see if initialization fails as expected
     tokio::time::sleep(Duration::from_secs(2)).await;

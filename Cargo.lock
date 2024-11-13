@@ -861,16 +861,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ih-muse-test"
-version = "0.0.4"
-dependencies = [
- "chrono",
- "ih-muse-core",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "imbl"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
