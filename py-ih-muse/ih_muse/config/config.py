@@ -4,6 +4,7 @@ from ih_muse.ih_muse import ClientType
 from ih_muse.ih_muse import TimestampResolution
 from ih_muse.ih_muse import PyConfig
 from ih_muse.proto import ElementKindRegistration, MetricDefinition
+from ih_muse.exceptions import ConfigurationError
 
 
 class Config:

@@ -20,3 +20,36 @@ class Muse:
         instance = cls(config)
         await instance.initialize(timeout)
         return instance
+
+    def is_initialized(self) -> bool:
+        return self._muse.is_initialized
+
+    async def register_element(
+        self,
+        kind_code: str,
+        name: str,
+        metadata: dict[str, str],
+        parent_id: int | None = None,
+    ) -> int:
+        local_elem_id = await self._muse.register_element(
+            kind_code,
+            name,
+            metadata,
+            parent_id,
+        )
+        return local_elem_id
+
+    async def send_metric(
+        self,
+        local_elem_id: int,
+        metric_code: str,
+        value: float,
+    ) -> None:
+        await self._muse.send_metric(
+            local_elem_id,
+            metric_code,
+            value,
+        )
+
+    async def replay(self, replay_path: str) -> None:
+        await self._muse.replay(replay_path)

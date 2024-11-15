@@ -21,6 +21,7 @@ pyo3-async-runtimes = { version = "0.22", features = ["attributes", "tokio-runti
 # pyo3-asyncio = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
+uuid = { workspace = true, features = ["v4", "serde"] }
 
 [features]
 pymethods = []

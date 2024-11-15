@@ -42,9 +42,16 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     // m.add_submodule(proto::module(m)?)?;
 
     // Exceptions - Errors
+    m.add("MuseError", py.get_type_bound::<exceptions::MuseError>())
+        .unwrap();
     m.add(
         "ConfigurationError",
         py.get_type_bound::<exceptions::ConfigurationError>(),
+    )
+    .unwrap();
+    m.add(
+        "MuseInitializationTimeoutError",
+        py.get_type_bound::<exceptions::MuseInitializationTimeoutError>(),
     )
     .unwrap();
     m.add(
@@ -55,6 +62,11 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add(
         "RecordingError",
         py.get_type_bound::<exceptions::RecordingError>(),
+    )
+    .unwrap();
+    m.add(
+        "ReplayingError",
+        py.get_type_bound::<exceptions::ReplayingError>(),
     )
     .unwrap();
     m.add(
@@ -72,6 +84,9 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
         py.get_type_bound::<exceptions::InvalidMetricCodeError>(),
     )
     .unwrap();
+
+    // Build info
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
 
     Ok(())
 }

@@ -7,7 +7,7 @@ mod io;
 #[cfg(feature = "pymethods")]
 mod serde;
 
-use std::sync::Arc;
+use std::sync::{atomic::AtomicBool, Arc};
 use tokio::sync::Mutex;
 
 use pyo3::pyclass;
@@ -15,23 +15,27 @@ use pyo3::pyclass;
 use ih_muse::Muse as RustMuse;
 
 #[pyclass]
-#[repr(transparent)]
 pub struct PyMuse {
     muse: Arc<Mutex<RustMuse>>,
+    is_initialized: Arc<AtomicBool>,
 }
 
 impl From<RustMuse> for PyMuse {
     fn from(muse: RustMuse) -> Self {
+        let is_initialized = muse.is_initialized.clone();
         PyMuse {
             muse: Arc::new(Mutex::new(muse)),
+            is_initialized,
         }
     }
 }
 
 impl PyMuse {
     pub(crate) fn new(muse: RustMuse) -> Self {
+        let is_initialized = muse.is_initialized.clone();
         PyMuse {
             muse: Arc::new(Mutex::new(muse)),
+            is_initialized,
         }
     }
 }

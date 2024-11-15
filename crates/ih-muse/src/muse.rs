@@ -23,7 +23,7 @@ pub struct Muse {
     recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>>,
     tasks: Vec<JoinHandle<()>>,
     cancellation_token: CancellationToken,
-    is_initialized: Arc<AtomicBool>,
+    pub is_initialized: Arc<AtomicBool>,
     element_buffer: Arc<ElementBuffer>,
     metric_buffer: Arc<MetricBuffer>,
     config: Config,

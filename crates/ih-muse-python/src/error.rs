@@ -13,12 +13,20 @@ pub enum PyMusesErr {
     #[error(transparent)]
     Muses(#[from] MuseError),
     #[error("{0}")]
+    Uuid(String),
+    #[error("{0}")]
     Other(String),
 }
 
 impl std::convert::From<std::io::Error> for PyMusesErr {
     fn from(value: Error) -> Self {
         PyMusesErr::Other(format!("{value:?}"))
+    }
+}
+
+impl std::convert::From<uuid::Error> for PyMusesErr {
+    fn from(err: uuid::Error) -> Self {
+        PyMusesErr::Uuid(err.to_string())
     }
 }
 
@@ -61,6 +69,7 @@ impl Debug for PyMusesErr {
         use PyMusesErr::*;
         match self {
             Muses(err) => write!(f, "{err:?}"),
+            PyMusesErr::Uuid(err) => write!(f, "UUID error {err:?}"),
             Other(err) => write!(f, "BindingsError: {err:?}"),
         }
     }
