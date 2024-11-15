@@ -4,7 +4,7 @@ use clap::Args;
 
 use super::utils::create_poet_client;
 use crate::common::CommonArgs;
-use ih_muse_core::{time, Error, Transport};
+use ih_muse_core::{time, MuseResult, Transport};
 use ih_muse_proto::types::*;
 use ih_muse_proto::{metric_id_from_code, MetricPayload};
 
@@ -23,7 +23,7 @@ pub struct SendMetricArgs {
     pub value: MetricValue,
 }
 
-pub async fn execute(args: SendMetricArgs) -> Result<(), Error> {
+pub async fn execute(args: SendMetricArgs) -> MuseResult<()> {
     let client = create_poet_client(&args.common.poet_url);
 
     let payload = MetricPayload {

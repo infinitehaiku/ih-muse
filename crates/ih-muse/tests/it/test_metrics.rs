@@ -25,7 +25,7 @@ async fn test_send_and_receive_metric() {
     sleep(DEFAULT_WAIT_TIME).await;
 
     // Retrieve and verify metrics
-    let poet_client = PoetClient::new(vec![ctx.endpoint.clone()]);
+    let poet_client = PoetClient::new(&[ctx.endpoint.clone()]);
     let query = MetricQuery {
         start_time: None,
         end_time: None,

@@ -1,7 +1,7 @@
 // crates/ih-muse-cli/src/commands/register_element_kind.rs
 
 use clap::Args;
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseResult, Transport};
 use ih_muse_proto::ElementKindRegistration;
 
 use crate::common::CommonArgs;
@@ -28,7 +28,7 @@ pub struct RegisterElementKindArgs {
     pub description: String,
 }
 
-pub async fn execute(args: RegisterElementKindArgs) -> Result<(), Error> {
+pub async fn execute(args: RegisterElementKindArgs) -> MuseResult<()> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
 
     let payload = [ElementKindRegistration::new(

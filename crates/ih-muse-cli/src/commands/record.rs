@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use clap::Args;
 
-use ih_muse_core::Error;
+use ih_muse_core::MuseResult;
 use ih_muse_record::{FileRecorder, RecordedEvent, Recorder};
 
 #[derive(Args)]
@@ -15,7 +15,7 @@ pub struct RecordArgs {
     // Additional arguments...
 }
 
-pub async fn execute(args: RecordArgs) -> Result<(), Error> {
+pub async fn execute(args: RecordArgs) -> MuseResult<()> {
     let mut recorder = FileRecorder::new(&args.output)?;
 
     // Example event recording

@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
 
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseError, MuseResult, Transport};
 use ih_muse_proto::*;
 
 static NEXT_ELEMENT_ID: Lazy<AtomicU64> = Lazy::new(|| AtomicU64::new(0));
@@ -46,19 +46,19 @@ impl MockClient {
 
 #[async_trait]
 impl Transport for MockClient {
-    async fn health_check(&self) -> Result<(), Error> {
+    async fn health_check(&self) -> MuseResult<()> {
         log::info!("MockClient: health_check called");
         Ok(())
     }
 
-    async fn get_node_state(&self) -> Result<NodeState, Error> {
+    async fn get_node_state(&self) -> MuseResult<NodeState> {
         log::info!("MockClient: get_node_state called");
-        Err(Error::ClientError(
+        Err(MuseError::Client(
             "NodeState not implemented for mock client yet".to_string(),
         ))
     }
 
-    async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
+    async fn get_finest_resolution(&self) -> MuseResult<TimestampResolution> {
         log::info!("MockClient: get_finest_resolution called");
         Ok(*self.finest_resolution.lock().await)
     }
@@ -67,14 +67,14 @@ impl Transport for MockClient {
         &self,
         ini: Option<u64>,
         end: Option<u64>,
-    ) -> Result<Vec<NodeElementRange>, Error> {
+    ) -> MuseResult<Vec<NodeElementRange>> {
         log::info!(
             "MockClient: get_node_elem_ranges called with {:?}..{:?}",
             ini,
             end
         );
         // TODO made up range(s) based in current register elements
-        Err(Error::ClientError(
+        Err(MuseError::Client(
             "get_node_elem_ranges not implemented".to_string(),
         ))
     }
@@ -82,7 +82,7 @@ impl Transport for MockClient {
     async fn register_element_kinds(
         &self,
         element_kinds: &[ElementKindRegistration],
-    ) -> Result<(), Error> {
+    ) -> MuseResult<()> {
         log::info!(
             "MockClient: register_element_kinds called with {:?}",
             element_kinds
@@ -93,20 +93,20 @@ impl Transport for MockClient {
     async fn register_elements(
         &self,
         elements: &[ElementRegistration],
-    ) -> Result<Vec<Result<ElementId, Error>>, Error> {
+    ) -> MuseResult<Vec<Result<ElementId, MuseError>>> {
         log::info!("MockClient: register_elements called with {:?}", elements);
         let results = elements.iter().map(|_| Ok(get_new_element_id())).collect();
         Ok(results)
     }
 
-    async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error> {
+    async fn register_metrics(&self, payload: &[MetricDefinition]) -> MuseResult<()> {
         log::info!("MockClient: register_metrics called with {:?}", payload);
         let mut metrics = self.metrics.lock().await;
         metrics.extend(payload.iter().cloned());
         Ok(())
     }
 
-    async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error> {
+    async fn get_metric_order(&self) -> MuseResult<Vec<MetricDefinition>> {
         log::info!("MockClient: get_metric_order called");
         let metrics = self.metrics.lock().await;
         Ok(metrics.clone())
@@ -116,14 +116,14 @@ impl Transport for MockClient {
         &self,
         query: &MetricQuery,
         node_addr: Option<SocketAddr>,
-    ) -> Result<Vec<MetricPayload>, Error> {
+    ) -> MuseResult<Vec<MetricPayload>> {
         log::info!(
             "MockClient: get_metrics from {:?} called with query: {:?}",
             node_addr,
             query
         );
         if query.parent_id.is_some() {
-            return Err(Error::ClientError(
+            return Err(MuseError::Client(
                 "parent_id not implemented in MockClient".to_string(),
             ));
         }
@@ -162,7 +162,7 @@ impl Transport for MockClient {
         &self,
         payload: Vec<MetricPayload>,
         node_addr: Option<SocketAddr>,
-    ) -> Result<(), Error> {
+    ) -> MuseResult<()> {
         log::info!(
             "MockClient: send_metrics to {:?} called with {:?}",
             node_addr,

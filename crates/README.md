@@ -94,7 +94,7 @@ use ih_muse::{Muse, RecordingContext};
 
 fn collect_k8s_metrics() {
     // Create Muse instance with configuration
-    let muse = Muse::new(config).expect("Failed to create the Muse");
+    let muse = Muse::new(&config).expect("Failed to create the Muse");
 
     // Start recording session
     let _recording = RecordingContext::start_recording();

@@ -42,8 +42,9 @@ impl TestContext {
             max_reg_elem_retries: 3,
         };
 
-        let muse = Muse::new(config).expect("Failed to create the Muse");
-        Self::wait_for_init(&muse).await;
+        let mut muse = Muse::new(&config).expect("Failed to create the Muse");
+
+        Self::wait_for_init(&mut muse).await;
 
         Self {
             muse,
@@ -51,15 +52,10 @@ impl TestContext {
         }
     }
 
-    pub async fn wait_for_init(muse: &Muse) {
-        let start_time = tokio::time::Instant::now();
-        while !muse.is_initialized() && start_time.elapsed() < EXTENDED_WAIT_TIME {
-            sleep(Duration::from_millis(100)).await;
-        }
-        assert!(
-            muse.is_initialized(),
-            "Muse failed to initialize within timeout"
-        );
+    pub async fn wait_for_init(muse: &mut Muse) {
+        muse.initialize(Some(EXTENDED_WAIT_TIME))
+            .await
+            .expect("Muse Initialization failed");
     }
 
     pub async fn register_test_element(&self) -> LocalElementId {

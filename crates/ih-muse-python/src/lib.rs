@@ -1,3 +1,9 @@
-// crates/ih-muse-python/src/lib.rs
+pub mod config;
+pub mod error;
+pub mod exceptions;
+pub mod muse;
+pub mod proto;
 
-// TODO
+use crate::config::{PyClientType, PyConfig};
+use crate::muse::PyMuse;
+use crate::proto::{PyElementKindRegistration, PyMetricDefinition};

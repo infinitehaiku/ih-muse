@@ -7,7 +7,7 @@ use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
 use super::calculate_interval_duration;
-use ih_muse_core::{ElementBuffer, Error, State, Transport};
+use ih_muse_core::{ElementBuffer, MuseResult, State, Transport};
 use ih_muse_proto::*;
 
 pub async fn start_element_registration_task(
@@ -40,7 +40,7 @@ async fn process_pending_elements(
     client: &Arc<dyn Transport + Send + Sync>,
     state: &Arc<State>,
     buffer: &Arc<ElementBuffer>,
-) -> Result<(), Error> {
+) -> MuseResult<()> {
     // Get pending elements from the buffer
     let pending_entries = buffer.get_pending_elements().await;
     if pending_entries.is_empty() {

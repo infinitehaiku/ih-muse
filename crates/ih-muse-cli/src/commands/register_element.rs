@@ -6,7 +6,7 @@ use clap::Args;
 use serde_json::from_str;
 
 use super::utils::create_poet_client;
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseError, MuseResult, Transport};
 use ih_muse_proto::{types::*, ElementRegistration};
 
 #[derive(Args)]
@@ -28,12 +28,12 @@ pub struct RegisterElementArgs {
     pub metadata: Option<String>,
 }
 
-pub async fn execute(args: RegisterElementArgs) -> Result<(), Error> {
+pub async fn execute(args: RegisterElementArgs) -> MuseResult<()> {
     let client = create_poet_client(&args.poet_url);
 
     let metadata: HashMap<String, String> = match &args.metadata {
         Some(metadata_str) => from_str(metadata_str)
-            .map_err(|e| Error::ClientError(format!("Failed to parse metadata JSON: {}", e)))?,
+            .map_err(|e| MuseError::Client(format!("Failed to parse metadata JSON: {}", e)))?,
         None => HashMap::new(),
     };
 

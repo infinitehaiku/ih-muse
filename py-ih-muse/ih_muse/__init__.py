@@ -1,3 +1,15 @@
-from .ih_muse import double  # Import from the compiled Rust module
+from .muse import Muse
+from .config import Config, ClientType
+from .proto import TimestampResolution, ElementKindRegistration, MetricDefinition
 
-__all__ = ["double"]  # Export the function
+# from ih_muse.foo import foo
+
+__all__ = [
+    "PyMuse",
+    "Config",
+    "ClientType",
+    "TimestampResolution",
+    "ElementKindRegistration",
+    "MetricDefinition",
+    "foo",
+]

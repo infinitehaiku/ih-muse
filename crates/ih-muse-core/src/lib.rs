@@ -7,6 +7,7 @@ pub mod time;
 mod transport;
 
 pub use buffer::{ElementBuffer, MetricBuffer};
-pub use errors::Error;
+pub use errors::{MuseError, MuseResult};
 pub use state::State;
 pub use transport::Transport;
+pub mod prelude;

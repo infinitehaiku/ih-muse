@@ -12,18 +12,18 @@ use serde::{Deserialize, Serialize};
 use file_format::SerializationFormat;
 pub use file_recorder::FileRecorder;
 pub use file_replayer::FileReplayer;
-use ih_muse_core::Error;
+use ih_muse_core::MuseResult;
 use ih_muse_proto::types::*;
 
 #[async_trait]
 pub trait Recorder {
-    async fn record(&mut self, event: RecordedEvent) -> Result<(), Error>;
-    async fn close(&mut self) -> Result<(), Error>;
+    async fn record(&mut self, event: RecordedEvent) -> MuseResult<()>;
+    async fn close(&mut self) -> MuseResult<()>;
 }
 
 #[async_trait]
 pub trait Replayer {
-    async fn next_event(&mut self) -> Result<Option<RecordedEvent>, Error>;
+    async fn next_event(&mut self) -> MuseResult<Option<RecordedEvent>>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -9,10 +9,9 @@ name = "ih_muse"
 crate-type = ["cdylib"]
 
 [dependencies]
-ih-muse-core = { workspace = true }
-ih-muse-record = { workspace = true }
+ih-muse-python = { path = "../crates/ih-muse-python", features = ["pymethods"] }
 
-pyo3 = { workspace = true, features = ["abi3-py39", "chrono", "extension-module", "multiple-pymethods"] }
+pyo3 = { workspace = true, features = ["extension-module", "experimental-async"] }
 
 [package.metadata.maturin]
 module-name = "ih_muse"

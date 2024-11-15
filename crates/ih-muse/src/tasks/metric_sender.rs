@@ -7,7 +7,7 @@ use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
 use super::calculate_interval_duration;
-use ih_muse_core::{time, Error, MetricBuffer, State, Transport};
+use ih_muse_core::{time, MetricBuffer, MuseResult, State, Transport};
 use ih_muse_proto::MetricPayload;
 
 pub async fn start_metric_sender_task(
@@ -40,7 +40,7 @@ async fn send_metrics(
     client: &Arc<dyn Transport + Send + Sync>,
     state: &Arc<State>,
     buffer: &Arc<MetricBuffer>,
-) -> Result<(), Error> {
+) -> MuseResult<()> {
     let buffered_metrics = buffer.get_and_clear().await;
     if buffered_metrics.is_empty() {
         log::debug!("No metrics to send. Exiting.");

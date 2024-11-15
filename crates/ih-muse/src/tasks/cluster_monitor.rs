@@ -7,7 +7,7 @@ use tokio::select;
 use tokio::time::{interval, Duration};
 use tokio_util::sync::CancellationToken;
 
-use ih_muse_core::{Error, State, Transport};
+use ih_muse_core::{MuseResult, State, Transport};
 use ih_muse_proto::*;
 
 pub async fn start_cluster_monitor(
@@ -40,7 +40,7 @@ async fn perform_cluster_monitoring(
     client: &Arc<dyn Transport + Send + Sync>,
     state: &Arc<State>,
     old_max_element_id: &mut Option<ElementId>,
-) -> Result<(), Error> {
+) -> MuseResult<()> {
     // 1. Update nodes
     let node_state = client.get_node_state().await?;
     state.update_nodes(node_state.available_nodes.into()).await;

@@ -3,7 +3,7 @@
 use clap::Args;
 
 use super::utils::create_poet_client;
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseResult, Transport};
 
 #[derive(Args)]
 pub struct IsReadyArgs {
@@ -12,7 +12,7 @@ pub struct IsReadyArgs {
     pub poet_url: String,
 }
 
-pub async fn execute(args: IsReadyArgs) -> Result<(), Error> {
+pub async fn execute(args: IsReadyArgs) -> MuseResult<()> {
     let client = create_poet_client(&args.poet_url);
     client.health_check().await
 }

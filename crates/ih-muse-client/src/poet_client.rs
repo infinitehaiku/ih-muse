@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 use async_trait::async_trait;
 use reqwest::{Client, StatusCode};
 
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseError, MuseResult, Transport};
 use ih_muse_proto::*;
 
 pub struct PoetClient {
@@ -15,9 +15,12 @@ pub struct PoetClient {
 }
 
 impl PoetClient {
-    pub fn new(endpoints: Vec<String>) -> Self {
+    pub fn new(endpoints: &[String]) -> Self {
         let client = Client::new();
-        Self { client, endpoints }
+        Self {
+            client,
+            endpoints: endpoints.to_vec(),
+        }
     }
 
     fn get_base_url(&self) -> &str {
@@ -36,61 +39,65 @@ impl PoetClient {
 
 #[async_trait]
 impl Transport for PoetClient {
-    async fn health_check(&self) -> Result<(), Error> {
+    async fn health_check(&self) -> MuseResult<()> {
         let url = format!("{}/health", self.get_base_url());
-        let response =
-            self.client.get(&url).send().await.map_err(|e| {
-                Error::ClientError(format!("Failed to perform health check: {}", e))
-            })?;
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| MuseError::Client(format!("Failed to perform health check: {}", e)))?;
 
         if response.status().is_success() {
             Ok(())
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Health check failed: HTTP {}",
                 response.status()
             )))
         }
     }
 
-    async fn get_node_state(&self) -> Result<NodeState, Error> {
+    async fn get_node_state(&self) -> MuseResult<NodeState> {
         let url = format!("{}/sync/state", self.get_base_url());
         let response = self
             .client
             .get(&url)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to retrieve node state: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to retrieve node state: {}", e)))?;
 
         if response.status().is_success() {
             let resp_haikus: NodeState = response.json().await.map_err(|e| {
-                Error::ClientError(format!("Failed to parse response as NodeState: {e}"))
+                MuseError::Client(format!("Failed to parse response as NodeState: {e}"))
             })?;
             Ok(resp_haikus)
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Get Finest Resolution failed: {}",
                 response.status()
             )))
         }
     }
 
-    async fn get_finest_resolution(&self) -> Result<TimestampResolution, Error> {
+    async fn get_finest_resolution(&self) -> MuseResult<TimestampResolution> {
         let url = format!("{}/config/finest_resolution", self.get_base_url());
-        let response =
-            self.client.get(&url).send().await.map_err(|e| {
-                Error::ClientError(format!("Failed to perform health check: {}", e))
-            })?;
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| MuseError::Client(format!("Failed to perform health check: {}", e)))?;
 
         if response.status().is_success() {
             let resp_haikus: TimestampResolution = response.json().await.map_err(|e| {
-                Error::ClientError(format!(
+                MuseError::Client(format!(
                     "Failed to parse response as TimestampResolution: {e}"
                 ))
             })?;
             Ok(resp_haikus)
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Get Finest Resolution failed: {}",
                 response.status()
             )))
@@ -101,7 +108,7 @@ impl Transport for PoetClient {
         &self,
         ini: Option<u64>,
         end: Option<u64>,
-    ) -> Result<Vec<NodeElementRange>, Error> {
+    ) -> MuseResult<Vec<NodeElementRange>> {
         let url = format!("{}/ds/elements/ranges", self.get_base_url());
         let response = self
             .client
@@ -109,24 +116,24 @@ impl Transport for PoetClient {
             .json(&GetRangesRequest { ini, end })
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to retrieve node state: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to retrieve node state: {}", e)))?;
 
         if response.status().is_success() {
             let ranges: Vec<NodeElementRange> = response.json().await.map_err(|e| {
-                Error::ClientError(format!(
+                MuseError::Client(format!(
                     "Failed to parse response as Vec<NodeElementRange>: {e}"
                 ))
             })?;
             Ok(ranges)
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Get All Element Ranges failed: {}",
                 response.status()
             )))
         }
     }
 
-    async fn register_metrics(&self, payload: &[MetricDefinition]) -> Result<(), Error> {
+    async fn register_metrics(&self, payload: &[MetricDefinition]) -> MuseResult<()> {
         let url = format!("{}/ds/metrics", self.get_base_url());
         let response = self
             .client
@@ -134,36 +141,36 @@ impl Transport for PoetClient {
             .json(payload)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to send metric: {e}")))?;
+            .map_err(|e| MuseError::Client(format!("Failed to send metric: {e}")))?;
 
         if response.status().is_success() {
             Ok(())
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Failed to send metric: HTTP {}",
                 response.status()
             )))
         }
     }
 
-    async fn get_metric_order(&self) -> Result<Vec<MetricDefinition>, Error> {
+    async fn get_metric_order(&self) -> MuseResult<Vec<MetricDefinition>> {
         let url = format!("{}/ds/metrics", self.get_base_url());
         let response = self
             .client
             .get(&url)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to send metric: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to send metric: {}", e)))?;
 
         if response.status().is_success() {
             let metric_defs: Vec<MetricDefinition> = response.json().await.map_err(|e| {
-                Error::ClientError(format!(
+                MuseError::Client(format!(
                     "Failed to parse response as Vec<MetricDefinition>: {e}"
                 ))
             })?;
             Ok(metric_defs)
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Failed to send metric: HTTP {}",
                 response.status()
             )))
@@ -174,7 +181,7 @@ impl Transport for PoetClient {
         &self,
         payload: Vec<MetricPayload>,
         node_addr: Option<SocketAddr>,
-    ) -> Result<(), Error> {
+    ) -> MuseResult<()> {
         let url = self.build_url("/ds/abs_metrics", node_addr);
         let response = self
             .client
@@ -182,12 +189,12 @@ impl Transport for PoetClient {
             .json(&payload)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to send metric: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to send metric: {}", e)))?;
 
         if response.status().is_success() {
             Ok(())
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Failed to send metric: HTTP {}",
                 response.status()
             )))
@@ -198,7 +205,7 @@ impl Transport for PoetClient {
         &self,
         query: &MetricQuery,
         node_addr: Option<SocketAddr>,
-    ) -> Result<Vec<MetricPayload>, Error> {
+    ) -> MuseResult<Vec<MetricPayload>> {
         let url = self.build_url("/ds/abs_metrics", node_addr);
         let response = self
             .client
@@ -206,15 +213,15 @@ impl Transport for PoetClient {
             .json(query)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to get metrics: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to get metrics: {}", e)))?;
 
         if response.status().is_success() {
             let metrics: Vec<MetricPayload> = response.json().await.map_err(|e| {
-                Error::ClientError(format!("Failed to parse metrics response: {}", e))
+                MuseError::Client(format!("Failed to parse metrics response: {}", e))
             })?;
             Ok(metrics)
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Failed to get metrics: HTTP {}",
                 response.status()
             )))
@@ -224,7 +231,7 @@ impl Transport for PoetClient {
     async fn register_elements(
         &self,
         elements: &[ElementRegistration],
-    ) -> Result<Vec<Result<ElementId, Error>>, Error> {
+    ) -> MuseResult<Vec<MuseResult<ElementId>>> {
         let url = format!("{}/ds/elements", self.get_base_url());
         let response = self
             .client
@@ -232,7 +239,7 @@ impl Transport for PoetClient {
             .json(elements)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to register elements: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to register elements: {}", e)))?;
 
         match response.status() {
             StatusCode::CREATED | StatusCode::MULTI_STATUS | StatusCode::BAD_REQUEST => {
@@ -240,20 +247,20 @@ impl Transport for PoetClient {
                 let response_data: NewElementsResponse = response
                     .json()
                     .await
-                    .map_err(|e| Error::ClientError(format!("Failed to parse response: {}", e)))?;
+                    .map_err(|e| MuseError::Client(format!("Failed to parse response: {}", e)))?;
 
                 // Convert Vec<Result<u64, String>> to Vec<Result<ElementId, Error>>
                 let results = response_data
                     .results
                     .into_iter()
-                    .map(|res| res.map_err(Error::ClientError))
+                    .map(|res| res.map_err(MuseError::Client))
                     .collect();
 
                 Ok(results)
             }
             status => {
                 // Handle any unexpected HTTP status codes
-                Err(Error::ClientError(format!(
+                Err(MuseError::Client(format!(
                     "Failed to register elements: HTTP {}",
                     status
                 )))
@@ -264,7 +271,7 @@ impl Transport for PoetClient {
     async fn register_element_kinds(
         &self,
         element_kind: &[ElementKindRegistration],
-    ) -> Result<(), Error> {
+    ) -> MuseResult<()> {
         let url = format!("{}/ds/element_kinds", self.get_base_url());
         let response = self
             .client
@@ -272,12 +279,12 @@ impl Transport for PoetClient {
             .json(element_kind)
             .send()
             .await
-            .map_err(|e| Error::ClientError(format!("Failed to register element kind: {}", e)))?;
+            .map_err(|e| MuseError::Client(format!("Failed to register element kind: {}", e)))?;
 
         if response.status().is_success() {
             Ok(())
         } else {
-            Err(Error::ClientError(format!(
+            Err(MuseError::Client(format!(
                 "Failed to register element kind: HTTP {}",
                 response.status()
             )))

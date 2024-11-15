@@ -1,7 +1,7 @@
 // crates/ih-muse-cli/src/commands/register_metric.rs
 
 use clap::Args;
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseResult, Transport};
 
 use crate::common::CommonArgs;
 
@@ -11,7 +11,7 @@ pub struct GetNodeElemRangesArgs {
     pub common: CommonArgs,
 }
 
-pub async fn execute(args: GetNodeElemRangesArgs) -> Result<(), Error> {
+pub async fn execute(args: GetNodeElemRangesArgs) -> MuseResult<()> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
     match client.get_node_elem_ranges(None, None).await {
         Ok(node_elem_ranges) => {

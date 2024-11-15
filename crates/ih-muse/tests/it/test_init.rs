@@ -71,8 +71,8 @@ async fn test_muse_initialization_with_custom_config() {
         max_reg_elem_retries: 5,
     };
 
-    let muse = Muse::new(config).expect("Failed to create the Muse");
-    TestContext::wait_for_init(&muse).await;
+    let mut muse = Muse::new(&config).expect("Failed to create the Muse");
+    TestContext::wait_for_init(&mut muse).await;
 
     assert!(
         muse.is_initialized(),
@@ -116,11 +116,10 @@ async fn test_muse_initialization_timeout() {
         max_reg_elem_retries: 1, // Set low retry count for faster test
     };
 
-    let muse = Muse::new(config).expect("Failed to create the Muse");
-
+    let mut muse = Muse::new(&config).expect("Failed to create the Muse");
     // Wait for a short time to see if initialization fails as expected
-    tokio::time::sleep(Duration::from_secs(2)).await;
-
+    let ini_result = muse.initialize(Some(Duration::from_secs(2))).await;
+    assert!(ini_result.is_err(), "Expect initialization timaout");
     assert!(
         !muse.is_initialized(),
         "Muse should not initialize with unreachable endpoint"

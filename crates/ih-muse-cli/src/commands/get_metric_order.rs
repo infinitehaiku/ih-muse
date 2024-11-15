@@ -4,7 +4,7 @@ use clap::Args;
 
 use super::utils::create_poet_client;
 use crate::common::CommonArgs;
-use ih_muse_core::{Error, Transport};
+use ih_muse_core::{MuseResult, Transport};
 
 #[derive(Args)]
 pub struct GetMetricOrderArgs {
@@ -12,7 +12,7 @@ pub struct GetMetricOrderArgs {
     pub common: CommonArgs,
 }
 
-pub async fn execute(args: GetMetricOrderArgs) -> Result<(), Error> {
+pub async fn execute(args: GetMetricOrderArgs) -> MuseResult<()> {
     let client = create_poet_client(&args.common.poet_url);
 
     match client.get_metric_order().await {

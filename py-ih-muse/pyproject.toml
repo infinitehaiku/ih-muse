@@ -39,9 +39,10 @@ dev-dependencies = [
 
 [build-system]
 build-backend = "maturin"
-requires = ["maturin>=1,<2"]
+requires = ["maturin>=1.3.2"]
 
 [tool.maturin]
+# python-source = "ih_muse"
 module-name = "ih_muse"
 bindings = "pyo3"
 include = [
@@ -49,3 +50,5 @@ include = [
     { path = "README.md", format = "sdist" },
     { path = "ih_muse/py.typed", format = "sdist" },
 ]
+
+features = ["pyo3/extension-module"]

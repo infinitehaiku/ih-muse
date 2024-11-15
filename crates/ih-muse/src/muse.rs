@@ -13,11 +13,8 @@ use tokio_util::sync::CancellationToken;
 use crate::config::{ClientType, Config};
 use crate::tasks;
 use ih_muse_client::{MockClient, PoetClient};
-use ih_muse_core::{ElementBuffer, Error, MetricBuffer, State, Transport};
-use ih_muse_proto::generate_local_element_id;
-use ih_muse_proto::{
-    types::*, ElementId, ElementKindRegistration, ElementRegistration, MetricDefinition,
-};
+use ih_muse_core::prelude::*;
+use ih_muse_proto::prelude::*;
 use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replayer};
 
 pub struct Muse {
@@ -29,6 +26,7 @@ pub struct Muse {
     is_initialized: Arc<AtomicBool>,
     element_buffer: Arc<ElementBuffer>,
     metric_buffer: Arc<MetricBuffer>,
+    config: Config,
 }
 
 impl Drop for Muse {
@@ -42,11 +40,11 @@ impl Drop for Muse {
 
 impl Muse {
     /// Creates a new instance of Muse.
-    pub fn new(config: Config) -> Result<Self, Error> {
+    pub fn new(config: &Config) -> MuseResult<Self> {
         // TODO validate element_kinds and metric_definitions
 
         let client: Arc<dyn Transport + Send + Sync> = match config.client_type {
-            ClientType::Poet => Arc::new(PoetClient::new(config.endpoints)),
+            ClientType::Poet => Arc::new(PoetClient::new(&config.endpoints)),
             ClientType::Mock => Arc::new(MockClient::new()),
         };
 
@@ -56,7 +54,7 @@ impl Muse {
                     FileRecorder::new(Path::new(path)).expect("Failed to create FileRecorder");
                 Some(Arc::new(Mutex::new(file_recorder))) // Wrap in Mutex here
             } else {
-                return Err(Error::ConfigurationError(
+                return Err(MuseError::Configuration(
                     "Recording enabled but no recording path provided".to_string(),
                 ));
             }
@@ -67,7 +65,7 @@ impl Muse {
         // Create the cancellation token
         let cancellation_token = CancellationToken::new();
 
-        let mut muse = Self {
+        Ok(Self {
             client,
             state: Arc::new(State::new()),
             recorder,
@@ -76,15 +74,28 @@ impl Muse {
             is_initialized: Arc::new(AtomicBool::new(false)),
             element_buffer: Arc::new(ElementBuffer::new(config.max_reg_elem_retries)),
             metric_buffer: Arc::new(MetricBuffer::new()),
-        };
+            config: config.clone(),
+        })
+    }
 
-        muse.start_tasks(
-            config.element_kinds,
-            config.metric_definitions,
-            config.cluster_monitor_interval,
+    /// Initialize and start background tasks
+    pub async fn initialize(&mut self, timeout: Option<Duration>) -> MuseResult<()> {
+        self.start_tasks(
+            self.config.element_kinds.to_vec(),
+            self.config.metric_definitions.to_vec(),
+            self.config.cluster_monitor_interval,
         );
-
-        Ok(muse)
+        // Wait for initialization to complete, with an optional timeout
+        let deadline = timeout.map(|t| tokio::time::Instant::now() + t);
+        while !self.is_initialized() {
+            if let Some(deadline) = deadline {
+                if tokio::time::Instant::now() >= deadline {
+                    return Err(MuseError::MuseInitializationTimeout(timeout.unwrap()));
+                }
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
+        Ok(())
     }
 
     /// Get a reference to the internal State.
@@ -160,7 +171,7 @@ impl Muse {
         name: String,
         metadata: HashMap<String, String>,
         parent_id: Option<ElementId>,
-    ) -> Result<LocalElementId, Error> {
+    ) -> MuseResult<LocalElementId> {
         let local_elem_id = generate_local_element_id();
         self.register_element_inner(local_elem_id, kind_code, name, metadata, parent_id)
             .await?;
@@ -174,7 +185,7 @@ impl Muse {
         name: String,
         metadata: HashMap<String, String>,
         parent_id: Option<ElementId>,
-    ) -> Result<(), Error> {
+    ) -> MuseResult<()> {
         // Record the event if recorder is enabled
         if let Some(recorder) = &self.recorder {
             let event = RecordedEvent::ElementRegistration {
@@ -188,7 +199,7 @@ impl Muse {
         }
 
         if !self.state.is_valid_element_kind_code(kind_code) {
-            return Err(Error::InvalidElementKindCode(kind_code.to_string()));
+            return Err(MuseError::InvalidElementKindCode(kind_code.to_string()));
         }
 
         let element = ElementRegistration::new(kind_code, name, metadata, parent_id);
@@ -205,7 +216,7 @@ impl Muse {
         local_elem_id: LocalElementId,
         metric_code: &str,
         value: MetricValue,
-    ) -> Result<(), Error> {
+    ) -> MuseResult<()> {
         // Record the event if recorder is enabled
         if let Some(recorder) = &self.recorder {
             let event = RecordedEvent::SendMetric {
@@ -217,7 +228,7 @@ impl Muse {
         }
 
         if !self.state.is_valid_metric_code(metric_code) {
-            return Err(Error::InvalidMetricCode(metric_code.to_string()));
+            return Err(MuseError::InvalidMetricCode(metric_code.to_string()));
         }
 
         self.metric_buffer
@@ -228,7 +239,7 @@ impl Muse {
     }
 
     /// Replays events from a recording.
-    pub async fn replay(&self, replay_path: &Path) -> Result<(), Error> {
+    pub async fn replay(&self, replay_path: &Path) -> MuseResult<()> {
         // TODO record should store time deltas between the functions
         // TODO so replay will replay it with the exact same delays
         // * Like that it also tests caches, rates,

@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::time::{interval, Duration};
 use tokio_util::sync::CancellationToken;
 
-use ih_muse_core::{Error, State, Transport};
+use ih_muse_core::{MuseResult, State, Transport};
 use ih_muse_proto::{ElementKindRegistration, MetricDefinition};
 
 pub async fn start_init_task(
@@ -65,7 +65,7 @@ async fn perform_initialization_step(
     element_kinds: &[ElementKindRegistration],
     metric_definitions: &[MetricDefinition],
     step: &mut InitializationStep,
-) -> Result<(), Error> {
+) -> MuseResult<()> {
     match *step {
         InitializationStep::HealthCheck => {
             client.health_check().await?;

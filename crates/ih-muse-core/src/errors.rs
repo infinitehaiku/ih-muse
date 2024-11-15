@@ -1,23 +1,23 @@
 // crates/ih-muse-core/src/errors.rs
 
+use std::time::Duration;
+
 use thiserror::Error;
 
+pub type MuseResult<T> = Result<T, MuseError>;
+
 #[derive(Error, Debug)]
-pub enum Error {
+pub enum MuseError {
     #[error("Configuration error {0}")]
-    ConfigurationError(String),
-    #[error("Invalid data provided")]
-    InvalidData,
+    Configuration(String),
     #[error("Network error occurred")]
-    NetworkError,
-    #[error("Cache error occurred")]
-    CacheError,
-    #[error("Client error {0}")]
-    ClientError(String),
+    Client(String),
+    #[error("Muse initialization timeout {0:?}")]
+    MuseInitializationTimeout(Duration),
     #[error("Recording error {0}")]
-    RecordingError(String),
+    Recording(String),
     #[error("Replaying error {0}")]
-    ReplayingError(String),
+    Replaying(String),
     #[error("File has an invalid extension {0:?}")]
     InvalidFileExtension(Option<String>),
     #[error("Invalid Element Kind Code {0}")]
