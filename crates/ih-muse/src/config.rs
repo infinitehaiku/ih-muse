@@ -25,6 +25,7 @@ pub struct Config {
 }
 
 impl Config {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         endpoints: Vec<String>,
         client_type: ClientType,

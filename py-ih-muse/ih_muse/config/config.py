@@ -1,14 +1,15 @@
 # py-ih-muse/ih_muse/config/config.py
+from __future__ import annotations
 
-from ih_muse.ih_muse import ClientType
-from ih_muse.ih_muse import TimestampResolution
-from ih_muse.ih_muse import PyConfig
-from ih_muse.proto import ElementKindRegistration, MetricDefinition
-from ih_muse.exceptions import ConfigurationError
+from typing import TYPE_CHECKING
+
+from ih_muse.ih_muse import ClientType, PyConfig, TimestampResolution
+
+if TYPE_CHECKING:
+    from ih_muse.proto import ElementKindRegistration, MetricDefinition
 
 
 class Config:
-
     _config: PyConfig
 
     def __init__(
@@ -22,7 +23,6 @@ class Config:
         recording_enabled: bool,
         recording_path: str | None = None,
     ) -> None:
-
         py_element_kinds = [ekr._elem_kind_reg for ekr in element_kinds]
         py_metric_definitions = [md._metric_def for md in metric_definitions]
 

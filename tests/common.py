@@ -1,17 +1,16 @@
 # tests/common.py
 
 import asyncio
-from typing import Optional, Dict
+import time
+
 from ih_muse import (
-    Muse,
-    Config,
     ClientType,
+    Config,
     ElementKindRegistration,
     MetricDefinition,
+    Muse,
     TimestampResolution,
 )
-from ih_muse.muse import Muse
-import time
 
 
 class MuseTestContext:

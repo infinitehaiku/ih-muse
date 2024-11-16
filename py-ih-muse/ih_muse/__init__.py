@@ -1,11 +1,11 @@
+from .config import ClientType, Config
 from .muse import Muse
-from .config import Config, ClientType
-from .proto import TimestampResolution, ElementKindRegistration, MetricDefinition
+from .proto import ElementKindRegistration, MetricDefinition, TimestampResolution
 
 # from ih_muse.foo import foo
 
 __all__ = [
-    "PyMuse",
+    "Muse",
     "Config",
     "ClientType",
     "TimestampResolution",

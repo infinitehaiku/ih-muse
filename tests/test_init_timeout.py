@@ -2,20 +2,18 @@
 
 import pytest
 from ih_muse import (
-    Muse,
-    Config,
     ClientType,
-    TimestampResolution,
+    Config,
     ElementKindRegistration,
     MetricDefinition,
+    Muse,
+    TimestampResolution,
 )
 from ih_muse.exceptions import MuseInitializationTimeoutError
-import ih_muse
 
 
 @pytest.mark.asyncio
 async def test_muse_initialization_timeout() -> None:
-
     element_kind = ElementKindRegistration(
         "server",
         "Server",
@@ -41,7 +39,7 @@ async def test_muse_initialization_timeout() -> None:
 
     muse = Muse(config)
 
-    with pytest.raises(MuseInitializationTimeoutError) as exc_info:
+    with pytest.raises(MuseInitializationTimeoutError):
         await muse.initialize(timeout=2.0)
 
     assert (

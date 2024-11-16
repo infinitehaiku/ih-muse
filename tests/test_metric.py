@@ -1,10 +1,9 @@
 # tests/test_metrics.py
 
-import time
 
-import pytest
 import asyncio
 
+import pytest
 from common import MuseTestContext
 from ih_muse import ClientType
 

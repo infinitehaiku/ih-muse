@@ -20,7 +20,7 @@ dev-dependencies = [
     "pytest-asyncio>=0.21.0",
     "maturin>=1.7.2",
     "pre-commit>=2.20.0",
-    "mypy>=0.991",
+    "mypy>=1.7.0",
     "deptry>=0.20.0",
     "twine",
     "tox-uv>=1.11.3",
@@ -43,54 +43,49 @@ check_untyped_defs = true
 warn_return_any = true
 warn_unused_ignores = true
 show_error_codes = true
+warn_unused_configs = true
+ignore_missing_imports = true
+disallow_incomplete_defs = true
+exclude = 'venv,env'
+pretty = true
+allow_redefinition = true
+strict_equality = true
 
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py39"
-line-length = 120
+line-length = 88
 fix = true
 
 [tool.ruff.lint]
 select = [
-    # flake8-2020
-    "YTT",
-    # flake8-bandit
-    "S",
-    # flake8-bugbear
-    "B",
-    # flake8-builtins
-    "A",
-    # flake8-comprehensions
-    "C4",
-    # flake8-debugger
-    "T10",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
-    # mccabe
-    "C90",
-    # pycodestyle
-    "E", "W",
-    # pyflakes
-    "F",
-    # pygrep-hooks
-    "PGH",
-    # pyupgrade
-    "UP",
-    # ruff
-    "RUF",
-    # tryceratops
-    "TRY",
-]
-ignore = [
-    # LineTooLong
-    "E501",
-    # DoNotAssignLambda
-    "E731",
+  "ANN", # flake8-annotations
+  "B", # flake8-bugbear
+  "C4", # flake8-comprehensions
+  "D", # flake8-docstrings
+  "E", # pycodestyle
+  "EM", # flake8-errmsg
+  "F", # pyflakes
+  "FA", # flake8-future-annotations
+  "FBT001", # flake8-boolean-trap
+  "I", # isort
+  "ICN", # flake8-import-conventions
+  "INT", # flake8-gettext
+  "PERF", # perflint
+  "PIE", # flake8-pie
+  "PT", # flake8-pytest-style
+  "PTH", # flake8-use-pathlib
+  "PYI", # flake8-pyi
+  "RUF", # ruff-specific rules
+  "SIM", # flake8-simplify
+  "TCH", # flake8-type-checking
+  "TD", # flake8-todos
+  "TID", # flake8-tidy-imports
+  "TRY", # tryceratops
+  "UP", # pyupgrade
+  "W", # pycodestyle
 ]
 
 [tool.ruff.lint.per-file-ignores]

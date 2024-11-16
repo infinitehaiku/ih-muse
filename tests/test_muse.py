@@ -3,7 +3,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_muse():
+async def test_muse() -> None:
     element_kind = ih_muse.ElementKindRegistration(
         "EK1",
         "ElementKind1",

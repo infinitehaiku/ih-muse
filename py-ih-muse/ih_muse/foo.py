@@ -7,10 +7,12 @@ def foo(bar: str) -> str:
     Extended description of function.
 
     Args:
+    ----
         bar: Description of input argument.
 
     Returns:
+    -------
         Description of return value
-    """
 
+    """
     return bar
