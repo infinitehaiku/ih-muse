@@ -17,12 +17,17 @@ use ih_muse_core::prelude::*;
 use ih_muse_proto::prelude::*;
 use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replayer};
 
+/// The main client for interacting with the Muse system.
+///
+/// The `Muse` struct provides methods to initialize the client, register elements,
+/// send metrics, and replay recorded events.
 pub struct Muse {
     client: Arc<dyn Transport + Send + Sync>,
     state: Arc<State>,
     recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>>,
     tasks: Vec<JoinHandle<()>>,
     cancellation_token: CancellationToken,
+    /// Indicates whether the Muse client has been initialized.
     pub is_initialized: Arc<AtomicBool>,
     element_buffer: Arc<ElementBuffer>,
     metric_buffer: Arc<MetricBuffer>,
@@ -30,6 +35,9 @@ pub struct Muse {
 }
 
 impl Drop for Muse {
+    /// Cleans up resources when the `Muse` instance is dropped.
+    ///
+    /// Cancels any running tasks and releases resources.
     fn drop(&mut self) {
         self.cancellation_token.cancel();
         for task in &self.tasks {
@@ -39,10 +47,16 @@ impl Drop for Muse {
 }
 
 impl Muse {
-    /// Creates a new instance of Muse.
+    /// Creates a new `Muse` client instance.
+    ///
+    /// # Arguments
+    ///
+    /// - `config`: A reference to the [`Config`] object.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError::Configuration`] if the client cannot be created with the provided configuration.
     pub fn new(config: &Config) -> MuseResult<Self> {
-        // TODO validate element_kinds and metric_definitions
-
         let client: Arc<dyn Transport + Send + Sync> = match config.client_type {
             ClientType::Poet => Arc::new(PoetClient::new(&config.endpoints)),
             ClientType::Mock => Arc::new(MockClient::new()),
@@ -78,7 +92,17 @@ impl Muse {
         })
     }
 
-    /// Initialize and start background tasks
+    /// Initializes the Muse client and starts background tasks.
+    ///
+    /// Must be called before using other methods that interact with the Muse system.
+    ///
+    /// # Arguments
+    ///
+    /// - `timeout`: Optional timeout duration for the initialization process.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError::MuseInitializationTimeout`] if initialization times out.
     pub async fn initialize(&mut self, timeout: Option<Duration>) -> MuseResult<()> {
         self.start_tasks(
             self.config.element_kinds.to_vec(),
@@ -98,12 +122,20 @@ impl Muse {
         Ok(())
     }
 
-    /// Get a reference to the internal State.
+    /// Retrieves a reference to the internal [`State`] object.
+    ///
+    /// # Returns
+    ///
+    /// An `Arc` pointing to the internal `State`.
     pub fn get_state(&self) -> Arc<State> {
         self.state.clone()
     }
 
-    /// Get a reference to the internal Transport client.
+    /// Retrieves a reference to the internal transport client.
+    ///
+    /// # Returns
+    ///
+    /// An `Arc` pointing to the transport client implementing `Transport`.
     pub fn get_client(&self) -> Arc<dyn Transport + Send + Sync> {
         self.client.clone()
     }
@@ -159,12 +191,31 @@ impl Muse {
         self.tasks.push(metric_sender_handle);
     }
 
-    /// Returns whether the Muse client is initialized.
+    /// Checks if the Muse client has been initialized.
+    ///
+    /// # Returns
+    ///
+    /// `true` if initialized, `false` otherwise.
     pub fn is_initialized(&self) -> bool {
         self.is_initialized.load(Ordering::SeqCst)
     }
 
-    /// Registers a new element.
+    /// Registers a new element with the Muse system.
+    ///
+    /// # Arguments
+    ///
+    /// - `kind_code`: The kind code of the element.
+    /// - `name`: The name of the element.
+    /// - `metadata`: A map of metadata key-value pairs.
+    /// - `parent_id`: Optional parent element ID.
+    ///
+    /// # Returns
+    ///
+    /// A [`LocalElementId`] representing the registered element.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError`] if registration fails.
     pub async fn register_element(
         &self,
         kind_code: &str,
@@ -178,39 +229,17 @@ impl Muse {
         Ok(local_elem_id)
     }
 
-    async fn register_element_inner(
-        &self,
-        local_elem_id: LocalElementId,
-        kind_code: &str,
-        name: String,
-        metadata: HashMap<String, String>,
-        parent_id: Option<ElementId>,
-    ) -> MuseResult<()> {
-        // Record the event if recorder is enabled
-        if let Some(recorder) = &self.recorder {
-            let event = RecordedEvent::ElementRegistration {
-                local_elem_id,
-                kind_code: kind_code.to_string(),
-                name: name.clone(),
-                metadata: metadata.clone(),
-                parent_id,
-            };
-            recorder.lock().await.record(event).await?;
-        }
-
-        if !self.state.is_valid_element_kind_code(kind_code) {
-            return Err(MuseError::InvalidElementKindCode(kind_code.to_string()));
-        }
-
-        let element = ElementRegistration::new(kind_code, name, metadata, parent_id);
-        self.element_buffer
-            .add_element(local_elem_id, element)
-            .await;
-
-        Ok(())
-    }
-
-    /// Sends a metric value.
+    /// Sends a metric value associated with an element.
+    ///
+    /// # Arguments
+    ///
+    /// - `local_elem_id`: The local ID of the element.
+    /// - `metric_code`: The code identifying the metric.
+    /// - `value`: The metric value to send.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError`] if the metric cannot be sent.
     pub async fn send_metric(
         &self,
         local_elem_id: LocalElementId,
@@ -238,7 +267,17 @@ impl Muse {
         Ok(())
     }
 
-    /// Replays events from a recording.
+    /// Replays events from a recording file.
+    ///
+    /// Useful for testing or replaying historical data.
+    ///
+    /// # Arguments
+    ///
+    /// - `replay_path`: The file path to the recording.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError`] if replaying fails.
     pub async fn replay(&self, replay_path: &Path) -> MuseResult<()> {
         // TODO record should store time deltas between the functions
         // TODO so replay will replay it with the exact same delays

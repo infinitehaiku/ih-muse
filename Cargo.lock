@@ -753,7 +753,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "chrono",
  "env_logger",
@@ -770,7 +770,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-cli"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "chrono",
@@ -785,7 +785,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-client"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "chrono",
@@ -801,7 +801,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-core"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -820,7 +820,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-proto"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "chrono",
  "serde",
@@ -832,7 +832,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-python"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "ih-muse",
  "ih-muse-core",
@@ -846,7 +846,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-record"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "async-trait",
  "bincode",

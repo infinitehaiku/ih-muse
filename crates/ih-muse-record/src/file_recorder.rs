@@ -1,4 +1,12 @@
-// crates/ih-muse-core/src/recording/file_recording.rs
+// crates/ih-muse-record/src/file_recorder.rs
+
+//! Implements the [`FileRecorder`] for recording events to a file.
+//!
+//! The recording files should have a specific extension to determine
+//! the encoding/serialization format. Supported extensions are:
+//!
+//! - `.bin` for Bincode serialization
+//! - `.json` for JSON serialization
 
 use std::fs::{File, OpenOptions};
 use std::io::{BufWriter, Write};
@@ -10,12 +18,25 @@ use super::SerializationFormat;
 use crate::{RecordedEvent, Recorder};
 use ih_muse_core::{MuseError, MuseResult};
 
+/// A recorder that writes events to a file.
+///
+/// The serialization format is determined by the file extension.
+/// Supported extensions are `.bin` for Bincode and `.json` for JSON.
 pub struct FileRecorder {
     writer: BufWriter<File>,
     format: SerializationFormat,
 }
 
 impl FileRecorder {
+    /// Creates a new `FileRecorder`.
+    ///
+    /// # Arguments
+    ///
+    /// - `path`: The file path to write recordings to.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError::Recording`] if the file cannot be opened.
     pub fn new(path: &Path) -> MuseResult<Self> {
         let ext = path.extension().and_then(|e| e.to_str());
         let format = SerializationFormat::from_extension(ext)?;
@@ -35,6 +56,15 @@ impl FileRecorder {
 
 #[async_trait]
 impl Recorder for FileRecorder {
+    /// Records an event to the file.
+    ///
+    /// # Arguments
+    ///
+    /// - `event`: The [`RecordedEvent`] to record.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError::Recording`] if serialization fails.
     async fn record(&mut self, event: RecordedEvent) -> MuseResult<()> {
         match self.format {
             SerializationFormat::Bincode => bincode::serialize_into(&mut self.writer, &event)
@@ -49,6 +79,11 @@ impl Recorder for FileRecorder {
         }
     }
 
+    /// Closes the recorder by flushing the writer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError::Recording`] if flushing fails.
     async fn close(&mut self) -> MuseResult<()> {
         self.writer
             .flush()

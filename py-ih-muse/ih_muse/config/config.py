@@ -1,4 +1,5 @@
 # py-ih-muse/ih_muse/config/config.py
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,6 +11,42 @@ if TYPE_CHECKING:
 
 
 class Config:
+    """Configuration class for the Muse client in Python.
+
+    :param list[str] endpoints:
+        List of endpoint URLs for the Muse client.
+    :param ClientType client_type:
+        The type of client to use (`ClientType.Poet` or `ClientType.Mock`).
+    :param TimestampResolution default_resolution:
+        Default timestamp resolution for metrics.
+    :param list[ElementKindRegistration] element_kinds:
+        List of element kinds to register.
+    :param list[MetricDefinition] metric_definitions:
+        List of metric definitions available for reporting.
+    :param int max_reg_elem_retries:
+        Maximum number of retries for element registration.
+    :param bool recording_enabled:
+        Enables event recording if set to `True`.
+    :param Optional[str] recording_path:
+        File path for recording events (required if `recording_enabled` is `True`).
+
+    ```python
+    # Example usage:
+    from ih_muse import Config, ClientType, TimestampResolution
+    from ih_muse.proto import ElementKindRegistration, MetricDefinition
+
+    config = Config(
+        endpoints=["http://localhost:8080"],
+        client_type=ClientType.Poet,
+        default_resolution=TimestampResolution.Milliseconds,
+        element_kinds=[ElementKindRegistration("kind_code", "description")],
+        metric_definitions=[MetricDefinition("metric_code", "description")],
+        max_reg_elem_retries=3,
+        recording_enabled=False,
+    )
+    ```
+    """
+
     _config: PyConfig
 
     def __init__(

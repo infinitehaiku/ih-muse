@@ -1,6 +1,7 @@
 [project]
 name = "ih-muse"
-version = "0.0.2"
+# version = "0.0.1"
+# dynamic = ["version"]
 description = "Common muse library for python"
 authors = [{ name = "Luis Diaz", email = "code.luis.diaz@proton.me" }]
 readme = "README.md"
@@ -24,18 +25,7 @@ Repository = "https://github.com/infinitehaiku/ih-muse"
 Documentation = "https://infinitehaiku.github.io/ih-muse/"
 
 [tool.uv]
-dev-dependencies = [
-    "pytest>=7.2.0",
-    "pre-commit>=2.20.0",
-    "tox-uv>=1.11.3",
-    "deptry>=0.20.0",
-    "mypy>=0.991",
-    "pytest-cov>=4.0.0",
-    "ruff>=0.6.9",
-    "mkdocs>=1.4.2",
-    "mkdocs-material>=8.5.10",
-    "mkdocstrings[python]>=0.26.1",
-]
+managed = true
 
 [build-system]
 build-backend = "maturin"
