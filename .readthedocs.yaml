@@ -10,10 +10,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
-  apt_packages:
-    - rustc
-    - cargo
   jobs:
+    pre_install:
+      - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+      - source $HOME/.cargo/env
+      - rustup override set 1.80
     post_install:
       - pip install uv==0.5.2
       - uv venv
