@@ -9,8 +9,8 @@ version: 2
 build:
   os: ubuntu-lts-latest
   tools:
-    python: latest
-    rust: latest
+    python: "3.11"
+    rust: "1.78"
   jobs:
     post_install:
       - pip install uv==0.5.2
