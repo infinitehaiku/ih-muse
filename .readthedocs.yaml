@@ -1,11 +1,6 @@
 # .readthedocs.yaml
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
-
-# Required
 version: 2
 
-# Set the OS, Python version and other tools you might need
 build:
   os: ubuntu-lts-latest
   tools:
@@ -16,8 +11,8 @@ build:
       - pip install uv==0.5.2
       - uv venv
       - uv sync --group docs
+      - uv run pip install -e ./py-ih-muse
 
-# Build documentation in the "docs/" directory with Sphinx
 sphinx:
   configuration: docs/conf.py
   builder: html
