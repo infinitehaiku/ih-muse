@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import datetime
 import importlib.metadata
-import os
-import sys
-from typing import Any
 
-sys.path.insert(0, os.path.abspath("../../py-ih-muse/ih-muse"))
+# Remove the sys.path modification if the package is installed
+# sys.path.insert(0, os.path.abspath("../../py-ih-muse/ih_muse"))
 
-DISTRIBUTION_METADATA = importlib.metadata.metadata("IH-Muse")
+# Use the package name as defined in your pyproject.toml
+DISTRIBUTION_METADATA = importlib.metadata.metadata("ih-muse")
+
 # -- Project information -----------------------------------------------------
 author = DISTRIBUTION_METADATA["Author"]
 project = DISTRIBUTION_METADATA["Name"]
 version = DISTRIBUTION_METADATA["Version"]
 current_year = datetime.datetime.now().year
-project = "ih_muse"
 copyright = f"{current_year}, {author}"
 release = version
 
@@ -32,24 +31,10 @@ extensions = [
     "sphinx_inline_tabs",
 ]
 
-# -- Options for extlinks ----------------------------------------------------
-extlinks = {
-    "pypi": ("https://pypi.org/project/%s/", "%s"),
-}
-
-templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
-# -- Options for intersphinx -------------------------------------------------
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", None),
-    "redis": ("https://redis-py.readthedocs.io/en/stable/", None),
-}
-
 # -- Autodoc settings ---------------------------------------------------
-autodoc2_output_dir = "docs/api/python"
+autodoc2_output_dir = "api/python"
 autodoc2_render_plugin = "myst"
-autodoc2_packages = [{"path": "../../py-ih-muse/ih-muse"}]
+autodoc2_packages = [{"path": "../../py-ih-muse/ih_muse"}]
 
 # -- MyST settings ---------------------------------------------------
 myst_enable_extensions = [

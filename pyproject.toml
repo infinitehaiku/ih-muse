@@ -1,8 +1,9 @@
-[tool.hatch.build.targets.wheel]
-packages = ["dummy"]
-
 [tool.uv]
 managed = true
+package = false
+
+[tool.uv.workspace]
+members = ["py-ih-muse"]
 
 [dependency-groups]
 dev = [
@@ -12,7 +13,9 @@ dev = [
     # "deptry>=0.20.0",
     # "deptry>=0.991",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.24.0",
     "ruff>=0.6.9",
+    "maturin>=1.7.4",
 ]
 docs = [
     "sphinx>=7.0",
@@ -23,9 +26,6 @@ docs = [
     "myst-parser>=2",
     "furo>=2023",
 ]
-
-[tool.uv.workspace]
-members = ["py-ih-muse"]
 
 [tool.mypy]
 files = ["py-ih-muse/ih_muse", "tests"]

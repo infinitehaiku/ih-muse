@@ -229,6 +229,35 @@ impl Muse {
         Ok(local_elem_id)
     }
 
+    async fn register_element_inner(
+        &self,
+        local_elem_id: LocalElementId,
+        kind_code: &str,
+        name: String,
+        metadata: HashMap<String, String>,
+        parent_id: Option<ElementId>,
+    ) -> MuseResult<()> {
+        // Record the event if recorder is enabled
+        if let Some(recorder) = &self.recorder {
+            let event = RecordedEvent::ElementRegistration {
+                local_elem_id,
+                kind_code: kind_code.to_string(),
+                name: name.clone(),
+                metadata: metadata.clone(),
+                parent_id,
+            };
+            recorder.lock().await.record(event).await?;
+        }
+        if !self.state.is_valid_element_kind_code(kind_code) {
+            return Err(MuseError::InvalidElementKindCode(kind_code.to_string()));
+        }
+        let element = ElementRegistration::new(kind_code, name, metadata, parent_id);
+        self.element_buffer
+            .add_element(local_elem_id, element)
+            .await;
+        Ok(())
+    }
+
     /// Sends a metric value associated with an element.
     ///
     /// # Arguments

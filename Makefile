@@ -1,7 +1,8 @@
 .PHONY: install
 install: ## Install the virtual environment and install the pre-commit hooks
-	@echo "🚀 Creating virtual environment using uv"
-	@uv sync
+	@echo "🚀 Creating virtual environment using virtualenv"
+	@uv run python -m virtualenv .venv
+	@uv sync --group dev
 	@uv run pre-commit install
 
 .PHONY: check-python
@@ -33,7 +34,7 @@ build: clean-build ## Build wheel file
 .PHONY: develop
 develop: ## Build and install the package in develop mode
 	@echo "🚀 Building and installing package in develop mode"
-	@uvx maturin develop --release -m py-ih-muse/Cargo.toml
+	@uv run maturin develop --release -m py-ih-muse/Cargo.toml
 
 .PHONY: test
 test: develop ## Test the code with pytest
