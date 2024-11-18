@@ -63,86 +63,86 @@ The goal of IH-Muse is to provide an efficient and user-friendly library that:
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
-  ```python
-  import asyncio
-  from ih_muse import Muse, Config, ClientType
-  from ih_muse.proto import (
-      ElementKindRegistration,
-      MetricDefinition,
-      TimestampResolution,
-  )
+```python
+import asyncio
+from ih_muse import Muse, Config, ClientType
+from ih_muse.proto import (
+    ElementKindRegistration,
+    MetricDefinition,
+    TimestampResolution,
+)
 
-  async def main():
-      config = Config(
-          endpoints=["http://localhost:8080"],
-          client_type=ClientType.Poet,
-          default_resolution=TimestampResolution.Milliseconds,
-          element_kinds=[ElementKindRegistration("kind_code", "description")],
-          metric_definitions=[MetricDefinition("metric_code", "description")],
-          max_reg_elem_retries=3,
-          recording_enabled=False,
-      )
-      muse = Muse(config)
-      await muse.initialize(timeout=5.0)
+async def main():
+    config = Config(
+        endpoints=["http://localhost:8080"],
+        client_type=ClientType.Poet,
+        default_resolution=TimestampResolution.Milliseconds,
+        element_kinds=[ElementKindRegistration("kind_code", "description")],
+        metric_definitions=[MetricDefinition("metric_code", "description")],
+        max_reg_elem_retries=3,
+        recording_enabled=False,
+    )
+    muse = Muse(config)
+    await muse.initialize(timeout=5.0)
 
-      local_elem_id = await muse.register_element(
-          kind_code="kind_code",
-          name="Element Name",
-          metadata={},
-          parent_id=None,
-      )
+    local_elem_id = await muse.register_element(
+        kind_code="kind_code",
+        name="Element Name",
+        metadata={},
+        parent_id=None,
+    )
 
-      await muse.send_metric(local_elem_id, "metric_code", 42.0)
+    await muse.send_metric(local_elem_id, "metric_code", 42.0)
 
-  asyncio.run(main())
-  ```
+asyncio.run(main())
+```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
-  ```rust
-  use ih_muse::prelude::*;
-  use ih_muse::config::{ClientType, Config};
-  use ih_muse_proto::prelude::*;
-  use std::collections::HashMap;
+```rust
+use ih_muse::prelude::*;
+use ih_muse::config::{ClientType, Config};
+use ih_muse_proto::prelude::*;
+use std::collections::HashMap;
 
-  #[tokio::main]
-  async fn main() -> MuseResult<()> {
-      let config = Config::new(
-          vec!["http://localhost:8080".to_string()],
-          ClientType::Poet,
-          false,
-          None,
-          TimestampResolution::Milliseconds,
-          vec![ElementKindRegistration::new("kind_code", "description")],
-          vec![MetricDefinition::new("metric_code", "description")],
-          Some(std::time::Duration::from_secs(60)),
-          3,
-      )?;
+#[tokio::main]
+async fn main() -> MuseResult<()> {
+    let config = Config::new(
+        vec!["http://localhost:8080".to_string()],
+        ClientType::Poet,
+        false,
+        None,
+        TimestampResolution::Milliseconds,
+        vec![ElementKindRegistration::new("kind_code", "description")],
+        vec![MetricDefinition::new("metric_code", "description")],
+        Some(std::time::Duration::from_secs(60)),
+        3,
+    )?;
 
-      let mut muse = Muse::new(&config)?;
-      muse.initialize(Some(std::time::Duration::from_secs(5))).await?;
+    let mut muse = Muse::new(&config)?;
+    muse.initialize(Some(std::time::Duration::from_secs(5))).await?;
 
-      let local_elem_id = muse
-          .register_element(
-              "kind_code",
-              "Element Name".to_string(),
-              HashMap::new(),
-              None,
-          )
-          .await?;
+    let local_elem_id = muse
+        .register_element(
+            "kind_code",
+            "Element Name".to_string(),
+            HashMap::new(),
+            None,
+        )
+        .await?;
 
-      muse.send_metric(local_elem_id, "metric_code", MetricValue::from(42.0))
-          .await?;
+    muse.send_metric(local_elem_id, "metric_code", MetricValue::from(42.0))
+        .await?;
 
-      Ok(())
-  }
-  ```
+    Ok(())
+}
+```
 
-  :::
+:::
 
 :::
 

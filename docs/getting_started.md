@@ -6,25 +6,25 @@ This guide will help you get started with IH-Muse. It covers all the fundamental
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
-  ```bash
-  pip install ih-muse
-  ```
+```bash
+pip install ih-muse
+```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
-  ```bash
-  cargo add ih-muse
+```bash
+cargo add ih-muse
 
-  # Or add it directly to your Cargo.toml
-  [dependencies]
-  ih-muse = "0.1.0"
-  ```
+# Or add it directly to your Cargo.toml
+[dependencies]
+ih-muse = "0.1.0"
+```
 
-  :::
+:::
 
 :::
 
@@ -38,49 +38,49 @@ First, create a configuration object for your Muse client.
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
-  ```python
-  from ih_muse import Config, ClientType
-  from ih_muse.proto import (
-      ElementKindRegistration,
-      MetricDefinition,
-      TimestampResolution,
-  )
+```python
+from ih_muse import Config, ClientType
+from ih_muse.proto import (
+    ElementKindRegistration,
+    MetricDefinition,
+    TimestampResolution,
+)
 
-  config = Config(
-      endpoints=["http://localhost:8080"],
-      client_type=ClientType.Poet,
-      default_resolution=TimestampResolution.Milliseconds,
-      element_kinds=[ElementKindRegistration("kind_code", "description")],
-      metric_definitions=[MetricDefinition("metric_code", "description")],
-      max_reg_elem_retries=3,
-      recording_enabled=False,
-  )
-  ```
+config = Config(
+    endpoints=["http://localhost:8080"],
+    client_type=ClientType.Poet,
+    default_resolution=TimestampResolution.Milliseconds,
+    element_kinds=[ElementKindRegistration("kind_code", "description")],
+    metric_definitions=[MetricDefinition("metric_code", "description")],
+    max_reg_elem_retries=3,
+    recording_enabled=False,
+)
+```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
-  ```rust
-  use ih_muse::config::{Config, ClientType};
-  use ih_muse_proto::prelude::*;
+```rust
+use ih_muse::config::{Config, ClientType};
+use ih_muse_proto::prelude::*;
 
-  let config = Config::new(
-      vec!["http://localhost:8080".to_string()],
-      ClientType::Poet,
-      false,
-      None,
-      TimestampResolution::Milliseconds,
-      vec![ElementKindRegistration::new("kind_code", "description")],
-      vec![MetricDefinition::new("metric_code", "description")],
-      Some(std::time::Duration::from_secs(60)),
-      3,
-  ).expect("Failed to create config");
-  ```
+let config = Config::new(
+    vec!["http://localhost:8080".to_string()],
+    ClientType::Poet,
+    false,
+    None,
+    TimestampResolution::Milliseconds,
+    vec![ElementKindRegistration::new("kind_code", "description")],
+    vec![MetricDefinition::new("metric_code", "description")],
+    Some(std::time::Duration::from_secs(60)),
+    3,
+).expect("Failed to create config");
+```
 
-  :::
+:::
 
 :::
 
@@ -90,29 +90,29 @@ Create and initialize the Muse client.
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
-  ```python
-  from ih_muse import Muse
+```python
+from ih_muse import Muse
 
-  muse = Muse(config)
-  await muse.initialize(timeout=5.0)
-  ```
+muse = Muse(config)
+await muse.initialize(timeout=5.0)
+```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
-  ```rust
-  use ih_muse::Muse;
+```rust
+use ih_muse::Muse;
 
-  let mut muse = Muse::new(&config).expect("Failed to create Muse client");
-  muse.initialize(Some(std::time::Duration::from_secs(5)))
-      .await
-      .expect("Failed to initialize Muse client");
-  ```
+let mut muse = Muse::new(&config).expect("Failed to create Muse client");
+muse.initialize(Some(std::time::Duration::from_secs(5)))
+    .await
+    .expect("Failed to initialize Muse client");
+```
 
-  :::
+:::
 
 :::
 
@@ -122,36 +122,36 @@ Register a new element with the Muse system.
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
-  ```python
-  local_elem_id = await muse.register_element(
-      kind_code="kind_code",
-      name="Element Name",
-      metadata={},
-      parent_id=None,
-  )
-  ```
+```python
+local_elem_id = await muse.register_element(
+    kind_code="kind_code",
+    name="Element Name",
+    metadata={},
+    parent_id=None,
+)
+```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
-  ```rust
-  use std::collections::HashMap;
+```rust
+use std::collections::HashMap;
 
-  let local_elem_id = muse
-      .register_element(
-          "kind_code",
-          "Element Name".to_string(),
-          HashMap::new(),
-          None,
-      )
-      .await
-      .expect("Failed to register element");
-  ```
+let local_elem_id = muse
+    .register_element(
+        "kind_code",
+        "Element Name".to_string(),
+        HashMap::new(),
+        None,
+    )
+    .await
+    .expect("Failed to register element");
+```
 
-  :::
+:::
 
 :::
 
@@ -161,25 +161,25 @@ Send a metric associated with the registered element.
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
-  ```python
-  await muse.send_metric(local_elem_id, "metric_code", 42.0)
-  ```
+```python
+await muse.send_metric(local_elem_id, "metric_code", 42.0)
+```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
-  ```rust
-  use ih_muse_proto::MetricValue;
+```rust
+use ih_muse_proto::MetricValue;
 
-  muse.send_metric(local_elem_id, "metric_code", MetricValue::from(42.0))
-      .await
-      .expect("Failed to send metric");
-  ```
+muse.send_metric(local_elem_id, "metric_code", MetricValue::from(42.0))
+    .await
+    .expect("Failed to send metric");
+```
 
-  :::
+:::
 
 :::
 
@@ -193,7 +193,7 @@ To enable recording, set `recording_enabled` to `true` in your configuration and
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
 ```python
 config = Config(
@@ -203,9 +203,9 @@ config = Config(
 )
 ```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
 ```rust
 let config = Config::new(
@@ -216,8 +216,7 @@ let config = Config::new(
 )?;
 ```
 
-
-  :::
+:::
 
 :::
 
@@ -232,15 +231,15 @@ To replay events from a recording:
 
 :::{tab-set}
 
-  :::{tab-item} :fontawesome-brands-python: Python
+:::{tab-item} :fontawesome-brands-python: Python
 
 ```python
 await muse.replay("events.bin")
 ```
 
-  :::
+:::
 
-  :::{tab-item} :fontawesome-brands-rust: Rust
+:::{tab-item} :fontawesome-brands-rust: Rust
 
 ```rust
 use std::path::Path;
@@ -249,7 +248,8 @@ muse.replay(Path::new("events.bin"))
     .await
     .expect("Failed to replay events");
 ```
-  :::
+
+:::
 
 :::
 
