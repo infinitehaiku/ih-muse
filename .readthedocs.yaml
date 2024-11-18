@@ -13,7 +13,7 @@ build:
   jobs:
     pre_install:
       - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-      - source $HOME/.cargo/env
+      - . $HOME/.cargo/env
       - rustup override set 1.80
     post_install:
       - pip install uv==0.5.2
