@@ -6,19 +6,18 @@ IH-Muse allows you to replay previously recorded events from a file. This is use
 
 To replay events, use the `replay` method of the Muse client.
 
-=== ":fontawesome-brands-python: Python"
+````{tab-set-code}
 
-    ```python
-    await muse.replay("events.bin")
-    ```
+```{code-block} python
+await muse.replay("events.bin")
+```
 
-=== ":fontawesome-brands-rust: Rust"
+```{code-block} rust
+use std::path::Path;
 
-    ```rust
-    use std::path::Path;
-
-    muse.replay(Path::new("events.bin")).await?;
-    ```
+muse.replay(Path::new("events.bin")).await?;
+```
+````
 
 **Note:** Ensure that the serialization format of the recording file matches the expected format (based on the file extension).
 
@@ -28,9 +27,9 @@ You can also use the command-line interface (CLI) tool to replay events.
 
 ### Replaying with the CLI
 
-    ```shell
-    ih-muse-cli replay --input events.bin --poet-url http://localhost:8000
-    ```
+```shell
+ih-muse-cli replay --input events.bin --poet-url http://localhost:8000
+```
 
 #### CLI Options
 
@@ -39,9 +38,9 @@ You can also use the command-line interface (CLI) tool to replay events.
 
 **Example:**
 
-    ```shell
-    ih-muse-cli replay --input events.json --poet-url http://localhost:8000
-    ```
+```shell
+ih-muse-cli replay --input events.json --poet-url http://localhost:8000
+```
 
 This command will replay the events from `events.json` to the specified Muse system.
 

@@ -71,10 +71,6 @@ docs-serve: docs-build ## Serve the documentation locally
 	@echo "🚀 Serving documentation at http://localhost:8000"
 	@uv run python -m http.server --directory docs/_build/html 8000
 
-.PHONY: docs-test
-docs-test: docs-build ## Test if documentation can be built without warnings or errors
-	@echo "🚀 Testing documentation build for warnings or errors"
-
 .PHONY: help
 help:
 	@uv run python -c "import re; \

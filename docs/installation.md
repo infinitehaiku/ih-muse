@@ -4,37 +4,35 @@ IH-Muse is available for both Rust and Python. Installation is straightforward u
 
 ## Installing IH-Muse
 
-=== ":fontawesome-brands-python: Python"
+Install Python
 
-    ```bash
-    pip install ih-muse
-    ```
+```bash
+pip install ih-muse
+```
 
-=== ":fontawesome-brands-rust: Rust"
+Install Rust
 
-    ```shell
-    cargo add ih-muse
+```shell
+cargo add ih-muse
 
-    # Or add it directly to your Cargo.toml
-    [dependencies]
-    ih-muse = "0.1.0"
-    ```
+# Or add it directly to your Cargo.toml
+[dependencies]
+ih-muse = "0.1.0"
+```
 
 ## Importing
 
 To use the library, import it into your project:
 
-=== ":fontawesome-brands-python: Python"
+````{tab-set-code}
+```{code-block} python
+from ih_muse import Muse, Config
+```
 
-    ```python
-    from ih_muse import Muse, Config
-    ```
-
-=== ":fontawesome-brands-rust: Rust"
-
-    ```rust
-    use ih_muse::prelude::*;
-    ```
+```{code-block} rust
+use ih_muse::prelude::*;
+```
+````
 
 ## Feature Flags (Rust Only)
 
@@ -49,10 +47,10 @@ Depending on your use case, you might want to enable optional features to extend
 
 To enable these features, specify them in your `Cargo.toml`:
 
-    ```toml
-    [dependencies]
-    ih-muse = { version = "0.1.0", features = ["recording", "poet-client"] }
-    ```
+```toml
+[dependencies]
+ih-muse = { version = "0.1.0", features = ["recording", "poet-client"] }
+```
 
 ---
 

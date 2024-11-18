@@ -12,6 +12,8 @@ build:
       - uv venv
       - uv sync --group docs
       - uv run pip install -e ./py-ih-muse
+  commands:
+    - uv run python -m sphinx -T -b html -d _build/doctrees -D language=en . $READTHEDOCS_OUTPUT/html
 
 sphinx:
   configuration: docs/conf.py

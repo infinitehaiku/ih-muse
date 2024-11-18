@@ -6,18 +6,9 @@ The IH-Muse CLI provides utilities for interacting with the Muse system directly
 
 To install the CLI tool, ensure that you have the `cli` feature enabled when building IH-Muse.
 
-=== ":fontawesome-brands-python: Python"
-
-    ```bash
-    # Currently, the CLI is only available for Rust.
-    # Python users can interact with IH-Muse programmatically.
-    ```
-
-=== ":fontawesome-brands-rust: Rust"
-
-    ```shell
-    cargo install ih-muse --features "cli"
-    ```
+```shell
+cargo install ih-muse --features "cli"
+```
 
 ## Available Commands
 
@@ -27,9 +18,9 @@ Replays events from a recording file to the Muse system.
 
 **Usage:**
 
-    ```shell
-    ih-muse-cli replay --input <file> [OPTIONS]
-    ```
+```shell
+ih-muse-cli replay --input <file> [OPTIONS]
+```
 
 **Options:**
 
@@ -38,9 +29,9 @@ Replays events from a recording file to the Muse system.
 
 **Example:**
 
-    ```shell
-    ih-muse-cli replay --input events.bin --poet-url http://localhost:8000
-    ```
+```shell
+ih-muse-cli replay --input events.bin --poet-url http://localhost:8000
+```
 
 This command replays events from `events.bin` to the Muse system at `http://localhost:8000`.
 
@@ -56,9 +47,9 @@ The CLI uses common arguments across commands for consistency.
 
 **Example:**
 
-    ```shell
-    ih-muse-cli <command> --poet-url http://localhost:8000
-    ```
+```shell
+ih-muse-cli <command> --poet-url http://localhost:8000
+```
 
 ---
 
@@ -70,6 +61,6 @@ Additional commands and options will be added to the CLI tool in future releases
 
 For more detailed information on the available commands and options, use the `--help` flag:
 
-    ```shell
-    ih-muse-cli --help
-    ```
+```shell
+ih-muse-cli --help
+```
