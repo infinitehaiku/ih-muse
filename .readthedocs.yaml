@@ -6,13 +6,11 @@ build:
   tools:
     python: "3.11"
     rust: "1.78"
-  jobs:
-    post_install:
-      - pip install uv==0.5.2
-      - uv venv
-      - uv sync --group docs
-      - uv run pip install -e ./py-ih-muse
   commands:
+    - pip install uv==0.5.2
+    - uv venv
+    - uv sync --group docs
+    - uv run pip install -e ./py-ih-muse
     - uv run python -m sphinx -T -b html -d _build/doctrees -D language=en . $READTHEDOCS_OUTPUT/html
 
 sphinx:
