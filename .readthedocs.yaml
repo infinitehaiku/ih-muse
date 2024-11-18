@@ -10,6 +10,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
+  apt_packages:
+    - rustc
+    - cargo
   jobs:
     post_install:
       - pip install uv==0.5.2
