@@ -4,17 +4,13 @@ This guide will help you get started with IH-Muse. It covers all the fundamental
 
 ## Installing IH-Muse
 
-:::{tab-set}
-
-:::{tab-item} :fontawesome-brands-python: Python
+Install Python:
 
 ```bash
 pip install ih-muse
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
+Install Rust
 
 ```bash
 cargo add ih-muse
@@ -24,10 +20,6 @@ cargo add ih-muse
 ih-muse = "0.1.0"
 ```
 
-:::
-
-:::
-
 Ensure that you have Python 3.7+ and/or Rust and Cargo installed on your system. You can get Rust from [rustup.rs](https://rustup.rs/).
 
 ## Basic Usage
@@ -36,11 +28,9 @@ Ensure that you have Python 3.7+ and/or Rust and Cargo installed on your system.
 
 First, create a configuration object for your Muse client.
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 from ih_muse import Config, ClientType
 from ih_muse.proto import (
     ElementKindRegistration,
@@ -59,11 +49,7 @@ config = Config(
 )
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 use ih_muse::config::{Config, ClientType};
 use ih_muse_proto::prelude::*;
 
@@ -80,30 +66,22 @@ let config = Config::new(
 ).expect("Failed to create config");
 ```
 
-:::
-
-:::
+````
 
 ### Initializing the Muse Client
 
 Create and initialize the Muse client.
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 from ih_muse import Muse
 
 muse = Muse(config)
 await muse.initialize(timeout=5.0)
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 use ih_muse::Muse;
 
 let mut muse = Muse::new(&config).expect("Failed to create Muse client");
@@ -112,19 +90,15 @@ muse.initialize(Some(std::time::Duration::from_secs(5)))
     .expect("Failed to initialize Muse client");
 ```
 
-:::
-
-:::
+````
 
 ### Registering Elements
 
 Register a new element with the Muse system.
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 local_elem_id = await muse.register_element(
     kind_code="kind_code",
     name="Element Name",
@@ -133,11 +107,7 @@ local_elem_id = await muse.register_element(
 )
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 use std::collections::HashMap;
 
 let local_elem_id = muse
@@ -151,27 +121,19 @@ let local_elem_id = muse
     .expect("Failed to register element");
 ```
 
-:::
-
-:::
+````
 
 ### Sending Metrics
 
 Send a metric associated with the registered element.
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 await muse.send_metric(local_elem_id, "metric_code", 42.0)
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 use ih_muse_proto::MetricValue;
 
 muse.send_metric(local_elem_id, "metric_code", MetricValue::from(42.0))
@@ -179,9 +141,7 @@ muse.send_metric(local_elem_id, "metric_code", MetricValue::from(42.0))
     .expect("Failed to send metric");
 ```
 
-:::
-
-:::
+````
 
 ## Recording and Replaying Events
 
@@ -191,11 +151,9 @@ IH-Muse allows you to record events to a file and replay them later, which is us
 
 To enable recording, set `recording_enabled` to `true` in your configuration and provide a `recording_path`.
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 config = Config(
     # ... other configuration fields
     recording_enabled=True,
@@ -203,11 +161,7 @@ config = Config(
 )
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 let config = Config::new(
     // ... other configuration fields
     true, // recording_enabled
@@ -216,9 +170,7 @@ let config = Config::new(
 )?;
 ```
 
-:::
-
-:::
+````
 
 **Note:** The recording file should have a specific extension to determine the serialization format:
 
@@ -229,19 +181,13 @@ let config = Config::new(
 
 To replay events from a recording:
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 await muse.replay("events.bin")
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 use std::path::Path;
 
 muse.replay(Path::new("events.bin"))
@@ -249,9 +195,7 @@ muse.replay(Path::new("events.bin"))
     .expect("Failed to replay events");
 ```
 
-:::
-
-:::
+````
 
 ## Command-Line Interface
 
@@ -269,4 +213,4 @@ ih-muse-cli replay --input events.bin --poet-url http://localhost:8000
 
 ---
 
-For more detailed information on recording and replaying, refer to the [Recording](recording.md) and [Replaying](replaying.md) guides.
+For more detailed information on recording and replaying, refer to the [Recording](recording/recording.md) and [Replaying](recording/replaying.md) guides.

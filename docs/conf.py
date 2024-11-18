@@ -34,7 +34,7 @@ extensions = [
 # -- Autodoc settings ---------------------------------------------------
 autodoc2_output_dir = "api/python"
 autodoc2_render_plugin = "myst"
-autodoc2_packages = [{"path": "../../py-ih-muse/ih_muse"}]
+autodoc2_packages = [{"path": "../py-ih-muse/ih_muse"}]
 
 # -- MyST settings ---------------------------------------------------
 myst_enable_extensions = [

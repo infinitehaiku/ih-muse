@@ -10,7 +10,7 @@ The Python API reference is built using Sphinx and `autodoc`. It's available bel
 :maxdepth: 2
 :caption: Python API Reference
 
-python/*
+python/index.rst
 ```
 
 ## Rust

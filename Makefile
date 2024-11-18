@@ -54,14 +54,26 @@ publish: build ## Publish a release to PyPI.
 .PHONY: build-and-publish
 build-and-publish: build publish ## Build and publish.
 
-.PHONY: docs-test
-docs-test: ## Test if documentation can be built without warnings or errors
-	@uv run pip install -e ./py-ih-muse
-	@uv run mkdocs build -s
+.PHONY: docs-install
+docs-install: ## Install dependencies for building documentation
+	@echo "🚀 Installing documentation dependencies"
+	@uv sync --group docs
 
-.PHONY: docs
-docs: ## Build and serve the documentation
-	@uv run mkdocs serve
+.PHONY: docs-build
+docs-build: docs-install ## Build the documentation
+	@echo "🚀 Building documentation"
+	@uv run pip install -e ./py-ih-muse
+	@uv run python -m sphinx -b html docs/ docs/_build/html || \
+		uv run sphinx-build -b html docs/ docs/_build/html
+
+.PHONY: docs-serve
+docs-serve: docs-build ## Serve the documentation locally
+	@echo "🚀 Serving documentation at http://localhost:8000"
+	@uv run python -m http.server --directory docs/_build/html 8000
+
+.PHONY: docs-test
+docs-test: docs-build ## Test if documentation can be built without warnings or errors
+	@echo "🚀 Testing documentation build for warnings or errors"
 
 .PHONY: help
 help:

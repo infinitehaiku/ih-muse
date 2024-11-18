@@ -1,82 +1,75 @@
-# Command Line Interface (CLI)
+# IH-Muse Command-Line Interface (CLI)
 
-The Pynenc Command Line Interface (CLI) is a tool for managing your Pynenc application. So far just provides commands for starting runners and showing configuration, but more will be added in future releases.
+The IH-Muse CLI provides utilities for interacting with the Muse system directly from the command line. It includes commands for recording and replaying events, among other functionalities.
 
-## Mandatory App Option
+## Installation
 
-Every command in the Pynenc CLI requires the `--app` option. This mandatory option specifies the application module and name, ensuring that the CLI is interacting with the correct Pynenc instance. Upon invocation, the CLI initializes the appropriate configuration classes and the runner based on the Pynenc configuration.
+To install the CLI tool, ensure that you have the `cli` feature enabled when building IH-Muse.
 
-For more information on configuration, please refer to the {doc}`../configuration/index`.
+=== ":fontawesome-brands-python: Python"
 
-## Basic Usage
+    ```bash
+    # Currently, the CLI is only available for Rust.
+    # Python users can interact with IH-Muse programmatically.
+    ```
 
-The basic structure of a command in the Pynenc CLI is:
+=== ":fontawesome-brands-rust: Rust"
 
-```bash
-    $ python -m pynenc --app=<app_module> <command> [options]
-```
-
-Where `<app_module>` is the module path of your Pynenc application and `<command>` is one of the available commands.
+    ```shell
+    cargo install ih-muse --features "cli"
+    ```
 
 ## Available Commands
 
-1. **runner**: Commands related to the runner.
-2. **show_config**: Show the current configuration of the app or runner.
+### `replay`
 
-Each command might have its own set of options and arguments.
+Replays events from a recording file to the Muse system.
 
-## show_config Command
+**Usage:**
 
-To show the current configuration of your application:
+    ```shell
+    ih-muse-cli replay --input <file> [OPTIONS]
+    ```
 
-```bash
-    $ python -m pynenc --app=<app_module> show_config
-```
+**Options:**
 
-This command displays the configuration settings of your Pynenc instance.
+- `-i, --input <file>`: Input file path containing the recorded events.
+- `-u, --poet-url <url>`: Muse system endpoint URL (default: `http://localhost:8000`).
 
-## runner Command
+**Example:**
 
-Use the `runner` command to manage the runner part of your Pynenc application.
+    ```shell
+    ih-muse-cli replay --input events.bin --poet-url http://localhost:8000
+    ```
 
-```bash
-    $ python -m pynenc --app=<app_module> runner [subcommand]
-```
+This command replays events from `events.bin` to the Muse system at `http://localhost:8000`.
 
-Subcommands for `runner` include:
+---
 
-- **start**: Start a runner.
-- **show_config**: Show runner configuration.
+### Common Arguments
 
-## Runner Management
+The CLI uses common arguments across commands for consistency.
 
-The `runner` command is used to control the runner component of your Pynenc application.
+**Common Arguments:**
 
-To start the runner:
+- `-u, --poet-url <url>`: Muse system endpoint URL (default: `http://localhost:8000`).
 
-```bash
-    $ python -m pynenc --app=<app_module> runner start
-```
+**Example:**
 
-This command initializes and starts the runner for your application. Note that using the default `DummyRunner` will result in an error, as shown below:
+    ```shell
+    ih-muse-cli <command> --poet-url http://localhost:8000
+    ```
 
-```text
-    ValueError: DummyRunner cannot be started, use another runner
-```
+---
 
-To use a functional runner, ensure that your application's configuration specifies a valid runner class. For example:
+## Future Enhancements
 
-.. code-block:: bash
+Additional commands and options will be added to the CLI tool in future releases to extend its capabilities.
 
-    $ PYNENC__RUNNER_CLS="ThreadRunner" python -m pynenc --app=<app_module> runner start
+---
 
-This command will start the `ThreadRunner`.
+For more detailed information on the available commands and options, use the `--help` flag:
 
-Stopping the Runner:
-
-To stop the runner, you can interrupt the process (e.g., using `Ctrl+C`). Upon receiving the interrupt signal, the runner will attempt to shut down gracefully:
-
-```text
-    INFO: Received signal signum=2 Stopping runner loop...
-    INFO: [runner: ThreadRunner] Stopping runner...
-```
+    ```shell
+    ih-muse-cli --help
+    ```

@@ -1,5 +1,12 @@
 # Concepts
 
+```{toctree}
+:maxdepth: 1
+
+recording
+replaying
+```
+
 This chapter describes the core concepts of the Polars API. Understanding these will help you optimise your queries on a daily basis. We will cover the following topics:
 
 - [Data types and structures](data-types-and-structures.md)

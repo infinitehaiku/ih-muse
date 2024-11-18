@@ -3,7 +3,7 @@ name = "ih-muse"
 # version = "0.0.1"
 # dynamic = ["version"]
 description = "Common muse library for python"
-authors = [{ name = "Luis Diaz", email = "code.luis.diaz@proton.me" }]
+authors = [{ name = "Luis Diaz" }]
 readme = "README.md"
 keywords = ['python']
 requires-python = ">=3.9,<4.0"

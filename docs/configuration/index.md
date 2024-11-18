@@ -1,145 +1,177 @@
-# Configuration System
+# Configuration
 
-Pynenc's configuration system is designed for high flexibility and modularity, supporting a variety of sources and formats for configuration data. This system is particularly suited for distributed systems where configuration might vary across different environments or components.
+The `Config` class (in Python) and the `Config` struct (in Rust) are central to initializing and customizing the behavior of the Muse client. They encapsulate all the necessary settings required to interact with the Muse system effectively.
 
-## Configuration Sources
+## Overview
 
-The configuration values can be determined from various sources, with the following priority (from highest to lowest):
+The configuration allows you to:
 
-1. Direct assignment in the config instance (not recommended)
-2. Environment variables
-3. Configuration file path specified by environment variables
-4. Configuration file path (YAML, TOML, JSON)
-5. `pyproject.toml`
-6. Default values specified in the `ConfigField`
+- Specify endpoints for connecting to the Muse system.
+- Choose the client type (e.g., `Poet` or `Mock`).
+- Define element kinds and metric definitions for registration and reporting.
+- Set default timestamp resolutions.
+- Enable or disable event recording and specify recording paths.
+- Configure retries and intervals for various operations.
 
-## Hierarchical Configuration
+## Configuration Fields
 
-Pynenc supports a hierarchical configuration system, allowing for nested configuration classes. This feature enables specifying configuration at different levels, from general to specific.
+- **Endpoints**: List of endpoint URLs for the Muse client.
+- **Client Type**: Determines the type of client (`Poet` or `Mock`).
+- **Recording Enabled**: Enables or disables event recording.
+- **Recording Path**: File path for recording events (required if recording is enabled).
+- **Default Resolution**: Default timestamp resolution for metrics.
+- **Element Kinds**: List of element kinds to register.
+- **Metric Definitions**: List of metric definitions available for reporting.
+- **Cluster Monitor Interval**: Interval for cluster monitoring tasks (optional).
+- **Max Registration Retries**: Maximum number of retries for element registration.
 
-**Example**:
+## Validation Rules
 
-```{code-block} python
-   class ConfigGrandpa(ConfigBase):
-       test_field = ConfigField("grandpa_value")
+The configuration settings undergo validation to ensure that:
 
-   class ConfigParent(ConfigGrandpa):
-       test_field = ConfigField("parent_value")
+- **Endpoints**: Must not be empty if using the `Poet` client type.
+- **Element Kinds**: Cannot be empty; at least one must be provided.
+- **Metric Definitions**: Cannot be empty; at least one must be provided.
+- **Recording Path**: Must be specified if recording is enabled.
 
-   class ConfigChild(ConfigParent):
-       test_field = ConfigField("child_value")
-```
+## Example Usage
 
-In `pyproject.toml`, configurations can be specified at different levels:
+Below are examples of how to define the configuration in both Python and Rust.
 
-```toml
-   [tool.pynenc]
-   test_field = "toml_value"
+::::{tab-set}
 
-   [tool.pynenc.grandpa]
-   test_field = "toml_grandpa_value"
-
-   [tool.pynenc.parent]
-   test_field = "toml_parent_value"
-
-   [tool.pynenc.child]
-   test_field = "toml_child_value"
-```
-
-The most specific (child) configuration will take precedence over more general (parent/grandpa) configurations and the default.
-
-## Environment Variables
-
-Environment variables can be used to override configuration values. They follow two naming conventions:
-
-1. `PYNENC__<CONFIG_CLASS_NAME>__<FIELD_NAME>` for setting values specific to a configuration class.
-2. `PYNENC__<FIELD_NAME>` for default values that apply across all configuration classes.
-
-**Example**:
-
-```shell
-   # Specific to a configuration class
-   export PYNENC__CONFIGCHILD__TEST_FIELD="env_child_value"
-
-   # Default value for all configuration classes
-   export PYNENC__TEST_FIELD="env_default_value"
-```
-
-In the first example, `test_field` in `ConfigChild` is overridden with "env_child_value". In the second example, `test_field` is set to "env_default_value" for any configuration class that does not have a more specific value defined.
-
-## Type Casting in ConfigField
-
-`ConfigField` ensures that the type of the configuration value is preserved. Values from files or environment variables are cast to the specified type, and an exception is raised if casting is not possible.
-
-## Specifying Configuration File Path
-
-A specific configuration file can be indicated using the `PYNENC__FILEPATH` environment variable. Additionally, a file exclusive to a particular `ConfigBase` instance can be specified, e.g., `PYNENC__SOMECONFIG__FILEPATH` for `SomeConfig`.
-
-```{note}
-   The configuration system is designed to be easily extendable, allowing users to create custom configuration classes that inherit from `ConfigBase`. This flexibility facilitates the modification of specific parts of the configuration as necessary for each system.
-```
-
-## Multi-Inheritance Support
-
-Pynenc's configuration system supports multiple inheritance, allowing for the combination of configurations from different parent classes. This feature is particularly useful when different components of the system share common configuration options.
-
-**Example**:
+::: {tab-item} Python
 
 ```python
+import asyncio
+from ih_muse import Muse, Config, ClientType, TimestampResolution
+from ih_muse.proto import ElementKindRegistration, MetricDefinition
 
-   class ConfigOrchestrator(ConfigBase):
-       ...
+# Define the configuration
+config = Config(
+    endpoints=["http://localhost:8080"],
+    client_type=ClientType.Poet,
+    default_resolution=TimestampResolution.Milliseconds,
+    element_kinds=[
+        ElementKindRegistration("kind_code", "description")
+    ],
+    metric_definitions=[
+        MetricDefinition("metric_code", "description")
+    ],
+    max_reg_elem_retries=3,
+    recording_enabled=False,
+    recording_path=None,  # Optional if recording is disabled
+)
 
-   class ConfigOrchestratorRedis(ConfigOrchestrator, ConfigRedis):
-       ...
+# Initialize the Muse client
+async def main():
+    muse = Muse(config)
+    await muse.initialize(timeout=5.0)
+    # ... use the muse client
+
+asyncio.run(main())
 ```
 
-In this example, `ConfigOrchestratorRedis` combines the default configurations of both `ConfigOrchestrator` and `ConfigRedis`.
+:::
 
-## Task-Specific Configuration
+::: {tab-item} Rust
 
-The `ConfigTask` class provides specialized configurations for tasks within the distributed system. It allows defining configurations globally for all tasks, or on a per-task basis using environment variables, configuration files, or decorators.
+```rust
+use ih_muse::prelude::*;
+use ih_muse::config::{ClientType, Config};
+use ih_muse_proto::prelude::*;
+use std::collections::HashMap;
+use std::time::Duration;
 
-1. **Global vs. Task-Specific Settings**: Global settings apply to all tasks, while task-specific settings override the global ones for the specified task.
+#[tokio::main]
+async fn main() -> MuseResult<()> {
+    // Define the configuration
+    let config = Config::new(
+        vec!["http://localhost:8080".to_string()],
+        ClientType::Poet,
+        false,                      // recording_enabled
+        None,                       // recording_path
+        TimestampResolution::Milliseconds,
+        vec![ElementKindRegistration::new("kind_code", "description")],
+        vec![MetricDefinition::new("metric_code", "description")],
+        Some(Duration::from_secs(60)),  // cluster_monitor_interval
+        3,                              // max_reg_elem_retries
+    )?;
 
-2. **Setting via Environment Variables**:
+    // Initialize the Muse client
+    let mut muse = Muse::new(&config)?;
+    muse.initialize(Some(Duration::from_secs(5))).await?;
+    // ... use the muse client
 
-   - Global setting: `PYNENC__CONFIGTASK__<FIELD_NAME>`
-   - Task-specific setting: `PYNENC__CONFIGTASK__<TASK_NAME>__<FIELD_NAME>`
-
-   **Example**:
-
-   ```shell
-      export PYNENC__CONFIGTASK__AUTO_PARALLEL_BATCH_SIZE="2"
-      export PYNENC__CONFIGTASK__MY_MODULE#MY_TASK__AUTO_PARALLEL_BATCH_SIZE="3"
-   ```
-
-   ```{note}
-      The separator between the module name and the task name is `#`, not `__`. For instance, use `MY_MODULE#MY_TASK__AUTO_PARALLEL` to specify the task-specific setting.
-   ```
-
-3. **Setting via Configuration File**:
-
-   Task configurations can also be set using YAML, JSON, or TOML files. The structure allows for both global and task-specific configurations.
-
-   **Example**:
-
-   ```yaml
-   task:
-     auto_parallel_batch_size: 4
-     max_retries: 10
-     module_name.task_name:
-       max_retries: 5
-   ```
-
-   ```python
-      config = ConfigTask(task_id="module_name.my_task", config_filepath="path/to/config.yaml")
-   ```
-
-## Extending Configuration
-
-Users can extend the configuration system by creating custom configuration classes that inherit from `ConfigBase`. This flexibility allows for the easy modification of specific parts of the configuration as necessary for each system.
-
-```{note}
-   The configuration system ensures that the same configuration field is not defined in multiple parent classes, preventing conflicts and ensuring deterministic behavior.
+    Ok(())
+}
 ```
+
+:::
+
+::::
+
+## Detailed Explanation
+
+### Endpoints
+
+A list of URLs where the Muse client can connect to. At least one endpoint must be provided when using the `Poet` client type.
+
+### Client Type
+
+Determines the type of client to instantiate:
+
+- `Poet`: Communicates with the actual Muse system.
+- `Mock`: Uses a mock client for testing purposes without making real network calls.
+
+### Recording Options
+
+- **Recording Enabled**: When set to `True` (Python) or `true` (Rust), the client will record events for later analysis.
+- **Recording Path**: Specifies where the recorded events should be saved. This must be provided if recording is enabled.
+
+### Default Resolution
+
+Specifies the default timestamp resolution for metrics (e.g., milliseconds, seconds).
+
+### Element Kinds
+
+A list of `ElementKindRegistration` instances that define the kinds of elements you plan to register with the Muse system.
+
+### Metric Definitions
+
+A list of `MetricDefinition` instances that define the metrics you plan to report.
+
+### Cluster Monitor Interval
+
+(Optional) The interval at which the client should perform cluster monitoring tasks. This is typically relevant for advanced configurations.
+
+### Max Registration Retries
+
+Specifies how many times the client should retry registering an element in case of failure.
+
+## Validation Behavior (Rust Implementation)
+
+The Rust implementation includes a `validate` method that ensures the configuration is correct before the client is initialized.
+
+Validation checks include:
+
+- **Client Type and Endpoints**: If the client type is `Poet`, there must be at least one endpoint specified.
+- **Element Kinds and Metric Definitions**: Both must contain at least one entry.
+- **Recording Path**: If recording is enabled, a valid recording path must be provided.
+
+If any of these validations fail, the client initialization will return a `MuseError::Configuration` error.
+
+## Common Errors
+
+- **Missing Endpoints**: Ensure that you provide at least one endpoint when using the `Poet` client.
+- **Empty Element Kinds or Metric Definitions**: Provide at least one element kind and one metric definition.
+- **Recording Enabled Without Path**: If you enable recording, you must specify a valid path for the recording file.
+
+## Tips
+
+- **Asynchronous Initialization**: Both Python and Rust clients use asynchronous initialization methods. Ensure you await these calls appropriately.
+- **Error Handling**: Always handle potential errors that may arise during client initialization or operation, especially network-related issues.
+
+## Conclusion
+
+Properly configuring the Muse client is crucial for successful integration with the Muse system. By understanding and utilizing the configuration options available, you can tailor the client to meet your specific needs, whether you're developing in Python or Rust.

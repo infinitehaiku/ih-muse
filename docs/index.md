@@ -22,10 +22,12 @@
 :hidden:
 :maxdepth: 2
 :caption: Table of Contents
-getting_started
+
 installation
+getting_started
+configuration/index
 recording/index
-cli
+cli/index
 api/index
 contributing/index
 faq
@@ -61,11 +63,9 @@ The goal of IH-Muse is to provide an efficient and user-friendly library that:
 
 ## Example
 
-:::{tab-set}
+````{tab-set-code}
 
-:::{tab-item} :fontawesome-brands-python: Python
-
-```python
+```{code-block} python
 import asyncio
 from ih_muse import Muse, Config, ClientType
 from ih_muse.proto import (
@@ -99,14 +99,8 @@ async def main():
 asyncio.run(main())
 ```
 
-:::
-
-:::{tab-item} :fontawesome-brands-rust: Rust
-
-```rust
+```{code-block} rust
 use ih_muse::prelude::*;
-use ih_muse::config::{ClientType, Config};
-use ih_muse_proto::prelude::*;
 use std::collections::HashMap;
 
 #[tokio::main]
@@ -141,12 +135,9 @@ async fn main() -> MuseResult<()> {
     Ok(())
 }
 ```
+````
 
-:::
-
-:::
-
-A more extensive introduction can be found in the {doc}`getting_started/index`.
+A more extensive introduction can be found in the {doc}`getting_started`.
 
 ## Community
 

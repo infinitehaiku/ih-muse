@@ -1,8 +1,9 @@
 
 [package]
 name = "py-ih-muse"
-version = "0.0.1"
-edition = "2021"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
 
 [lib]
 name = "ih_muse"
