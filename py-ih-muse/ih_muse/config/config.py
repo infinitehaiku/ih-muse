@@ -1,4 +1,4 @@
-# py-ih-muse/ih_muse/config/config.py
+"""Module for configuring ih_muse."""
 
 from __future__ import annotations
 
@@ -57,9 +57,10 @@ class Config:
         element_kinds: list[ElementKindRegistration],
         metric_definitions: list[MetricDefinition],
         max_reg_elem_retries: int,
-        recording_enabled: bool,
+        recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
     ) -> None:
+        """Initialize the Config instance."""
         py_element_kinds = [ekr._elem_kind_reg for ekr in element_kinds]
         py_metric_definitions = [md._metric_def for md in metric_definitions]
 

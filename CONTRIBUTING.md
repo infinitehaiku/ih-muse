@@ -44,7 +44,7 @@ If you are proposing a new feature:
 
 ## Get Started
 
-Ready to contribute? Here's how to set up `ih-muse` for local development.  
+Ready to contribute? Here's how to set up `ih-muse` for local development.
 Please note this documentation assumes you already have `uv`, `make`, and `Git` installed and ready to go.
 
 1. **Fork the `ih-muse` repo on GitHub.**
@@ -76,7 +76,7 @@ Please note this documentation assumes you already have `uv`, `make`, and `Git` 
 
    Now you can make your changes locally.
 
-6. **Testing `ClientType`:**  
+6. **Testing `ClientType`:**
    By default, the tests will run using the `Mock` client. If you want to test with the `Poet` client, which requires a running Poet instance, you need to set the `IH_MUSE_CLIENT_TYPE` environment variable to `Poet`.
 
    **Running tests with `Mock` (default):**
@@ -98,7 +98,7 @@ Please note this documentation assumes you already have `uv`, `make`, and `Git` 
    make test-integration
    ```
 
-7. **Add test cases for your changes:**  
+7. **Add test cases for your changes:**
    Add all test cases to the `tests` directory.
 
 8. **Run formatting and linting checks:**
@@ -113,7 +113,7 @@ Please note this documentation assumes you already have `uv`, `make`, and `Git` 
    make test
    ```
 
-10. **Run `tox` to test across multiple Python versions:**  
+10. **Run `tox` to test across multiple Python versions:**
 
     ```bash
     tox
@@ -139,5 +139,5 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
 
-2. If the pull request adds functionality, ensure that the docs are updated.  
+2. If the pull request adds functionality, ensure that the docs are updated.
    Add a docstring for new functions and update the feature list in the `README.md`.

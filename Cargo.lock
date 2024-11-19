@@ -838,6 +838,7 @@ dependencies = [
  "ih-muse",
  "ih-muse-core",
  "ih-muse-proto",
+ "num-traits",
  "pyo3",
  "pyo3-async-runtimes",
  "thiserror",

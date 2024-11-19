@@ -1,3 +1,5 @@
+"""Exception definitions for ih_muse."""
+
 try:
     from ih_muse.ih_muse import (
         ClientError,
@@ -22,7 +24,7 @@ except ImportError:
         Examples
         --------
         >>> some code...
-        polars.exceptions.MuseInitializationTimeoutError: ...
+        ih_muse.exceptions.MuseInitializationTimeoutError: ...
 
         """
 
@@ -48,24 +50,18 @@ except ImportError:
         """TODO DOCS."""
 
     class PanicException(MuseError):  # type: ignore[no-redef, misc]
-        """Exception raised when an unexpected state causes a panic in the underlying Rust library."""
-
-
-class OtherPythonErrors(MuseError):  # type: ignore[misc]
-    """Exception defined just for the python code."""
+        """Exception raised on panics in the underlying Rust library."""
 
 
 __all__ = [
-    # Errors
+    "ClientError",
+    "ConfigurationError",
+    "InvalidElementKindCodeError",
+    "InvalidFileExtensionError",
+    "InvalidMetricCodeError",
     "MuseError",
     "MuseInitializationTimeoutError",
-    "ConfigurationError",
-    "ClientError",
+    "PanicException",
     "RecordingError",
     "ReplayingError",
-    "InvalidFileExtensionError",
-    "InvalidElementKindCodeError",
-    "InvalidMetricCodeError",
-    # Panic
-    "PanicException",
 ]

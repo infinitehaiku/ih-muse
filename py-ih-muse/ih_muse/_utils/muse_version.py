@@ -1,3 +1,5 @@
+"""Utilities for handling the Muse version."""
+
 try:
     import ih_muse.ih_muse as muse
 

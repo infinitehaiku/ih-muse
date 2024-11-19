@@ -258,6 +258,19 @@ impl Muse {
         Ok(())
     }
 
+    /// Retrieves the remote `ElementId` associated with a given `LocalElementId`.
+    ///
+    /// # Arguments
+    ///
+    /// - `local_elem_id`: The `LocalElementId` for which to retrieve the `ElementId`.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<ElementId>` containing the associated `ElementId` if it exists.
+    pub fn get_remote_element_id(&self, local_elem_id: &LocalElementId) -> Option<ElementId> {
+        self.state.get_element_id(local_elem_id)
+    }
+
     /// Sends a metric value associated with an element.
     ///
     /// # Arguments

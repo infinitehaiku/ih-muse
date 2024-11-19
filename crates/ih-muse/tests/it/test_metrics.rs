@@ -1,7 +1,5 @@
 // tests/it/test_metrics.rs
 use super::common::{TestContext, DEFAULT_WAIT_TIME};
-use ih_muse_client::PoetClient;
-use ih_muse_core::Transport;
 use ih_muse_proto::MetricQuery;
 use tokio::time::sleep;
 

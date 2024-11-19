@@ -10,6 +10,7 @@ repos:
     rev: v0.42.0
     hooks:
       - id: markdownlint-fix
+        exclude: ^docs/api/python/
 
   - repo: https://github.com/crate-ci/typos
     rev: v1.26.0
@@ -33,16 +34,19 @@ repos:
       - id: ruff
         name: "ruff lint"
         args: ["--exit-non-zero-on-fix", "--unsafe-fixes"]
-      - id: ruff
-        name: "ruff isort"
-        args: ["check", "--select", "I", "--fix"]
       - id: ruff-format
         name: "ruff black"
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: "v3.0.3"
     hooks:
       - id: prettier
+        exclude: ^docs/api/python/
 
   - repo: local
     hooks:

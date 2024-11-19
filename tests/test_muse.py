@@ -1,10 +1,16 @@
+"""General tests for Muse."""
+
 import ih_muse
 import pytest
+
 from common import get_client_type_from_env
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.integration
 async def test_muse() -> None:
+    """Test basic Muse functionality."""
     element_kind = ih_muse.ElementKindRegistration(
         "EK1",
         "ElementKind1",
@@ -29,4 +35,3 @@ async def test_muse() -> None:
 
     muse = ih_muse.Muse(config)
     await muse.initialize(10)
-

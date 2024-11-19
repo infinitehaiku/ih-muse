@@ -1,4 +1,4 @@
-# py-ih-muse/ih_muse/config/config.py
+"""Public package for ih_muse configuration."""
 
 from ih_muse.ih_muse import ClientType
 

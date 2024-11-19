@@ -5,8 +5,8 @@ use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
+use num_traits::cast::AsPrimitive;
 use pyo3::prelude::*;
-use pyo3::types::PyString;
 use pyo3_async_runtimes::tokio::future_into_py;
 use tokio::sync::Mutex;
 use tokio::time::Duration;
@@ -14,6 +14,7 @@ use tokio::time::Duration;
 use super::PyMuse;
 use crate::config::PyConfig;
 use crate::error::PyMusesErr;
+use crate::proto::{PyMetricPayload, PyMetricQuery};
 use ih_muse::Muse as RustMuse;
 use ih_muse_proto::types::*;
 
@@ -76,6 +77,16 @@ impl PyMuse {
         })
     }
 
+    pub fn get_remote_element_id(&self, local_elem_id: &str) -> PyResult<Option<u64>> {
+        let muse = self.muse.clone();
+        let local_elem_uuid = LocalElementId::parse_str(local_elem_id).map_err(PyMusesErr::from)?;
+
+        // Use a blocking mutex lock instead of creating an async context
+        let muse_guard = muse.blocking_lock();
+        let remote_elem_id = muse_guard.get_remote_element_id(&local_elem_uuid);
+        Ok(remote_elem_id.map(|id| id.as_()))
+    }
+
     pub fn send_metric<'p>(
         &self,
         local_elem_id: &str,
@@ -93,6 +104,27 @@ impl PyMuse {
                 .await
                 .map_err(PyMusesErr::from)?;
             Ok(())
+        })
+    }
+
+    pub fn get_metrics<'p>(
+        &self,
+        query: PyMetricQuery,
+        py: Python<'p>,
+    ) -> PyResult<Bound<'p, PyAny>> {
+        let muse = self.muse.clone();
+        future_into_py(py, async move {
+            let muse_guard = muse.lock().await;
+            let metrics = muse_guard
+                .get_metrics(&query.inner)
+                .await
+                .map_err(PyMusesErr::from)?;
+
+            // Convert MetricPayload to PyMetricPayload
+            let py_metrics: Vec<PyMetricPayload> =
+                metrics.into_iter().map(PyMetricPayload::from).collect();
+
+            Ok(py_metrics)
         })
     }
 

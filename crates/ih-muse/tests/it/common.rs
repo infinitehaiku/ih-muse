@@ -28,7 +28,6 @@ pub fn client_type_from_env() -> ClientType {
 pub struct TestContext {
     pub config: Config,
     pub muse: Muse,
-    pub endpoint: String,
 }
 
 impl TestContext {
@@ -36,7 +35,7 @@ impl TestContext {
         init_logger();
         let config = Config {
             endpoints: vec![TEST_ENDPOINT.to_string()],
-            client_type: client_type.unwrap_or_else(|| client_type_from_env()),
+            client_type: client_type.unwrap_or_else(client_type_from_env),
             recording_enabled: false,
             recording_path: None,
             default_resolution: TimestampResolution::Seconds,
@@ -59,11 +58,7 @@ impl TestContext {
 
         Self::wait_for_init(&mut muse).await;
 
-        Self {
-            config,
-            muse,
-            endpoint: TEST_ENDPOINT.to_string(),
-        }
+        Self { config, muse }
     }
 
     pub async fn wait_for_init(muse: &mut Muse) {

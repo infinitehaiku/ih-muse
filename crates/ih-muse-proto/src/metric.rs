@@ -36,11 +36,45 @@ pub struct MetricPayload {
     pub values: Vec<Option<MetricValue>>,
 }
 
-#[derive(Deserialize, Serialize, Debug, Default)]
+impl MetricPayload {
+    pub fn new(
+        time: Timestamp,
+        element_id: ElementId,
+        metric_ids: Vec<MetricId>,
+        values: Vec<Option<MetricValue>>,
+    ) -> Self {
+        Self {
+            time,
+            element_id,
+            metric_ids,
+            values,
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct MetricQuery {
     pub start_time: Option<i64>,
     pub end_time: Option<i64>,
     pub element_id: Option<u64>,
     pub parent_id: Option<u64>,
     pub metric_id: Option<u32>,
+}
+
+impl MetricQuery {
+    pub fn new(
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+        element_id: Option<u64>,
+        parent_id: Option<u64>,
+        metric_id: Option<u32>,
+    ) -> Self {
+        Self {
+            start_time,
+            end_time,
+            element_id,
+            parent_id,
+            metric_id,
+        }
+    }
 }

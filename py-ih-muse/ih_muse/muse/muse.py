@@ -1,13 +1,15 @@
-# py-ih-muse/ih_muse/muse/muse.py
+"""Core functionality for Muse."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
 from ih_muse.ih_muse import PyMuse
+from ih_muse.proto import MetricPayload
 
 if TYPE_CHECKING:
     from ih_muse.config import Config
+    from ih_muse.proto import MetricQuery
 
 
 class Muse:
@@ -29,6 +31,7 @@ class Muse:
     _muse: PyMuse
 
     def __init__(self, config: Config) -> None:
+        """Initialize the Muse instance."""
         self._muse = PyMuse(config._config)
 
     async def initialize(self, timeout: Optional[float] = None) -> None:
@@ -43,7 +46,9 @@ class Muse:
         await self._muse.initialize(timeout)
 
     @classmethod
-    async def create(cls, config: Config, timeout: Optional[float] = None) -> Muse:
+    async def create(
+        cls: type[Muse], config: Config, timeout: Optional[float] = None
+    ) -> Muse:
         """Create and initialize a Muse instance.
 
         :param Config config:
@@ -65,6 +70,17 @@ class Muse:
             `True` if initialized, `False` otherwise.
         """
         return self._muse.is_initialized
+
+    def get_remote_element_id(self, local_elem_id: int) -> Optional[int]:
+        """Retrieve the remote Element ID associated with a local Element ID.
+
+        :param str local_elem_id:
+            The local Element ID to query.
+
+        :return:
+            The corresponding remote Element ID, or `None` if not registered.
+        """
+        return self._muse.get_remote_element_id(local_elem_id)
 
     async def register_element(
         self,
@@ -121,6 +137,21 @@ class Muse:
             metric_code,
             value,
         )
+
+    async def get_metrics(self, query: MetricQuery) -> list[MetricPayload]:
+        """Retrieve metrics based on a query.
+
+        :param MetricQuery query:
+            The query specifying the criteria for retrieving metrics.
+
+        :return:
+            A list of MetricPayload matching the query.
+
+        :raises MuseError:
+            If retrieving the metrics fails.
+        """
+        raw_metrics = await self._muse.get_metrics(query._metric_query)
+        return [MetricPayload.from_py_metric_payload(metric) for metric in raw_metrics]
 
     async def replay(self, replay_path: str) -> None:
         """Replays events from a recording file.

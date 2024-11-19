@@ -6,11 +6,13 @@
 #![allow(clippy::too_many_arguments)]
 
 use pyo3::prelude::*;
-use pyo3::{wrap_pyfunction, wrap_pymodule};
+use pyo3::wrap_pyfunction;
 
 use ih_muse_python::config::{PyClientType, PyConfig};
 use ih_muse_python::proto::PyTimestampResolution;
-use ih_muse_python::proto::{PyElementKindRegistration, PyMetricDefinition};
+use ih_muse_python::proto::{
+    PyElementKindRegistration, PyMetricDefinition, PyMetricPayload, PyMetricQuery,
+};
 // use ih_muse_python::element_kind_registration::PyElementKindRegistration;
 // use ih_muse_python::metric_definition::PyMetricDefinition;
 use ih_muse_python::exceptions;
@@ -31,6 +33,8 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyTimestampResolution>()?;
     m.add_class::<PyElementKindRegistration>()?;
     m.add_class::<PyMetricDefinition>()?;
+    m.add_class::<PyMetricPayload>()?;
+    m.add_class::<PyMetricQuery>()?;
 
     #[pyfunction]
     fn get_version() -> &'static str {

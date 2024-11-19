@@ -1,14 +1,23 @@
-# tests/test_init_timeout.py
+"""Tests for Muse initialization timeout."""
 
 import pytest
+
 from common import get_client_type_from_env
-from ih_muse import (Config, ElementKindRegistration, MetricDefinition, Muse,
-                     TimestampResolution)
+from ih_muse import (
+    Config,
+    ElementKindRegistration,
+    MetricDefinition,
+    Muse,
+    TimestampResolution,
+)
 from ih_muse.exceptions import MuseInitializationTimeoutError
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
+@pytest.mark.integration
 async def test_muse_initialization_timeout() -> None:
+    """Test Muse initialization timeout behavior."""
     element_kind = ElementKindRegistration(
         "server",
         "Server",

@@ -1,37 +1,60 @@
-# tests/common.py
+"""Common utilities for tests."""
+
+from __future__ import annotations
 
 import asyncio
 import os
 import time
+
 from typing import Optional
 
-from ih_muse import (ClientType, Config, ElementKindRegistration,
-                     MetricDefinition, Muse, TimestampResolution)
+from ih_muse import (
+    ClientType,
+    Config,
+    ElementKindRegistration,
+    MetricDefinition,
+    Muse,
+    TimestampResolution,
+)
 
 
 def get_client_type_from_env() -> ClientType:
-    """
-    Retrieves the ClientType from the environment variable `MUSE_CLIENT_TYPE`.
+    """Retrieve the ClientType from the environment variable `MUSE_CLIENT_TYPE`.
+
     Defaults to `Mock` if the variable is not set or invalid.
 
-    Returns:
-        ClientType: The client type to use.
+    :return:  The client type to use.
+
     """
     client_type_str = os.getenv("MUSE_CLIENT_TYPE", "Mock").lower()
     if client_type_str == "poet":
         return ClientType.Poet
     return ClientType.Mock
 
+
 class MuseTestContext:
+    """Context for Muse test cases."""
+
     muse: Muse
     endpoint: str
 
     def __init__(self, muse: Muse, endpoint: str) -> None:
+        """Initialize the MuseTestContext instance."""
         self.muse = muse
         self.endpoint = endpoint
 
     @classmethod
-    async def create(cls, client_type: Optional[ClientType] = None) -> "MuseTestContext":
+    async def create(
+        cls: type[MuseTestContext], client_type: Optional[ClientType] = None
+    ) -> MuseTestContext:
+        """Create a new MuseTestContext.
+
+        :param Optional[ClientType] client_type:
+            The client type to use for testing.
+
+        :return:  A new MuseTestContext instance.
+
+        """
         client_type = client_type or get_client_type_from_env()
         element_kind = ElementKindRegistration(
             "server",
@@ -60,6 +83,13 @@ class MuseTestContext:
         return cls(muse, endpoint)
 
     async def register_test_element(self) -> int:
+        """Register a test element with the Muse system.
+
+        This method registers an element with default parameters suitable for testing.
+
+        :return:
+            The local element ID of the registered test element.
+        """
         local_elem_id = await self.muse.register_element(
             "server",
             "TestServer",
@@ -70,15 +100,9 @@ class MuseTestContext:
         # Wait until the element is registered
         start_time = time.time()
         while (
-            not self.is_element_registered(local_elem_id)
+            not self.muse.get_remote_element_id(local_elem_id)
             and time.time() - start_time < 5
         ):
             await asyncio.sleep(0.1)
 
         return local_elem_id
-
-    def is_element_registered(self, local_elem_id: int) -> bool:
-        # Implement a method to check if the element is registered
-        # Since we don't have direct access to the state, this could be a placeholder
-        # or you can expose additional methods if necessary
-        return True  # For simplicity, assume it's registered after waiting

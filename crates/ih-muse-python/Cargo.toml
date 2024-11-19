@@ -16,6 +16,7 @@ ih-muse = { workspace = true }
 ih-muse-core = { workspace = true }
 ih-muse-proto = { workspace = true }
 
+num-traits = "0.2.19"
 pyo3 = { workspace = true }
 pyo3-async-runtimes = { version = "0.22", features = ["attributes", "tokio-runtime"] }
 # pyo3-asyncio = { workspace = true }

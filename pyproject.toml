@@ -1,3 +1,5 @@
+# pyproject.toml
+
 [tool.uv]
 managed = true
 package = false
@@ -10,8 +12,6 @@ dev = [
     "pytest>=7.2.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
-    # "deptry>=0.20.0",
-    # "deptry>=0.991",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.24.0",
     "ruff>=0.6.9",
@@ -54,13 +54,28 @@ pretty = true
 allow_redefinition = true
 strict_equality = true
 
+[[tool.mypy.overrides]]
+module = [
+  "py_ih_muse.*",
+  "ih_muse.ih_muse",
+]
+ignore_missing_imports = true
+
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.isort]
+profile = "black"
+lines_between_types = 1
+
 [tool.ruff]
 line-length = 88
+preview = true
 fix = true
+extend-exclude = [
+    "docs/conf.py",
+]
 
 [tool.ruff.lint]
 select = [
@@ -73,7 +88,7 @@ select = [
   "F", # pyflakes
   "FA", # flake8-future-annotations
   "FBT001", # flake8-boolean-trap
-  "I", # isort
+  "I", # isort # Using isort for now
   "ICN", # flake8-import-conventions
   "INT", # flake8-gettext
   "PERF", # perflint
@@ -93,14 +108,28 @@ select = [
 per-file-ignores = { "tests/*" = ["S101"] }
 ignore = [
     "D203",  # Ignore one-blank-line-before-class
-    "D213"   # Ignore multi-line-summary-second-line
+    "D213",  # Ignore multi-line-summary-second-line
+    "UP007", # Ignore Use `X | Y` for type annotations
+    "ANN101", # Ignore Missing type annotation for `self` in method
 ]
+
+[tool.ruff.lint.isort]
+lines-between-types = 1
 
 [tool.ruff.format]
 preview = true
 
 [tool.coverage.report]
-skip_empty = true
+fail_under = 85
+skip_covered = true
+show_missing = true
+exclude_lines = [
+  "pragma: no cover",
+  "@overload",
+  "except ImportError",
+  "if TYPE_CHECKING:",
+  "from typing_extensions import ",
+]
 
 [tool.coverage.run]
 branch = true
