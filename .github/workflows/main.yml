@@ -68,15 +68,17 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install uv
-        shell: bash
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          irm https://astral.sh/uv/install.ps1 | iex
+          echo "$HOME/.cargo/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Install uv
+        if: runner.os != 'Windows'
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            echo "::add-path::C:\\Users\\runneradmin\\.cargo\\bin"
-          else
-            echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-            echo "::add-path::$HOME/.cargo/bin"
-          fi
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -117,7 +119,6 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          echo "::add-path::$HOME/.cargo/bin"
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
