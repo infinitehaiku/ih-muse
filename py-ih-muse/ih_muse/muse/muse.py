@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ih_muse.ih_muse import PyMuse
 
@@ -31,7 +31,7 @@ class Muse:
     def __init__(self, config: Config) -> None:
         self._muse = PyMuse(config._config)
 
-    async def initialize(self, timeout: float | None = None) -> None:
+    async def initialize(self, timeout: Optional[float] = None) -> None:
         """Initialize the Muse client and starts background tasks.
 
         :param Optional[float] timeout:
@@ -43,7 +43,7 @@ class Muse:
         await self._muse.initialize(timeout)
 
     @classmethod
-    async def create(cls, config: Config, timeout: float | None = None) -> Muse:
+    async def create(cls, config: Config, timeout: Optional[float] = None) -> Muse:
         """Create and initialize a Muse instance.
 
         :param Config config:
@@ -71,7 +71,7 @@ class Muse:
         kind_code: str,
         name: str,
         metadata: dict[str, str],
-        parent_id: int | None = None,
+        parent_id: Optional[int] = None,
     ) -> int:
         """Register a new element with the Muse system.
 

@@ -38,31 +38,13 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Set up virtual environment and install dependencies
+      - name: Install dependencies and pre-commit hooks
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          python -m ensurepip --upgrade
-          python -m pip install --upgrade pip
-          python -m pip install maturin
-          python -m pip install uv
-          uv sync
-
-      - name: Build Rust extension with maturin
-        run: |
-          source .venv/bin/activate
-          maturin develop -m py-ih-muse/Cargo.toml
+          uv run make install
 
       - name: Run code quality checks
         run: |
-          source .venv/bin/activate
-          make check
-
-      - name: Run Rust formatting check
-        run: cargo fmt --all -- --check
-
-      - name: Run Rust linter with clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+          uv run make check
 
   tests-and-type-check:
     runs-on: ${{ matrix.os }}
@@ -84,66 +66,30 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Set up virtual environment and install dependencies (Unix)
-        if: runner.os != 'Windows'
+      - name: Install dependencies
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          python -m ensurepip --upgrade
-          python -m pip install --upgrade pip
-          python -m pip install maturin
-          python -m pip install uv
-          uv sync
+          uv run make install
 
-      - name: Set up virtual environment and install dependencies (Windows)
-        if: runner.os == 'Windows'
+      - name: Build and install the package with maturin
         run: |
-          python -m venv .venv
-          .venv\Scripts\activate
-          python -m ensurepip --upgrade
-          python -m pip install --upgrade pip
-          python -m pip install maturin
-          python -m pip install uv
-          uv sync
+          uv run make develop
 
-      - name: Build and install the package with maturin (Unix)
-        if: runner.os != 'Windows'
+      - name: Run tests
         run: |
-          source .venv/bin/activate
-          maturin develop -m py-ih-muse/Cargo.toml
+          uv run make test
 
-      - name: Build and install the package with maturin (Windows)
-        if: runner.os == 'Windows'
+      - name: Run typing checks with mypy
+        if: ${{ matrix.python-version >= '3.10' }}
         run: |
-          .venv\Scripts\activate
-          maturin develop -m py-ih-muse/Cargo.toml
-
-      - name: Run Python tests with coverage (Unix)
-        if: runner.os != 'Windows'
-        run: |
-          source .venv/bin/activate
-          pytest tests --cov=ih_muse --cov-report=xml
-
-      - name: Run Python tests with coverage (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          .venv\Scripts\activate
-          pytest tests --cov=ih_muse --cov-report=xml
-
-      - name: Run typing checks with mypy (Unix)
-        if: ${{ matrix.python-version != '3.12' && runner.os != 'Windows' }}
-        run: |
-          source .venv/bin/activate
-          mypy py-ih-muse
-
-      - name: Run typing checks with mypy (Windows)
-        if: ${{ matrix.python-version != '3.12' && runner.os == 'Windows' }}
-        run: |
-          .venv\Scripts\activate
-          mypy py-ih-muse
+          uv run mypy
 
       - name: Upload coverage reports to Codecov (Python 3.11 on Ubuntu only)
         uses: codecov/codecov-action@v4
@@ -160,25 +106,14 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Set up virtual environment and install dependencies
+      - name: Build documentation
         run: |
-          python -m venv .venv
-          source .venv/bin/activate
-          python -m ensurepip --upgrade
-          python -m pip install --upgrade pip
-          python -m pip install maturin
-          python -m pip install uv
-          uv sync
-
-      - name: Build Rust extension with maturin
-        run: |
-          source .venv/bin/activate
-          maturin develop -m py-ih-muse/Cargo.toml
-
-      - name: Validate documentation build
-        run: |
-          source .venv/bin/activate
-          mkdocs build -s
+          uv run make docs-build

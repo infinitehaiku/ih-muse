@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ih_muse.ih_muse import ClientType, PyConfig, TimestampResolution
 
@@ -58,7 +58,7 @@ class Config:
         metric_definitions: list[MetricDefinition],
         max_reg_elem_retries: int,
         recording_enabled: bool,
-        recording_path: str | None = None,
+        recording_path: Optional[str] = None,
     ) -> None:
         py_element_kinds = [ekr._elem_kind_reg for ekr in element_kinds]
         py_metric_definitions = [md._metric_def for md in metric_definitions]

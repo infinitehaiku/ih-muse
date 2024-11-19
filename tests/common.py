@@ -3,6 +3,7 @@
 import asyncio
 import os
 import time
+from typing import Optional
 
 from ih_muse import (ClientType, Config, ElementKindRegistration,
                      MetricDefinition, Muse, TimestampResolution)
@@ -30,7 +31,7 @@ class MuseTestContext:
         self.endpoint = endpoint
 
     @classmethod
-    async def create(cls, client_type: ClientType | None = None) -> "MuseTestContext":
+    async def create(cls, client_type: Optional[ClientType] = None) -> "MuseTestContext":
         client_type = client_type or get_client_type_from_env()
         element_kind = ElementKindRegistration(
             "server",
