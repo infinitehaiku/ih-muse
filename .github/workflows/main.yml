@@ -82,7 +82,16 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install dependencies
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          UV_LINK_MODE: copy
+        run: |
+          uv run make install
+
+      - name: Install dependencies (Non-Windows)
+        if: runner.os != 'Windows'
         shell: bash
         env:
           UV_LINK_MODE: copy
@@ -90,14 +99,17 @@ jobs:
           uv run make install
 
       - name: Build and install the package with maturin
+        shell: bash
         run: |
           uv run make develop
 
       - name: Run tests
+        shell: bash
         run: |
           uv run make test
 
       - name: Run typing checks with mypy
+        shell: bash
         if: ${{ matrix.python-version >= '3.10' }}
         run: |
           uv run mypy
