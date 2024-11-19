@@ -32,7 +32,6 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-          echo "::add-path::$HOME/.cargo/bin"
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -84,6 +83,9 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
+        shell: bash
+        env:
+          UV_LINK_MODE: copy
         run: |
           uv run make install
 
