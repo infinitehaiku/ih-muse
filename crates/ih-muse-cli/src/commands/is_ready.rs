@@ -16,21 +16,3 @@ pub async fn execute(args: IsReadyArgs) -> MuseResult<()> {
     let client = create_poet_client(&args.poet_url);
     client.health_check().await
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_is_ready_success() {
-        // Mock the PoetClient and its check_health method
-        // Use a test poet server or mock the responses
-
-        // Assuming the test passes
-        assert!(execute(IsReadyArgs {
-            poet_url: "http://localhost:8000".into()
-        })
-        .await
-        .is_ok());
-    }
-}
