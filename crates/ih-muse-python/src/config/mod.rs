@@ -20,9 +20,3 @@ impl From<RustConfig> for PyConfig {
         PyConfig { inner: config }
     }
 }
-
-impl PyConfig {
-    pub(crate) fn new(config: RustConfig) -> Self {
-        PyConfig { inner: config }
-    }
-}

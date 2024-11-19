@@ -344,4 +344,26 @@ impl Muse {
         }
         Ok(())
     }
+
+    /// Retrieves metrics from the Muse system based on a query.
+    ///
+    /// **Note**: The `Muse` client is primarily intended for sending metrics to the Muse system.
+    /// This method is provided mainly for testing purposes and is not recommended for use in production code.
+    ///
+    /// # Arguments
+    ///
+    /// - `query`: The [`MetricQuery`] specifying the criteria for retrieving metrics.
+    ///
+    /// # Returns
+    ///
+    /// A vector of [`MetricPayload`]s matching the query.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError`] if the metrics cannot be retrieved.
+    pub async fn get_metrics(&self, query: &MetricQuery) -> MuseResult<Vec<MetricPayload>> {
+        // For testing purposes, we use the client to get metrics.
+        // Note that in production use, the Muse client is not intended for retrieving metrics.
+        self.client.get_metrics(query, None).await
+    }
 }

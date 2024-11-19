@@ -1,5 +1,6 @@
 import ih_muse
 import pytest
+from common import get_client_type_from_env
 
 
 @pytest.mark.asyncio
@@ -17,7 +18,7 @@ async def test_muse() -> None:
 
     config = ih_muse.Config(
         endpoints=["http://localhost:8000"],
-        client_type=ih_muse.ClientType.Poet,
+        client_type=get_client_type_from_env(),
         recording_enabled=False,
         recording_path=None,
         default_resolution=ih_muse.TimestampResolution.Seconds,
@@ -28,4 +29,4 @@ async def test_muse() -> None:
 
     muse = ih_muse.Muse(config)
     await muse.initialize(10)
-    # print("Muse is initialized:", muse.is_initialized())
+

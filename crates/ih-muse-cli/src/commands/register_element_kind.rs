@@ -32,10 +32,10 @@ pub async fn execute(args: RegisterElementKindArgs) -> MuseResult<()> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
 
     let payload = [ElementKindRegistration::new(
-        args.code,
-        args.parent_code,
-        args.name,
-        args.description,
+        &args.code,
+        args.parent_code.as_deref(),
+        &args.name,
+        &args.description,
     )];
 
     client.register_element_kinds(&payload).await?;

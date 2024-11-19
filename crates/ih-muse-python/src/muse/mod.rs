@@ -29,13 +29,3 @@ impl From<RustMuse> for PyMuse {
         }
     }
 }
-
-impl PyMuse {
-    pub(crate) fn new(muse: RustMuse) -> Self {
-        let is_initialized = muse.is_initialized.clone();
-        PyMuse {
-            muse: Arc::new(Mutex::new(muse)),
-            is_initialized,
-        }
-    }
-}

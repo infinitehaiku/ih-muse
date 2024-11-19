@@ -1,6 +1,7 @@
 // tests/it/common.rs
 
 use std::collections::HashMap;
+use std::env;
 
 use tokio::time::{sleep, Duration};
 
@@ -12,31 +13,43 @@ pub const TEST_ENDPOINT: &str = "http://localhost:8000";
 pub const DEFAULT_WAIT_TIME: Duration = Duration::from_secs(5);
 pub const EXTENDED_WAIT_TIME: Duration = Duration::from_secs(10);
 
+/// Fetch the client type from the `IH_MUSE_CLIENT_TYPE` environment variable.
+pub fn client_type_from_env() -> ClientType {
+    match env::var("IH_MUSE_CLIENT_TYPE")
+        .unwrap_or_else(|_| "Mock".to_string())
+        .to_lowercase()
+        .as_str()
+    {
+        "poet" => ClientType::Poet,
+        _ => ClientType::Mock, // Default to Mock
+    }
+}
+
 pub struct TestContext {
+    pub config: Config,
     pub muse: Muse,
     pub endpoint: String,
 }
 
 impl TestContext {
-    pub async fn new(client_type: ClientType) -> Self {
+    pub async fn new(client_type: Option<ClientType>) -> Self {
         init_logger();
-
         let config = Config {
             endpoints: vec![TEST_ENDPOINT.to_string()],
-            client_type,
+            client_type: client_type.unwrap_or_else(|| client_type_from_env()),
             recording_enabled: false,
             recording_path: None,
             default_resolution: TimestampResolution::Seconds,
             element_kinds: vec![ElementKindRegistration::new(
-                "server".to_string(),
+                "server",
                 None,
-                "Server".to_string(),
-                "A server element kind".to_string(),
+                "Server",
+                "A server element kind",
             )],
             metric_definitions: vec![MetricDefinition::new(
-                "cpu_usage".to_string(),
-                "CPU Usage".to_string(),
-                "The CPU usage of a server".to_string(),
+                "cpu_usage",
+                "CPU Usage",
+                "The CPU usage of a server",
             )],
             cluster_monitor_interval: Some(Duration::from_millis(100)),
             max_reg_elem_retries: 3,
@@ -47,6 +60,7 @@ impl TestContext {
         Self::wait_for_init(&mut muse).await;
 
         Self {
+            config,
             muse,
             endpoint: TEST_ENDPOINT.to_string(),
         }

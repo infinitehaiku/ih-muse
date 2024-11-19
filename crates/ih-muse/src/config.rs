@@ -8,7 +8,7 @@ use tokio::time::Duration;
 ///
 /// - `Poet`: Communicates with the Poet service.
 /// - `Mock`: Uses a mock client for testing purposes.
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum ClientType {
     /// Communicates with the Poet service.
     Poet,
@@ -63,8 +63,7 @@ impl Config {
     /// # Examples
     ///
     /// ```rust
-    /// use ih_muse::config::{Config, ClientType};
-    /// use ih_muse_proto::prelude::*;
+    /// use ih_muse::prelude::*;
     ///
     /// let config = Config::new(
     ///     vec!["http://localhost:8080".to_string()],
@@ -72,8 +71,8 @@ impl Config {
     ///     false,
     ///     None,
     ///     TimestampResolution::Milliseconds,
-    ///     vec![ElementKindRegistration::new("kind_code", "description")],
-    ///     vec![MetricDefinition::new("metric_code", "description")],
+    ///     vec![ElementKindRegistration::new("kind_code", Some("parent_code"), "kind_name", "description")],
+    ///     vec![MetricDefinition::new("metric_code", "metric_name", "description")],
     ///     Some(std::time::Duration::from_secs(60)),
     ///     3,
     /// ).expect("Failed to create config");

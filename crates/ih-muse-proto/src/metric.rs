@@ -18,12 +18,12 @@ pub struct MetricDefinition {
 }
 
 impl MetricDefinition {
-    pub fn new(code: String, name: String, description: String) -> Self {
+    pub fn new(code: &str, name: &str, description: &str) -> Self {
         Self {
-            id: metric_id_from_code(&code),
-            code,
-            name,
-            description,
+            id: metric_id_from_code(code),
+            code: code.to_string(),
+            name: name.to_string(),
+            description: description.to_string(),
         }
     }
 }

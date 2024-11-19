@@ -12,8 +12,8 @@
   <a href="https://pypi.org/project/ih-muse/">
     <img src="https://img.shields.io/pypi/v/ih-muse.svg" alt="PyPI Latest Release"/>
   </a>
-  <a href="https://github.com/your-username/ih-muse">
-    <img src="https://img.shields.io/github/v/release/your-username/ih-muse.svg" alt="GitHub Latest Release"/>
+  <a href="https://github.com/infinitehaiku/ih-muse">
+    <img src="https://img.shields.io/github/v/release/infinitehaiku/ih-muse.svg" alt="GitHub Latest Release"/>
   </a>
 </div>
 ```

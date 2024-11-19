@@ -1,10 +1,9 @@
 // tests/it/test_element.rs
 use super::common::TestContext;
-use ih_muse::ClientType;
 
 #[tokio::test]
 async fn test_element_registration() {
-    let ctx = TestContext::new(ClientType::Poet).await;
+    let ctx = TestContext::new(None).await;
     let local_elem_id = ctx.register_test_element().await;
     let state = ctx.muse.get_state();
 

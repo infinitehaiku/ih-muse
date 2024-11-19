@@ -1,14 +1,9 @@
 # tests/test_init_timeout.py
 
 import pytest
-from ih_muse import (
-    ClientType,
-    Config,
-    ElementKindRegistration,
-    MetricDefinition,
-    Muse,
-    TimestampResolution,
-)
+from common import get_client_type_from_env
+from ih_muse import (Config, ElementKindRegistration, MetricDefinition, Muse,
+                     TimestampResolution)
 from ih_muse.exceptions import MuseInitializationTimeoutError
 
 
@@ -28,7 +23,7 @@ async def test_muse_initialization_timeout() -> None:
     # Create config with unreachable endpoint to test timeout
     config = Config(
         endpoints=["http://unreachable:9999"],
-        client_type=ClientType.Poet,
+        client_type=get_client_type_from_env(),
         recording_enabled=False,
         recording_path=None,
         default_resolution=TimestampResolution.Seconds,

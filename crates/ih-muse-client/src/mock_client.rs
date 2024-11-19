@@ -1,13 +1,19 @@
+// crates/ih-muse-client/src/mock_client.rs
+
+use std::collections::HashMap;
 use std::net::SocketAddr;
+use std::ops::RangeInclusive;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use chrono::Utc;
 use once_cell::sync::Lazy;
 use tokio::sync::Mutex;
+use uuid::Uuid;
 
 use ih_muse_core::{MuseError, MuseResult, Transport};
-use ih_muse_proto::*;
+use ih_muse_proto::prelude::*;
 
 static NEXT_ELEMENT_ID: Lazy<AtomicU64> = Lazy::new(|| AtomicU64::new(0));
 
@@ -20,6 +26,7 @@ pub struct MockClient {
     metrics: Arc<Mutex<Vec<MetricDefinition>>>,
     sent_metrics: Arc<Mutex<Vec<MetricPayload>>>,
     finest_resolution: Arc<Mutex<TimestampResolution>>,
+    node_state: NodeState,
 }
 
 impl Default for MockClient {
@@ -30,10 +37,31 @@ impl Default for MockClient {
 
 impl MockClient {
     pub fn new() -> Self {
+        let node_id = Uuid::new_v4();
+        let node_info = NodeInfo {
+            start_date: Utc::now().timestamp(),
+            node_addr: "127.0.0.1:0".parse().unwrap(), // Mock address
+        };
+        let cluster_id = Uuid::new_v4();
+        let available_nodes = {
+            let mut map = HashMap::new();
+            map.insert(node_id, node_info);
+            map
+        };
+        let node_state = NodeState {
+            node_id,
+            node_info,
+            available_nodes,
+            main_node_id: Some(node_id),
+            current_status: NodeStatus::Leader,
+            cluster_id: Some(cluster_id),
+        };
+
         MockClient {
             metrics: Arc::new(Mutex::new(Vec::new())),
             sent_metrics: Arc::new(Mutex::new(Vec::new())),
             finest_resolution: Arc::new(Mutex::new(TimestampResolution::default())),
+            node_state,
         }
     }
 
@@ -53,9 +81,7 @@ impl Transport for MockClient {
 
     async fn get_node_state(&self) -> MuseResult<NodeState> {
         log::info!("MockClient: get_node_state called");
-        Err(MuseError::Client(
-            "NodeState not implemented for mock client yet".to_string(),
-        ))
+        Ok(self.node_state.clone())
     }
 
     async fn get_finest_resolution(&self) -> MuseResult<TimestampResolution> {
@@ -65,18 +91,26 @@ impl Transport for MockClient {
 
     async fn get_node_elem_ranges(
         &self,
-        ini: Option<u64>,
-        end: Option<u64>,
+        _ini: Option<u64>,
+        _end: Option<u64>,
     ) -> MuseResult<Vec<NodeElementRange>> {
         log::info!(
             "MockClient: get_node_elem_ranges called with {:?}..{:?}",
-            ini,
-            end
+            _ini,
+            _end
         );
-        // TODO made up range(s) based in current register elements
-        Err(MuseError::Client(
-            "get_node_elem_ranges not implemented".to_string(),
-        ))
+
+        let current_max_elem_id = NEXT_ELEMENT_ID.load(Ordering::SeqCst);
+
+        // Calculate the range end, rounded up to the next multiple of 100
+        let range_end = ((current_max_elem_id + 99) / 100) * 100;
+
+        let node_element_range = NodeElementRange {
+            node_id: self.node_state.node_id,
+            range: OrdRangeInc(RangeInclusive::new(0, range_end)),
+        };
+
+        Ok(vec![node_element_range])
     }
 
     async fn register_element_kinds(

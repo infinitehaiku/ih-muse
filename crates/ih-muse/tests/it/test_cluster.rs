@@ -1,11 +1,10 @@
 // tests/it/test_cluster.rs
 use super::common::{TestContext, DEFAULT_WAIT_TIME};
-use ih_muse::ClientType;
 use tokio::time::sleep;
 
 #[tokio::test]
 async fn test_cluster_monitor_updates_state() {
-    let ctx = TestContext::new(ClientType::Poet).await;
+    let ctx = TestContext::new(None).await;
     let local_elem_id = ctx.register_test_element().await;
     let state = ctx.muse.get_state();
 

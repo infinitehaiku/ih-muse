@@ -5,12 +5,11 @@ import asyncio
 
 import pytest
 from common import MuseTestContext
-from ih_muse import ClientType
 
 
 @pytest.mark.asyncio
 async def test_send_and_receive_metric() -> None:
-    ctx = await MuseTestContext.create(ClientType.Poet)
+    ctx = await MuseTestContext.create()
     local_elem_id = await ctx.register_test_element()
 
     # Send metric

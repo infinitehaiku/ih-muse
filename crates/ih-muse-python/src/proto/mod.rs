@@ -27,14 +27,6 @@ impl From<RustElementKindRegistration> for PyElementKindRegistration {
     }
 }
 
-impl PyElementKindRegistration {
-    pub(crate) fn new(elem_kind_reg: RustElementKindRegistration) -> Self {
-        PyElementKindRegistration {
-            inner: elem_kind_reg,
-        }
-    }
-}
-
 #[pyclass]
 #[repr(transparent)]
 #[derive(Clone)]
@@ -44,12 +36,6 @@ pub struct PyMetricDefinition {
 
 impl From<RustMetricDefinition> for PyMetricDefinition {
     fn from(metrid_def: RustMetricDefinition) -> Self {
-        PyMetricDefinition { inner: metrid_def }
-    }
-}
-
-impl PyMetricDefinition {
-    pub(crate) fn new(metrid_def: RustMetricDefinition) -> Self {
         PyMetricDefinition { inner: metrid_def }
     }
 }

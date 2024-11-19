@@ -18,7 +18,7 @@ pub struct GetRangesRequest {
 
 /// Wrapper around `RangeInclusive<u64>` to implement `Ord` and `PartialOrd`.
 #[derive(Debug, Clone, Eq)]
-pub struct OrdRangeInc(RangeInclusive<u64>);
+pub struct OrdRangeInc(pub RangeInclusive<u64>);
 
 impl OrdRangeInc {
     pub const MIN_SIZE: u64 = 10;

@@ -16,18 +16,13 @@ pub struct ElementKindRegistration {
 }
 
 impl ElementKindRegistration {
-    pub fn new(
-        code: String,
-        parent_code: Option<String>,
-        name: String,
-        description: String,
-    ) -> Self {
+    pub fn new(code: &str, parent_code: Option<&str>, name: &str, description: &str) -> Self {
         Self {
-            id: deterministic_u64_from_str(&code),
-            code,
-            parent_id: parent_code.as_deref().map(deterministic_u64_from_str),
-            name,
-            description,
+            id: deterministic_u64_from_str(code),
+            code: code.to_string(),
+            parent_id: parent_code.map(deterministic_u64_from_str),
+            name: name.to_string(),
+            description: description.to_string(),
             forwarded: false,
         }
     }

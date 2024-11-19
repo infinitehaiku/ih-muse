@@ -1,17 +1,21 @@
 // tests/it/test_init.rs
-use super::common::{TestContext, DEFAULT_WAIT_TIME};
+use super::common::{client_type_from_env, TestContext, DEFAULT_WAIT_TIME};
 use ih_muse::{ClientType, Config, Muse};
 use ih_muse_proto::{ElementKindRegistration, MetricDefinition, TimestampResolution};
 use std::time::Duration;
 
 #[tokio::test]
 async fn test_muse_initialization_with_poet() {
-    let ctx = TestContext::new(ClientType::Poet).await;
+    let ctx = TestContext::new(None).await;
 
     // Test basic initialization succeeded
     assert!(
         ctx.muse.is_initialized(),
-        "Muse failed to initialize with Poet client"
+        "{}",
+        format!(
+            "Muse failed to initialize with {:?} client",
+            ctx.config.client_type
+        )
     );
 
     // Verify we can perform operations after initialization
@@ -25,7 +29,7 @@ async fn test_muse_initialization_with_poet() {
 
 #[tokio::test]
 async fn test_muse_initialization_with_mock() {
-    let ctx = TestContext::new(ClientType::Mock).await;
+    let ctx = TestContext::new(Some(ClientType::Mock)).await;
     assert!(
         ctx.muse.is_initialized(),
         "Muse failed to initialize with Mock client"
@@ -37,35 +41,17 @@ async fn test_muse_initialization_with_custom_config() {
     // Custom configuration with different settings
     let config = Config {
         endpoints: vec!["http://localhost:8000".to_string()],
-        client_type: ClientType::Poet,
+        client_type: client_type_from_env(),
         recording_enabled: true,
         recording_path: Some("/tmp/muse_test.json".into()),
         default_resolution: TimestampResolution::Milliseconds,
         element_kinds: vec![
-            ElementKindRegistration::new(
-                "server".to_string(),
-                None,
-                "Server".to_string(),
-                "Server element".to_string(),
-            ),
-            ElementKindRegistration::new(
-                "database".to_string(),
-                None,
-                "Database".to_string(),
-                "Database element".to_string(),
-            ),
+            ElementKindRegistration::new("server", None, "Server", "Server element"),
+            ElementKindRegistration::new("database", None, "Database", "Database element"),
         ],
         metric_definitions: vec![
-            MetricDefinition::new(
-                "cpu_usage".to_string(),
-                "CPU Usage".to_string(),
-                "CPU usage metric".to_string(),
-            ),
-            MetricDefinition::new(
-                "memory_usage".to_string(),
-                "Memory Usage".to_string(),
-                "Memory usage metric".to_string(),
-            ),
+            MetricDefinition::new("cpu_usage", "CPU Usage", "CPU usage metric"),
+            MetricDefinition::new("memory_usage", "Memory Usage", "Memory usage metric"),
         ],
         cluster_monitor_interval: Some(Duration::from_secs(1)),
         max_reg_elem_retries: 5,
@@ -103,10 +89,15 @@ async fn test_muse_initialization_with_custom_config() {
 
 #[tokio::test]
 async fn test_muse_initialization_timeout() {
+    let client_type = client_type_from_env();
+    if client_type == ClientType::Mock {
+        println!("Skipping, only makes sense with Poet client");
+        return;
+    }
     // Create config with unreachable endpoint to test timeout
     let config = Config {
         endpoints: vec!["http://unreachable:9999".to_string()],
-        client_type: ClientType::Poet,
+        client_type,
         recording_enabled: false,
         recording_path: None,
         default_resolution: TimestampResolution::Seconds,
@@ -128,7 +119,7 @@ async fn test_muse_initialization_timeout() {
 
 #[tokio::test]
 async fn test_muse_reinitialization() {
-    let ctx = TestContext::new(ClientType::Poet).await;
+    let ctx = TestContext::new(None).await;
     assert!(ctx.muse.is_initialized(), "Initial initialization failed");
 
     // Force reinitialization (if your Muse implementation supports this)

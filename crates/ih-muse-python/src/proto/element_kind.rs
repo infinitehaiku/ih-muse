@@ -15,7 +15,8 @@ impl PyElementKindRegistration {
         description: String,
         parent_code: Option<String>,
     ) -> PyResult<Self> {
-        let ekr = RustElementKindRegistration::new(code, parent_code, name, description);
+        let ekr =
+            RustElementKindRegistration::new(&code, parent_code.as_deref(), &name, &description);
         Ok(Self::from(ekr))
     }
 }

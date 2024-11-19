@@ -28,9 +28,9 @@ pub async fn execute(args: RegisterMetricArgs) -> MuseResult<()> {
     let client = super::utils::create_poet_client(&args.common.poet_url);
 
     let payload = [MetricDefinition::new(
-        args.code,
-        args.name,
-        args.description,
+        &args.code,
+        &args.name,
+        &args.description,
     )];
 
     client.register_metrics(&payload).await?;

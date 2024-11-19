@@ -36,10 +36,25 @@ develop: ## Build and install the package in develop mode
 	@echo "🚀 Building and installing package in develop mode"
 	@uv run maturin develop --release -m py-ih-muse/Cargo.toml
 
-.PHONY: test
-test: develop ## Test the code with pytest
-	@echo "🚀 Testing code: Running pytest"
+.PHONY: test-python
+test-python: develop ## Test the code with pytest
+	@echo "🚀 Testing Python: Running pytest"
 	@uv run pytest --cov --cov-config=pyproject.toml --cov-report=xml
+
+.PHONY: test-rust
+test-rust: 
+	@echo "🚀 Testing Rust: Running cargo test"
+	@cargo test
+
+.PHONY: test
+test: test-rust test-python
+
+.PHONY: test-integration
+test-integration: ## Run integration tests with Poet client
+	@echo "🚀 Running Rust integration tests with IH_MUSE_CLIENT_TYPE=Poet"
+	IH_MUSE_CLIENT_TYPE=Poet cargo test -- --test-threads=1
+	@echo "🚀 Running Python integration tests with IH_MUSE_CLIENT_TYPE=Poet"
+	IH_MUSE_CLIENT_TYPE=Poet uv run pytest --cov --cov-config=pyproject.toml --cov-report=xml -m "integration"
 
 .PHONY: clean-build
 clean-build: ## Clean build artifacts

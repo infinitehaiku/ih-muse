@@ -1,6 +1,5 @@
 // tests/it/test_metrics.rs
 use super::common::{TestContext, DEFAULT_WAIT_TIME};
-use ih_muse::ClientType;
 use ih_muse_client::PoetClient;
 use ih_muse_core::Transport;
 use ih_muse_proto::MetricQuery;
@@ -8,7 +7,7 @@ use tokio::time::sleep;
 
 #[tokio::test]
 async fn test_send_and_receive_metric() {
-    let ctx = TestContext::new(ClientType::Poet).await;
+    let ctx = TestContext::new(None).await;
     let local_elem_id = ctx.register_test_element().await;
 
     let state = ctx.muse.get_state();
@@ -25,7 +24,7 @@ async fn test_send_and_receive_metric() {
     sleep(DEFAULT_WAIT_TIME).await;
 
     // Retrieve and verify metrics
-    let poet_client = PoetClient::new(&[ctx.endpoint.clone()]);
+    let poet_client = ctx.muse.get_client();
     let query = MetricQuery {
         start_time: None,
         end_time: None,
@@ -40,6 +39,7 @@ async fn test_send_and_receive_metric() {
         .expect("Failed to get metrics");
 
     assert!(!metrics.is_empty(), "No metrics retrieved");
+    println!("Retrieved metrics: {:?}", metrics);
     assert!(
         metrics.iter().any(|metric| metric.element_id == element_id),
         "Sent metric not found"

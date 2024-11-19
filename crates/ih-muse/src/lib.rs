@@ -20,8 +20,8 @@
 //!         false,
 //!         None,
 //!         TimestampResolution::Milliseconds,
-//!         vec![ElementKindRegistration::new("kind_code", "description")],
-//!         vec![MetricDefinition::new("metric_code", "description")],
+//!         vec![ElementKindRegistration::new("kind_code", Some("parent_code"), "kind_name", "description")],
+//!         vec![MetricDefinition::new("metric_code", "metric_name", "description")],
 //!         Some(std::time::Duration::from_secs(60)),
 //!         3,
 //!     )?;

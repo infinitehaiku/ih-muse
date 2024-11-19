@@ -9,7 +9,7 @@ use ih_muse_proto::MetricDefinition as RustMetricDefinition;
 impl PyMetricDefinition {
     #[new]
     pub fn __init__(code: String, name: String, description: String) -> PyResult<Self> {
-        let ekr = RustMetricDefinition::new(code, name, description);
+        let ekr = RustMetricDefinition::new(&code, &name, &description);
         Ok(Self::from(ekr))
     }
 }

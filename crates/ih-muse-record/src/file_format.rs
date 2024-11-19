@@ -1,5 +1,3 @@
-// crates/ih-muse-record/src/file_format.rs
-
 //! Defines the serialization formats for recording files.
 //!
 //! The recording files should have a specific extension to determine
@@ -8,16 +6,7 @@
 //! - `.bin` for Bincode serialization
 //! - `.json` for JSON serialization
 //!
-//! The serialization format is used by the [`FileRecorder`] and [`FileReplayer`].
-//!
-//! # Example
-//!
-//! ```rust
-//! use ih_muse_record::SerializationFormat;
-//!
-//! let format = SerializationFormat::from_extension(Some("bin")).unwrap();
-//! assert_eq!(format, SerializationFormat::Bincode);
-//! ```
+//! The serialization format is used internally by the [`FileRecorder`] and [`FileReplayer`].
 
 use ih_muse_core::{MuseError, MuseResult};
 
@@ -50,5 +39,56 @@ impl SerializationFormat {
             Some(ref s) if s == "json" => Ok(SerializationFormat::Json),
             other => Err(MuseError::InvalidFileExtension(other)),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_extensions() {
+        assert_eq!(
+            SerializationFormat::from_extension(Some("bin")).unwrap(),
+            SerializationFormat::Bincode
+        );
+        assert_eq!(
+            SerializationFormat::from_extension(Some("json")).unwrap(),
+            SerializationFormat::Json
+        );
+    }
+
+    #[test]
+    fn test_invalid_extension() {
+        let result = SerializationFormat::from_extension(Some("xml"));
+        assert!(result.is_err());
+        if let Err(MuseError::InvalidFileExtension(Some(ext))) = result {
+            assert_eq!(ext, "xml");
+        } else {
+            panic!("Expected InvalidFileExtension error");
+        }
+    }
+
+    #[test]
+    fn test_empty_extension() {
+        let result = SerializationFormat::from_extension(None);
+        assert!(result.is_err());
+        if let Err(MuseError::InvalidFileExtension(None)) = result {
+            // Test passed
+        } else {
+            panic!("Expected InvalidFileExtension error for None");
+        }
+    }
+
+    #[test]
+    fn test_case_insensitivity() {
+        assert_eq!(
+            SerializationFormat::from_extension(Some("BIN")).unwrap(),
+            SerializationFormat::Bincode
+        );
+        assert_eq!(
+            SerializationFormat::from_extension(Some("Json")).unwrap(),
+            SerializationFormat::Json
+        );
     }
 }

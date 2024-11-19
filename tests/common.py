@@ -1,17 +1,25 @@
 # tests/common.py
 
 import asyncio
+import os
 import time
 
-from ih_muse import (
-    ClientType,
-    Config,
-    ElementKindRegistration,
-    MetricDefinition,
-    Muse,
-    TimestampResolution,
-)
+from ih_muse import (ClientType, Config, ElementKindRegistration,
+                     MetricDefinition, Muse, TimestampResolution)
 
+
+def get_client_type_from_env() -> ClientType:
+    """
+    Retrieves the ClientType from the environment variable `MUSE_CLIENT_TYPE`.
+    Defaults to `Mock` if the variable is not set or invalid.
+
+    Returns:
+        ClientType: The client type to use.
+    """
+    client_type_str = os.getenv("MUSE_CLIENT_TYPE", "Mock").lower()
+    if client_type_str == "poet":
+        return ClientType.Poet
+    return ClientType.Mock
 
 class MuseTestContext:
     muse: Muse
@@ -22,7 +30,8 @@ class MuseTestContext:
         self.endpoint = endpoint
 
     @classmethod
-    async def create(cls, client_type: ClientType) -> "MuseTestContext":
+    async def create(cls, client_type: ClientType | None = None) -> "MuseTestContext":
+        client_type = client_type or get_client_type_from_env()
         element_kind = ElementKindRegistration(
             "server",
             "Server",
