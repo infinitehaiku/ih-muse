@@ -25,6 +25,9 @@ jobs:
         run: |
           pip install setuptools-scm
 
+      - name: Install cargo-edit
+        run: cargo install cargo-edit
+
       - name: Detect new version
         id: version
         run: |
@@ -37,14 +40,15 @@ jobs:
         run: |
           sed -i "s/^version = \".*\"/version = \"${{ steps.version.outputs.version }}\"/" py-ih-muse/pyproject.toml
 
-      - name: Update Rust package versions
-        run: cargo set-version ${{ steps.version.outputs.version }} --manifest-path crates/ih-muse-core/Cargo.toml
+      - name: Update Rust workspace version
+        run: |
+          cargo set-version ${{ steps.version.outputs.version }} -w
 
       - name: Commit version changes
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add py-ih-muse/pyproject.toml crates/ih-muse-core/Cargo.toml
+          git add py-ih-muse/pyproject.toml Cargo.toml crates/*/Cargo.toml
           git commit -m "Bump version to ${{ steps.version.outputs.version }}"
           git push
 
@@ -78,9 +82,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Rust
-        uses: actions/setup-rust@v1
+        uses: actions-rs/toolchain@v1
         with:
-          rust-version: "stable"
+          profile: minimal
+          toolchain: stable
 
       - name: Publish ih-muse-core to crates.io
         run: |
