@@ -1,25 +1,27 @@
 {
     "packages": {
-        ".": {
-            "changelog-path": "CHANGELOG.md",
+        "crates/ih-muse": {
             "release-type": "rust",
             "bump-minor-pre-major": true,
             "bump-patch-for-minor-pre-major": true,
-            "draft": false,
-            "prerelease": false,
             "include-v-in-tag": true,
-            "tag-separator": "-v",
-            "extra-files": [
-                {
-                    "type": "toml",
-                    "path": "py-ih-muse/Cargo.toml",
-                    "jsonpath": "$.package.version"
-                },
-                {
-                    "type": "toml",
-                    "path": "crates/ih-muse-core/Cargo.toml",
-                    "jsonpath": "$.package.version"
-                }
+            "changelog-types": [
+                { "type": "feat", "section": "Features", "hidden": false },
+                { "type": "fix", "section": "Bug Fixes", "hidden": false },
+                { "type": "docs", "section": "Documentation", "hidden": false },
+                { "type": "perf", "section": "Performance", "hidden": false }
+            ]
+        },
+        "crates/ih-muse-core": {
+            "release-type": "rust",
+            "bump-minor-pre-major": true,
+            "bump-patch-for-minor-pre-major": true,
+            "include-v-in-tag": true,
+            "changelog-types": [
+                { "type": "feat", "section": "Features", "hidden": false },
+                { "type": "fix", "section": "Bug Fixes", "hidden": false },
+                { "type": "docs", "section": "Documentation", "hidden": false },
+                { "type": "perf", "section": "Performance", "hidden": false }
             ]
         }
     },

@@ -6,6 +6,8 @@ members = [
 resolver = "2"
 
 default-members = [
+  "crates/ih-muse-core",
+  "crates/ih-muse",
   "crates/*",
 ]
 
