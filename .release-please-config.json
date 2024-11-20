@@ -1,18 +1,7 @@
 {
     "packages": {
         "crates/ih-muse": {
-            "release-type": "rust",
-            "bump-minor-pre-major": true,
-            "bump-patch-for-minor-pre-major": true,
-            "include-v-in-tag": true,
-            "changelog-types": [
-                { "type": "feat", "section": "Features", "hidden": false },
-                { "type": "fix", "section": "Bug Fixes", "hidden": false },
-                { "type": "docs", "section": "Documentation", "hidden": false },
-                { "type": "perf", "section": "Performance", "hidden": false }
-            ]
-        },
-        "crates/ih-muse-core": {
+            "package-name": "ih-muse",
             "release-type": "rust",
             "bump-minor-pre-major": true,
             "bump-patch-for-minor-pre-major": true,
