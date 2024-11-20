@@ -11,33 +11,21 @@ jobs:
     name: Rust Release
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.check-version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+
+      - name: Extract version from Cargo.toml
+        id: version
+        run: |
+          VERSION=$(grep '^version = ' Cargo.toml | head -n 1 | cut -d '"' -f 2)
+          echo "Detected version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      # Check if there is a parent commit
-      - name: Check if there is a parent commit
-        id: check-parent-commit
-        run: |
-          echo "parent_sha=$(git rev-parse --verify --quiet HEAD^)" >> $GITHUB_OUTPUT
-
-      # Version detection
-      - name: Detect and tag new version
-        id: check-version
-        if: steps.check-parent-commit.outputs.parent_sha
-        uses: salsify/action-detect-and-tag-new-version@v2.0.1
-        with:
-          version-command: |
-            cd crates/ih-muse && cargo metadata --format-version 1 | jq -r '.packages[0].version'
-
-      # Publish ih-muse package
-      - name: Publish main Rust package
-        if: steps.check-version.outputs.tag
+      - name: Publish Rust package
         run: |
           cd crates/ih-muse
           cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -49,8 +37,6 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -61,6 +47,10 @@ jobs:
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          uv run make install
 
       - name: Install build dependencies
         run: |
@@ -96,7 +86,7 @@ jobs:
       - name: Publish the release notes
         uses: release-drafter/release-drafter@v5.23.0
         with:
-          publish: ${{ needs.rust-release.outputs.release_created != '' }}
+          publish: true
           tag: ${{ needs.rust-release.outputs.release_created }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
