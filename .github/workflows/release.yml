@@ -27,7 +27,11 @@ jobs:
 
       - name: Publish IH-Muse package
         run: |
-          cd crates/ih-muse
+          cd crates
+          cargo publish --allow-dirty -p ih-muse-proto --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          cargo publish --allow-dirty -p ih-muse-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          cargo publish --allow-dirty -p ih-muse-record --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          cargo publish --allow-dirty -p ih-muse-client --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
           cargo publish --allow-dirty -p ih-muse --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   python-release:
