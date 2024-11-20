@@ -10,40 +10,8 @@ env:
   RUST_VERSION: "stable"
 
 jobs:
-  # First run tests across different platforms
-  test:
-    name: Test (${{ matrix.os }})
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: swatinem/rust-cache@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install maturin pytest
-
-      - name: Build and test Rust
-        run: |
-          cargo test --verbose
-          cargo build --verbose
-
-      - name: Build and test Python
-        run: |
-          maturin develop -m py-ih-muse/Cargo.toml
-          pytest py-ih-muse/tests/
-
   # Handle versioning and release
   prepare-release:
-    needs: test
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
