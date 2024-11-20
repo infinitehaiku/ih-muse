@@ -1,7 +1,7 @@
 [package]
 name = "ih-muse-proto"
 version = { workspace = true }
-publish = true
+publish = false
 authors = { workspace = true }
 edition = { workspace = true }
 rust-version = { workspace = true }

@@ -19,9 +19,6 @@ clippy:  ## Run clippy with all features
 clippy-default:  ## Run clippy with default features
 	cargo clippy --all-targets -- -W clippy::dbg_macro
 
-.PHONY: pre-commit
-pre-commit: fmt clippy clippy-default  ## Run autoformatting and linting
-
 .PHONY: test
 test:  ## Run tests
 	cargo test --all-features \
@@ -31,21 +28,21 @@ test:  ## Run tests
 
 .PHONY: integration-tests
 integration-tests:  ## Run integration tests
-	cargo test --all-features --test it -p ih-muse
+	IH_MUSE_CLIENT_TYPE=Poet cargo test --all-features \
+		-p ih-muse-core \
+		-- \
+		--test-threads=2
 
 .PHONY: test-doc
 test-doc:  ## Run doc examples
-	cargo test --doc \
-	    -p ih-muse-core
+	cargo test --doc -p ih-muse-core
 
 .PHONY: doctest
 doctest:  ## Check that documentation builds
-	cargo doc --no-deps -p ih-muse-core
 	cargo doc --no-deps -p ih-muse
 
 .PHONY: publish
 publish:  ## Publish ih-muse crates
-	cargo publish --allow-dirty -p ih-muse-core
 	cargo publish --allow-dirty -p ih-muse
 
 .PHONY: help

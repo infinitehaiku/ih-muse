@@ -1,4 +1,5 @@
 [workspace]
+package-name = "ih-muse-workspace"
 members = [
   "crates/*",
   "py-ih-muse",
