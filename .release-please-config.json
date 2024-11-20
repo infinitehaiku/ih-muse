@@ -5,20 +5,14 @@
             "release-type": "rust",
             "bump-minor-pre-major": true,
             "bump-patch-for-minor-pre-major": true,
-            "include-v-in-tag": true,
-            "changelog-types": [
-                { "type": "feat", "section": "Features", "hidden": false },
-                { "type": "fix", "section": "Bug Fixes", "hidden": false },
-                { "type": "docs", "section": "Documentation", "hidden": false },
-                { "type": "perf", "section": "Performance", "hidden": false }
-            ]
+            "include-v-in-tag": true
         }
     },
-    "changelog-sections": [
-        { "type": "feat", "section": "Features", "hidden": false },
-        { "type": "fix", "section": "Bug Fixes", "hidden": false },
-        { "type": "docs", "section": "Documentation", "hidden": false },
-        { "type": "perf", "section": "Performance", "hidden": false }
+    "plugins": [
+        {
+            "type": "rust-workspace",
+            "merge-with-existing": false
+        }
     ],
     "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }
