@@ -8,7 +8,19 @@
             "draft": false,
             "prerelease": false,
             "include-v-in-tag": true,
-            "tag-separator": "-v"
+            "tag-separator": "-v",
+            "extra-files": [
+                {
+                    "type": "toml",
+                    "path": "py-ih-muse/Cargo.toml",
+                    "jsonpath": "$.package.version"
+                },
+                {
+                    "type": "toml",
+                    "path": "crates/ih-muse-core/Cargo.toml",
+                    "jsonpath": "$.package.version"
+                }
+            ]
         }
     },
     "changelog-sections": [
