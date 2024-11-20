@@ -1,7 +1,6 @@
 [package]
 name = "ih-muse"
 version = { workspace = true }
-publish = true
 authors = { workspace = true }
 edition = { workspace = true }
 rust-version = { workspace = true }

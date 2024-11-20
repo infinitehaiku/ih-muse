@@ -1,7 +1,6 @@
 [package]
 name = "ih-muse-record"
 version = { workspace = true }
-publish = false
 authors = { workspace = true }
 edition = { workspace = true }
 rust-version = { workspace = true }
