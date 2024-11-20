@@ -46,10 +46,12 @@ repos:
     rev: "v3.0.3"
     hooks:
       - id: prettier
-        exclude: ^docs/api/python/
+        exclude: ^docs/api/python/|^\.git/COMMIT_EDITMSG$
 
+  # ! Will not work without installing the commit-msg hook:
+  # pre-commit install --hook-type commit-msg
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.13.0
+    rev: v9.18.0
     hooks:
       - id: commitlint
         name: "commit lint"
