@@ -25,10 +25,10 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Publish Rust package
+      - name: Publish IH-Muse package
         run: |
           cd crates/ih-muse
-          cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          cargo publish --allow-dirty -p ih-muse --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   python-release:
     name: Python Release
