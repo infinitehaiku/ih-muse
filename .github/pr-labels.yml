@@ -1,0 +1,23 @@
+feature:
+  - head-branch: ['^feat(:|\()']
+
+fix:
+  - head-branch: ['^fix(:|\()']
+
+docs:
+  - head-branch: ['^docs(:|\()']
+
+chore:
+  - head-branch: ['^chore(:|\()']
+
+refactor:
+  - head-branch: ['^refactor(:|\()']
+
+security:
+  - head-branch: ['^security(:|\()']
+
+dependencies:
+  - head-branch: ['^deps?(:|\()']
+
+breaking:
+  - head-branch: ['^feat\(.*!\)(:|\()']

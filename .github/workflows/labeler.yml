@@ -1,9 +1,17 @@
+# .github/workflows/labeler.yaml
 name: Labeler
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
 
 jobs:
   labeler:
@@ -17,6 +25,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           yaml-file: .github/labels.yml
           dry-run: ${{ github.event_name == 'pull_request' }}
+          # dry-run: false
           exclude: |
             help*
             *issue

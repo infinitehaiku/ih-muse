@@ -1,0 +1,33 @@
+# .github/workflows/label-checker.yaml
+name: Label Checker
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label-checker:
+    name: PR Label Checker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check for SemVer Labels
+        uses: danielchabr/pr-labels-checker@v3.1
+        with:
+          hasSome: major,minor,patch
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for Conventional Commit Labels
+        uses: danielchabr/pr-labels-checker@v3.1
+        with:
+          hasSome: feature,fix,docs,chore,refactor,security,dependencies,breaking
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
