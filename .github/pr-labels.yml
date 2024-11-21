@@ -1,23 +1,23 @@
 feature:
-  - head-branch: ['^feat(:|\()']
+  - title: ['^feat(:|\()']
 
 fix:
-  - head-branch: ['^fix(:|\()']
+  - title: ['^fix(:|\()']
 
 docs:
-  - head-branch: ['^docs(:|\()']
+  - title: ['^docs(:|\()']
 
 chore:
-  - head-branch: ['^chore(:|\()']
+  - title: ['^chore(:|\()']
 
 refactor:
-  - head-branch: ['^refactor(:|\()']
+  - title: ['^refactor(:|\()']
 
 security:
-  - head-branch: ['^security(:|\()']
+  - title: ['^security(:|\()']
 
 dependencies:
-  - head-branch: ['^deps?(:|\()']
+  - title: ['^deps?(:|\()']
 
 breaking:
-  - head-branch: ['^feat\(.*!\)(:|\()']
+  - title: ['^feat\(.*!\)(:|\()']

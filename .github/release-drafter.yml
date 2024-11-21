@@ -1,5 +1,6 @@
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
+tag-prefix: ""
 
 categories:
   - title: "🚀 Features"
@@ -26,13 +27,11 @@ categories:
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 
 template: |
-  ## 🚀 What's Changed
+  ## Changes
   $CHANGES
 
-  ## 🚀 Features
-  $CATEGORIES
-
-  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$RESOLVED_VERSION
+  ## Contributors
+  $CONTRIBUTORS
 
 version-resolver:
   major:
@@ -53,3 +52,6 @@ version-resolver:
 
 exclude-labels:
   - "skip-changelog"
+
+sort-by: "merged_at"
+sort-direction: "ascending"
