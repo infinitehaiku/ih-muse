@@ -1,6 +1,15 @@
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 tag-prefix: ""
+include-labels:
+  - "feature"
+  - "enhancement"
+  - "fix"
+  - "bugfix"
+  - "chore"
+  - "docs"
+  - "refactor"
+  - "dependencies"
 
 categories:
   - title: "🚀 Features"
@@ -27,10 +36,31 @@ categories:
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 
 template: |
-  ## Changes
+  ## What's Changed
   $CHANGES
 
+  ## 🚀 Features
+
+  $CHANGES_FEATURES
+
+  ## 🐛 Bug Fixes
+
+  $CHANGES_BUGFIXES
+
+  ## 🧰 Maintenance
+
+  $CHANGES_MAINTENANCE
+
+  ## 📝 Documentation
+
+  $CHANGES_DOCUMENTATION
+
+  ## 🔧 Dependencies
+
+  $CHANGES_DEPENDENCIES
+
   ## Contributors
+
   $CONTRIBUTORS
 
 version-resolver:
