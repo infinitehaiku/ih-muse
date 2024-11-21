@@ -1,5 +1,6 @@
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
+
 categories:
   - title: "🚀 Features"
     labels:
@@ -23,6 +24,16 @@ categories:
       - "dependencies"
 
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+
+template: |
+  ## 🚀 What's Changed
+  $CHANGES
+
+  ## 🚀 Features
+  $CATEGORIES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$RESOLVED_VERSION
+
 version-resolver:
   major:
     labels:
