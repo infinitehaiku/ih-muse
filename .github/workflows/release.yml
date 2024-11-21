@@ -77,15 +77,13 @@ jobs:
         run: |
           uvx maturin build --release -m py-ih-muse/Cargo.toml --out dist
 
-      # Use PyPI trusted publisher
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: needs.rust-release.outputs.release_created == 'true'
         with:
           packages-dir: dist/
-          verify-tag: false # Since release is created by release-please
+          verify-tag: false
 
-      # Fallback to TestPyPI if no release
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: needs.rust-release.outputs.release_created != 'true'
@@ -101,7 +99,7 @@ jobs:
     if: needs.rust-release.outputs.release_created == 'true'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Update Changelog
         uses: stefanzweifel/changelog-updater-action@v1
@@ -116,18 +114,9 @@ jobs:
           commit_message: "docs(changelog): update changelog"
           file_pattern: CHANGELOG.md
 
-update-changelog:
-  name: Update Changelog
-  needs: rust-release
-  runs-on: ubuntu-latest
-  if: needs.rust-release.outputs.release_created == 'true'
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: |
-          CHANGELOG.md
-        generate_release_notes: true
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            CHANGELOG.md
+          generate_release_notes: true

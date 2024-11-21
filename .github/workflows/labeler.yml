@@ -1,5 +1,4 @@
-# .github/workflows/labeler.yaml
-name: Labeler
+name: Label and Validate PRs
 
 on:
   push:
@@ -10,22 +9,74 @@ on:
       - opened
       - synchronize
       - reopened
+      - edited
       - labeled
       - unlabeled
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
-  labeler:
+  sync-labels:
+    name: Sync Labels
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Run Labeler
+      - name: Sync Repository Labels
         uses: crazy-max/ghaction-github-labeler@v5
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           yaml-file: .github/labels.yml
           dry-run: ${{ github.event_name == 'pull_request' }}
-          # dry-run: false
           exclude: |
             help*
             *issue
+
+  label-pr:
+    name: Label PR
+    runs-on: ubuntu-latest
+    needs: sync-labels
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply PR Labels
+        uses: bcoe/conventional-release-labels@v1
+        with:
+          type_labels: |
+            {
+              "feat": "feature",
+              "fix": "fix",
+              "docs": "docs",
+              "chore": "chore",
+              "refactor": "refactor",
+              "security": "security",
+              "deps": "dependencies",
+              "breaking": "breaking"
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  validate-labels:
+    name: Validate Labels
+    runs-on: ubuntu-latest
+    needs: label-pr
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Check for SemVer Labels
+        uses: danielchabr/pr-labels-checker@v3.1
+        with:
+          hasSome: major,minor,patch
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check for Conventional Commit Labels
+        uses: danielchabr/pr-labels-checker@v3.1
+        with:
+          hasSome: feature,fix,docs,chore,refactor,security,dependencies,breaking
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
