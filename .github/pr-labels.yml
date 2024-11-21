@@ -1,0 +1,26 @@
+# .github/pr-labeler.yml
+
+feature:
+  - /^feat(:|\()/i
+
+fix:
+  - /^fix(:|\()/i
+
+docs:
+  - /^docs(:|\()/i
+
+chore:
+  - /^chore(:|\()/i
+
+refactor:
+  - /^refactor(:|\()/i
+
+security:
+  - /^security(:|\()/i
+
+dependencies:
+  - /^deps?(:|\()/i
+
+breaking:
+  - /^feat\(.*!\)(:|\()/
+  - /^fix\(.*!\)(:|\()/
