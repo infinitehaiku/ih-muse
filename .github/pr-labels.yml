@@ -1,26 +1,23 @@
-# .github/pr-labeler.yml
-
 feature:
-  - /^feat(:|\()/i
+  - head-branch: ['^feat(:|\()']
 
 fix:
-  - /^fix(:|\()/i
+  - head-branch: ['^fix(:|\()']
 
 docs:
-  - /^docs(:|\()/i
+  - head-branch: ['^docs(:|\()']
 
 chore:
-  - /^chore(:|\()/i
+  - head-branch: ['^chore(:|\()']
 
 refactor:
-  - /^refactor(:|\()/i
+  - head-branch: ['^refactor(:|\()']
 
 security:
-  - /^security(:|\()/i
+  - head-branch: ['^security(:|\()']
 
 dependencies:
-  - /^deps?(:|\()/i
+  - head-branch: ['^deps?(:|\()']
 
 breaking:
-  - /^feat\(.*!\)(:|\()/
-  - /^fix\(.*!\)(:|\()/
+  - head-branch: ['^feat\(.*!\)(:|\()']
