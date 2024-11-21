@@ -39,16 +39,24 @@
 # Additional Essential Labels
 - name: breaking
   description: Breaking Changes
-  color: 7c3ea5
+  color: "7c3ea5"
 - name: deprecated
   description: Deprecations
-  color: f00000
+  color: "f00000"
 - name: removed
   description: Removals
-  color: f00000
+  color: "f00000"
 - name: testing
   description: Adding missing tests or correcting existing tests
-  color: 79e57f
+  color: "79e57f"
 - name: skip-changelog
   description: Changes that should be omitted from the release notes
-  color: ededed
+  color: "ededed"
+
+# GitHub Default Labels
+- name: good first issue
+  description: Good for newcomers
+  color: "7057ff"
+- name: help wanted
+  description: Extra attention is needed
+  color: "008672"
