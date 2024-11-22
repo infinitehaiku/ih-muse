@@ -753,7 +753,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "chrono",
  "env_logger",
@@ -764,17 +764,19 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
+ "tempfile",
  "tokio",
  "tokio-util",
 ]
 
 [[package]]
 name = "ih-muse-cli"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "chrono",
  "clap",
+ "ih-muse",
  "ih-muse-client",
  "ih-muse-core",
  "ih-muse-proto",
@@ -785,7 +787,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-client"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "chrono",
@@ -802,7 +804,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-core"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "arc-swap",
  "async-trait",
@@ -821,7 +823,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-proto"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "chrono",
  "serde",
@@ -833,7 +835,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-python"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "ih-muse",
  "ih-muse-core",
@@ -848,7 +850,7 @@ dependencies = [
 
 [[package]]
 name = "ih-muse-record"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "async-trait",
  "bincode",
@@ -1177,7 +1179,7 @@ dependencies = [
 
 [[package]]
 name = "py-ih-muse"
-version = "0.0.7"
+version = "0.0.8"
 dependencies = [
  "ih-muse-python",
  "pyo3",

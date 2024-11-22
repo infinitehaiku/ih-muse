@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-use ih_muse::ClientType as RustClientType;
+use ih_muse::prelude::ClientType as RustClientType;
 
 #[pyclass(eq, eq_int, name = "ClientType")]
 #[derive(Clone, PartialEq)]

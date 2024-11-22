@@ -7,7 +7,7 @@ mod general;
 use pyo3::prelude::pyclass;
 
 pub use client_type::PyClientType;
-use ih_muse::Config as RustConfig;
+use ih_muse::prelude::Config as RustConfig;
 
 #[pyclass]
 #[repr(transparent)]

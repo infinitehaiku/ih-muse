@@ -29,6 +29,8 @@ class Config:
         Enables event recording if set to `True`.
     :param Optional[str] recording_path:
         File path for recording events (required if `recording_enabled` is `True`).
+    :param Optional[int] recording_flush_secs:
+        Interval to flush recordings (required if `recording_enabled` is `True`).
 
     ```python
     # Example usage:
@@ -59,6 +61,7 @@ class Config:
         max_reg_elem_retries: int,
         recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
+        recording_flush_secs: Optional[int] = None,
     ) -> None:
         """Initialize the Config instance."""
         py_element_kinds = [ekr._elem_kind_reg for ekr in element_kinds]

@@ -15,7 +15,7 @@ use std::path::Path;
 use async_trait::async_trait;
 
 use super::SerializationFormat;
-use crate::{RecordedEvent, Recorder};
+use crate::{RecordedEventWithTime, Recorder};
 use ih_muse_core::{MuseError, MuseResult};
 
 /// A recorder that writes events to a file.
@@ -65,7 +65,7 @@ impl Recorder for FileRecorder {
     /// # Errors
     ///
     /// Returns a [`MuseError::Recording`] if serialization fails.
-    async fn record(&mut self, event: RecordedEvent) -> MuseResult<()> {
+    async fn record(&mut self, event: RecordedEventWithTime) -> MuseResult<()> {
         match self.format {
             SerializationFormat::Bincode => bincode::serialize_into(&mut self.writer, &event)
                 .map_err(|e| MuseError::Recording(format!("Failed to record event: {}", e))),
@@ -79,14 +79,23 @@ impl Recorder for FileRecorder {
         }
     }
 
+    /// Flushes the writer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError::Recording`] if flushing fails.
+    async fn flush(&mut self) -> MuseResult<()> {
+        self.writer
+            .flush()
+            .map_err(|e| MuseError::Recording(format!("Failed to flush file: {}", e)))
+    }
+
     /// Closes the recorder by flushing the writer.
     ///
     /// # Errors
     ///
     /// Returns a [`MuseError::Recording`] if flushing fails.
     async fn close(&mut self) -> MuseResult<()> {
-        self.writer
-            .flush()
-            .map_err(|e| MuseError::Recording(format!("Failed to close file: {}", e)))
+        self.flush().await
     }
 }

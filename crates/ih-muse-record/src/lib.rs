@@ -3,6 +3,7 @@
 mod file_format;
 mod file_recorder;
 mod file_replayer;
+pub mod prelude;
 
 use std::collections::HashMap;
 
@@ -12,22 +13,24 @@ use serde::{Deserialize, Serialize};
 use file_format::SerializationFormat;
 pub use file_recorder::FileRecorder;
 pub use file_replayer::FileReplayer;
-use ih_muse_core::MuseResult;
+use ih_muse_core::{time, Config, MuseResult};
 use ih_muse_proto::types::*;
 
 #[async_trait]
 pub trait Recorder {
-    async fn record(&mut self, event: RecordedEvent) -> MuseResult<()>;
+    async fn record(&mut self, event: RecordedEventWithTime) -> MuseResult<()>;
+    async fn flush(&mut self) -> MuseResult<()>;
     async fn close(&mut self) -> MuseResult<()>;
 }
 
 #[async_trait]
 pub trait Replayer {
-    async fn next_event(&mut self) -> MuseResult<Option<RecordedEvent>>;
+    async fn next_event(&mut self) -> MuseResult<Option<RecordedEventWithTime>>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum RecordedEvent {
+    MuseConfig(Config),
     ElementRegistration {
         local_elem_id: LocalElementId,
         kind_code: String,
@@ -40,5 +43,19 @@ pub enum RecordedEvent {
         metric_code: String,
         value: MetricValue,
     },
-    EndpointUpdate(Vec<String>),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RecordedEventWithTime {
+    pub timestamp: i64,
+    pub event: RecordedEvent,
+}
+
+impl RecordedEventWithTime {
+    pub fn new(event: RecordedEvent) -> Self {
+        Self {
+            timestamp: time::utc_now_i64(),
+            event,
+        }
+    }
 }

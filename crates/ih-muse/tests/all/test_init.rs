@@ -1,7 +1,6 @@
 // tests/it/test_init.rs
 use super::common::{client_type_from_env, TestContext, DEFAULT_WAIT_TIME};
-use ih_muse::{ClientType, Config, Muse};
-use ih_muse_proto::{ElementKindRegistration, MetricDefinition, TimestampResolution};
+use ih_muse::prelude::*;
 use std::time::Duration;
 
 #[tokio::test]
@@ -42,8 +41,9 @@ async fn test_muse_initialization_with_custom_config() {
     let config = Config {
         endpoints: vec!["http://localhost:8000".to_string()],
         client_type: client_type_from_env(),
-        recording_enabled: true,
-        recording_path: Some("/tmp/muse_test.json".into()),
+        recording_enabled: false,
+        recording_path: None,
+        recording_flush_interval: None,
         default_resolution: TimestampResolution::Milliseconds,
         element_kinds: vec![
             ElementKindRegistration::new("server", None, "Server", "Server element"),
@@ -100,6 +100,7 @@ async fn test_muse_initialization_timeout() {
         client_type,
         recording_enabled: false,
         recording_path: None,
+        recording_flush_interval: None,
         default_resolution: TimestampResolution::Seconds,
         element_kinds: vec![],
         metric_definitions: vec![],

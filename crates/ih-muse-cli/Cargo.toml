@@ -11,6 +11,7 @@ description = "Muse Command Line Interface"
 readme = "../../README.md"
 
 [dependencies]
+ih-muse = { workspace = true }
 ih-muse-client = { workspace = true }
 ih-muse-core = { workspace = true }
 ih-muse-proto = { workspace = true }

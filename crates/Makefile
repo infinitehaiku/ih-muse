@@ -45,6 +45,7 @@ doctest:  ## Check that documentation builds
 	cargo doc --no-deps -p ih-muse-record
 	cargo doc --no-deps -p ih-muse-client
 	cargo doc --no-deps -p ih-muse
+	cargo doc --no-deps -p ih-muse-cli
 
 .PHONY: publish
 publish:  ## Publish ih-muse crates
@@ -53,6 +54,7 @@ publish:  ## Publish ih-muse crates
 	cargo publish --allow-dirty -p ih-muse-record
 	cargo publish --allow-dirty -p ih-muse-client
 	cargo publish --allow-dirty -p ih-muse
+	cargo publish --allow-dirty -p ih-muse-cli
 
 .PHONY: help
 help:  ## Display this help screen

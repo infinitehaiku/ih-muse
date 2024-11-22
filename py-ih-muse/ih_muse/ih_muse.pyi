@@ -36,6 +36,7 @@ class PyConfig:
         max_reg_elem_retries: int,
         recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
+        recording_flush_secs: Optional[int] = None,
     ) -> None: ...
 
 class ClientType:

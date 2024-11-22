@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::types::*;
 use crate::utils::deterministic_u64_from_str;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ElementKindRegistration {
     id: ElementKindId,
     pub code: String,
