@@ -57,6 +57,12 @@ jobs:
     name: Python Release
     needs: rust-release
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ih-muse
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -85,24 +91,24 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: needs.rust-release.outputs.release_created == 'true'
+        # if: needs.rust-release.outputs.release_created == 'true'
         with:
           packages-dir: dist/
-          verify-tag: false
+          verify-metadata: false
 
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: needs.rust-release.outputs.release_created != 'true'
+        # if: needs.rust-release.outputs.release_created != 'true'
         with:
           packages-dir: dist/
           repository-url: https://test.pypi.org/legacy/
-          verify-tag: false
+          verify-metadata: false
 
   update-changelog:
     name: Update Changelog
     needs: rust-release
     runs-on: ubuntu-latest
-    if: needs.rust-release.outputs.release_created == 'true'
+    # if: needs.rust-release.outputs.release_created == 'true'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
