@@ -9,7 +9,7 @@ pub fn metric_id_from_code(code: &str) -> u32 {
     deterministic_u32_from_str(code)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct MetricDefinition {
     pub id: MetricId,
     pub code: String,

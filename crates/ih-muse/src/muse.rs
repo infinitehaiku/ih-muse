@@ -10,12 +10,14 @@ use tokio::task::JoinHandle;
 use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
-use crate::config::{ClientType, Config};
 use crate::tasks;
+use crate::timing;
 use ih_muse_client::{MockClient, PoetClient};
 use ih_muse_core::prelude::*;
 use ih_muse_proto::prelude::*;
-use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replayer};
+use ih_muse_record::{
+    FileRecorder, FileReplayer, RecordedEvent, RecordedEventWithTime, Recorder, Replayer,
+};
 
 /// The main client for interacting with the Muse system.
 ///
@@ -24,7 +26,7 @@ use ih_muse_record::{FileRecorder, FileReplayer, RecordedEvent, Recorder, Replay
 pub struct Muse {
     client: Arc<dyn Transport + Send + Sync>,
     state: Arc<State>,
-    recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>>,
+    pub recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>>,
     tasks: Vec<JoinHandle<()>>,
     cancellation_token: CancellationToken,
     /// Indicates whether the Muse client has been initialized.
@@ -38,10 +40,30 @@ impl Drop for Muse {
     /// Cleans up resources when the `Muse` instance is dropped.
     ///
     /// Cancels any running tasks and releases resources.
+    /// Flushes and Closes any running event recording.
     fn drop(&mut self) {
+        // Cancel any running tasks
         self.cancellation_token.cancel();
         for task in &self.tasks {
             task.abort();
+        }
+
+        // Flush and close the recorder synchronously if it exists
+        if let Some(recorder) = &self.recorder {
+            let recorder = recorder.clone();
+            let _ = std::thread::spawn(move || {
+                let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
+                rt.block_on(async {
+                    let mut recorder = recorder.lock().await;
+                    if let Err(e) = recorder.flush().await {
+                        eprintln!("Failed to flush recorder: {:?}", e);
+                    }
+                    if let Err(e) = recorder.close().await {
+                        eprintln!("Failed to close recorder: {:?}", e);
+                    }
+                });
+            })
+            .join();
         }
     }
 }
@@ -59,7 +81,7 @@ impl Muse {
     pub fn new(config: &Config) -> MuseResult<Self> {
         let client: Arc<dyn Transport + Send + Sync> = match config.client_type {
             ClientType::Poet => Arc::new(PoetClient::new(&config.endpoints)),
-            ClientType::Mock => Arc::new(MockClient::new()),
+            ClientType::Mock => Arc::new(MockClient::new(config.default_resolution)),
         };
 
         let recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>> = if config.recording_enabled {
@@ -81,7 +103,7 @@ impl Muse {
 
         Ok(Self {
             client,
-            state: Arc::new(State::new()),
+            state: Arc::new(State::new(config.default_resolution)),
             recorder,
             tasks: Vec::new(),
             cancellation_token: cancellation_token.clone(),
@@ -104,9 +126,25 @@ impl Muse {
     ///
     /// Returns a [`MuseError::MuseInitializationTimeout`] if initialization times out.
     pub async fn initialize(&mut self, timeout: Option<Duration>) -> MuseResult<()> {
+        // Record the MuseConfig event if recording is enabled
+        if let Some(recorder) = &self.recorder {
+            let config_event = RecordedEvent::MuseConfig(self.config.clone());
+            recorder
+                .lock()
+                .await
+                .record(RecordedEventWithTime::new(config_event))
+                .await
+                .expect("Failed to record MuseConfig event");
+        }
+        // Start background tasks
+        let init_interval = self
+            .config
+            .initialization_interval
+            .unwrap_or(timing::INITIALIZATION_INTERVAL);
         self.start_tasks(
             self.config.element_kinds.to_vec(),
             self.config.metric_definitions.to_vec(),
+            init_interval,
             self.config.cluster_monitor_interval,
         );
         // Wait for initialization to complete, with an optional timeout
@@ -117,7 +155,7 @@ impl Muse {
                     return Err(MuseError::MuseInitializationTimeout(timeout.unwrap()));
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            tokio::time::sleep(init_interval).await;
         }
         Ok(())
     }
@@ -129,6 +167,15 @@ impl Muse {
     /// An `Arc` pointing to the internal `State`.
     pub fn get_state(&self) -> Arc<State> {
         self.state.clone()
+    }
+
+    /// Retrieves the finest resolution of timestamps from the state.
+    ///
+    /// # Returns
+    ///
+    /// The current `TimestampResolution` as set in the state.
+    pub fn get_finest_resolution(&self) -> TimestampResolution {
+        self.state.get_finest_resolution()
     }
 
     /// Retrieves a reference to the internal transport client.
@@ -144,12 +191,27 @@ impl Muse {
         &mut self,
         element_kinds: Vec<ElementKindRegistration>,
         metric_definitions: Vec<MetricDefinition>,
+        initialization_interval: Duration,
         cluster_monitor_interval: Option<Duration>,
     ) {
         let cancellation_token = self.cancellation_token.clone();
         let client = self.client.clone();
         let state = self.state.clone();
         let is_initialized = self.is_initialized.clone();
+
+        // Start the recorded flushing task
+        if let Some(recorder) = &self.recorder {
+            let flush_interval = self
+                .config
+                .recording_flush_interval
+                .unwrap_or(timing::RECORDING_FLUSH_INTERVAL);
+            let flush_task = tokio::spawn(tasks::start_recorder_flush_task(
+                cancellation_token.clone(),
+                recorder.clone(),
+                flush_interval,
+            ));
+            self.tasks.push(flush_task);
+        }
 
         // Start the initialization task
         let init_task_handle = tokio::spawn(tasks::start_init_task(
@@ -158,6 +220,7 @@ impl Muse {
             state.clone(),
             element_kinds,
             metric_definitions,
+            initialization_interval,
             is_initialized.clone(),
         ));
         self.tasks.push(init_task_handle);
@@ -168,7 +231,7 @@ impl Muse {
             client.clone(),
             state.clone(),
             is_initialized,
-            cluster_monitor_interval.unwrap_or(Duration::from_secs(60)),
+            cluster_monitor_interval.unwrap_or(timing::CLUSTER_MONITOR_INTERVAL),
         ));
         self.tasks.push(cluster_monitoring_handle);
 
@@ -246,7 +309,11 @@ impl Muse {
                 metadata: metadata.clone(),
                 parent_id,
             };
-            recorder.lock().await.record(event).await?;
+            recorder
+                .lock()
+                .await
+                .record(RecordedEventWithTime::new(event))
+                .await?;
         }
         if !self.state.is_valid_element_kind_code(kind_code) {
             return Err(MuseError::InvalidElementKindCode(kind_code.to_string()));
@@ -295,7 +362,11 @@ impl Muse {
                 metric_code: metric_code.to_string(),
                 value,
             };
-            recorder.lock().await.record(event).await?;
+            recorder
+                .lock()
+                .await
+                .record(RecordedEventWithTime::new(event))
+                .await?;
         }
 
         if !self.state.is_valid_metric_code(metric_code) {
@@ -306,55 +377,6 @@ impl Muse {
             .add_metric(local_elem_id, metric_code.to_string(), value)
             .await;
 
-        Ok(())
-    }
-
-    /// Replays events from a recording file.
-    ///
-    /// Useful for testing or replaying historical data.
-    ///
-    /// # Arguments
-    ///
-    /// - `replay_path`: The file path to the recording.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`MuseError`] if replaying fails.
-    pub async fn replay(&self, replay_path: &Path) -> MuseResult<()> {
-        // TODO record should store time deltas between the functions
-        // TODO so replay will replay it with the exact same delays
-        // * Like that it also tests caches, rates,
-        let mut replayer = FileReplayer::new(replay_path)?;
-        while let Some(event) = replayer.next_event().await? {
-            match event {
-                RecordedEvent::ElementRegistration {
-                    local_elem_id,
-                    kind_code,
-                    name,
-                    metadata,
-                    parent_id,
-                } => {
-                    self.register_element_inner(
-                        local_elem_id,
-                        &kind_code,
-                        name,
-                        metadata,
-                        parent_id,
-                    )
-                    .await?;
-                }
-                RecordedEvent::SendMetric {
-                    local_elem_id,
-                    metric_code,
-                    value,
-                } => {
-                    self.send_metric(local_elem_id, &metric_code, value).await?;
-                }
-                RecordedEvent::EndpointUpdate(_endpoints) => {
-                    // Handle endpoint updates if needed
-                }
-            }
-        }
         Ok(())
     }
 
@@ -378,5 +400,126 @@ impl Muse {
         // For testing purposes, we use the client to get metrics.
         // Note that in production use, the Muse client is not intended for retrieving metrics.
         self.client.get_metrics(query, None).await
+    }
+
+    /// Replays events from a recording file.
+    ///
+    /// Useful for testing or replaying historical data.
+    ///
+    /// # Arguments
+    ///
+    /// - `replay_path`: The file path to the recording.
+    ///
+    /// # Errors
+    ///
+    /// Returns a [`MuseError`] if replaying fails.
+    pub async fn replay(&self, replay_path: &Path) -> MuseResult<()> {
+        if self.config.recording_enabled {
+            return Err(MuseError::Replaying(
+                "Cannot replay with recording enabled".to_string(),
+            ));
+        }
+        let mut replayer = FileReplayer::new(replay_path).await?;
+
+        let mut last_timestamp = None;
+
+        while let Some(timed_event) = replayer.next_event().await? {
+            if let Some(last) = last_timestamp {
+                let delay = Duration::from_micros((timed_event.timestamp - last) as u64);
+                tokio::time::sleep(delay).await;
+            }
+
+            last_timestamp = Some(timed_event.timestamp);
+
+            match timed_event.event {
+                RecordedEvent::MuseConfig(recorded_config) => {
+                    if !self.config.is_relevantly_equal(&recorded_config) {
+                        let differences = recorded_config.pretty_diff(&self.config);
+                        log::warn!(
+                            "Recorded config and current config do not match:\n{}",
+                            differences
+                        );
+                    }
+                }
+                RecordedEvent::ElementRegistration {
+                    local_elem_id,
+                    kind_code,
+                    name,
+                    metadata,
+                    parent_id,
+                } => {
+                    self.register_element_inner(
+                        local_elem_id,
+                        &kind_code,
+                        name,
+                        metadata,
+                        parent_id,
+                    )
+                    .await?;
+                }
+                RecordedEvent::SendMetric {
+                    local_elem_id,
+                    metric_code,
+                    value,
+                } => {
+                    self.send_metric(local_elem_id, &metric_code, value).await?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Initializes a Muse instance using the Config recorded in a replay file.
+    /// Sets `recording_enabled` in the Config to `false` to prevent re-recording during replay.
+    ///
+    /// # Arguments
+    /// - `replay_path`: The path to the replay file containing the Config.
+    ///
+    /// # Returns
+    /// A new Muse instance initialized with the Config extracted from the replay file.
+    pub async fn from_replay(replay_path: &Path) -> MuseResult<Self> {
+        let mut replayer = FileReplayer::new(replay_path).await?;
+        let mut config: Option<Config> = None;
+
+        // Extract the ConfigUpdate event from the replay file.
+        if let Some(timed_event) = replayer.next_event().await? {
+            if let RecordedEvent::MuseConfig(mut c) = timed_event.event {
+                c.recording_enabled = false;
+                config = Some(c);
+            }
+        }
+
+        // Ensure the Config is present in the replay file.
+        let config = config.ok_or_else(|| {
+            MuseError::Replaying("No ConfigUpdate event found in the replay file.".to_string())
+        })?;
+
+        // Create and initialize a new Muse instance with the extracted Config.
+        let mut muse = Muse::new(&config)?;
+        muse.initialize(None).await?;
+        Ok(muse)
+    }
+
+    /// Checks if a replay should start based on the presence of a replay file.
+    /// If the replay file exists and contains valid events, it will start the replay process.
+    ///
+    /// # Arguments
+    /// - `replay_path`: The path to the replay file.
+    ///
+    /// # Returns
+    /// A Result indicating success or failure of the replay process.
+    pub async fn check_and_replay(replay_path: &Path) -> MuseResult<Self> {
+        if replay_path.exists() {
+            log::info!("Replay file found: {:?}", replay_path);
+            let muse = Muse::from_replay(replay_path).await?;
+            muse.replay(replay_path).await?;
+            log::info!("Replay completed successfully.");
+            return Ok(muse);
+        }
+        log::info!("No replay file found at: {:?}", replay_path);
+        Err(MuseError::Replaying(format!(
+            "Replay file not found: {:?}",
+            replay_path
+        )))
     }
 }

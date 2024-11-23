@@ -25,6 +25,7 @@ tokio-util = { version = "0.7.12", features = ["io"] }
 
 [dev-dependencies]
 env_logger = { workspace = true }
+tempfile = "3.13.0"
 
 [lints]
 workspace = true

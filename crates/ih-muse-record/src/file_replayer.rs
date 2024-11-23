@@ -8,14 +8,14 @@
 //! - `.bin` for Bincode serialization
 //! - `.json` for JSON serialization
 
-use std::fs::File;
-use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use async_trait::async_trait;
+use tokio::fs::File;
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
 
 use super::SerializationFormat;
-use crate::{RecordedEvent, Replayer};
+use crate::{RecordedEventWithTime, Replayer};
 use ih_muse_core::{MuseError, MuseResult};
 
 /// A replayer that reads events from a recording file.
@@ -37,11 +37,12 @@ impl FileReplayer {
     /// # Errors
     ///
     /// Returns a [`MuseError::Replaying`] if the file cannot be opened.
-    pub fn new(path: &Path) -> MuseResult<Self> {
+    pub async fn new(path: &Path) -> MuseResult<Self> {
         let ext = path.extension().and_then(|e| e.to_str());
         let format = SerializationFormat::from_extension(ext)?;
 
         let file = File::open(path)
+            .await
             .map_err(|e| MuseError::Replaying(format!("Failed to open file: {}", e)))?;
         log::info!("Using {:?} format for replaying.", format);
         Ok(Self {
@@ -53,42 +54,38 @@ impl FileReplayer {
 
 #[async_trait]
 impl Replayer for FileReplayer {
-    /// Reads the next event from the recording file.
-    ///
-    /// # Returns
-    ///
-    /// An `Option<RecordedEvent>` representing the next event, or `None` if EOF is reached.
-    ///
-    /// # Errors
-    ///
-    /// Returns a [`MuseError::Replaying`] if deserialization fails.
-    async fn next_event(&mut self) -> MuseResult<Option<RecordedEvent>> {
+    async fn next_event(&mut self) -> MuseResult<Option<RecordedEventWithTime>> {
         match self.format {
             SerializationFormat::Bincode => {
-                match bincode::deserialize_from::<_, RecordedEvent>(&mut self.reader) {
-                    Ok(event) => Ok(Some(event)),
-                    Err(e) => {
-                        if let bincode::ErrorKind::Io(ref io_error) = *e {
-                            if io_error.kind() == std::io::ErrorKind::UnexpectedEof {
-                                return Ok(None);
-                            }
-                        }
-                        Err(MuseError::Replaying(format!(
-                            "Failed to deserialize event: {}",
-                            e
-                        )))
-                    }
+                // Bincode doesn't support async read directly; read the entire file into memory
+                let mut buffer = Vec::new();
+                let bytes_read = self
+                    .reader
+                    .read_to_end(&mut buffer)
+                    .await
+                    .map_err(|e| MuseError::Replaying(e.to_string()))?;
+                if bytes_read == 0 {
+                    return Ok(None); // EOF
+                }
+                let mut cursor = std::io::Cursor::new(buffer);
+                match bincode::deserialize_from::<_, RecordedEventWithTime>(&mut cursor) {
+                    Ok(timed_event) => Ok(Some(timed_event)),
+                    Err(e) => Err(MuseError::Replaying(format!(
+                        "Failed to deserialize event: {}",
+                        e
+                    ))),
                 }
             }
             SerializationFormat::Json => {
                 let mut line = String::new();
-                match self.reader.read_line(&mut line) {
+                match self.reader.read_line(&mut line).await {
                     Ok(0) => Ok(None), // EOF
                     Ok(_) => {
-                        let event: RecordedEvent = serde_json::from_str(&line).map_err(|e| {
-                            MuseError::Replaying(format!("Failed to deserialize event: {}", e))
-                        })?;
-                        Ok(Some(event))
+                        let timed_event: RecordedEventWithTime = serde_json::from_str(&line)
+                            .map_err(|e| {
+                                MuseError::Replaying(format!("Failed to deserialize event: {}", e))
+                            })?;
+                        Ok(Some(timed_event))
                     }
                     Err(e) => Err(MuseError::Replaying(format!("Failed to read line: {}", e))),
                 }

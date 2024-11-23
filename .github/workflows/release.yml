@@ -51,6 +51,7 @@ jobs:
           cargo publish --allow-dirty -p ih-muse-record --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
           cargo publish --allow-dirty -p ih-muse-client --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
           cargo publish --allow-dirty -p ih-muse --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          cargo publish --allow-dirty -p ih-muse-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   python-release:
     name: Python Release

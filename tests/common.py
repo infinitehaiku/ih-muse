@@ -6,6 +6,7 @@ import asyncio
 import os
 import time
 
+from datetime import timedelta
 from typing import Optional
 
 from ih_muse import (
@@ -72,10 +73,12 @@ class MuseTestContext:
             client_type=client_type,
             recording_enabled=False,
             recording_path=None,
-            default_resolution=TimestampResolution.Seconds,
+            default_resolution=TimestampResolution.Milliseconds,
             element_kinds=[element_kind],
             metric_definitions=[metric_definition],
             max_reg_elem_retries=3,
+            initialization_interval=timedelta(milliseconds=1),
+            cluster_monitor_interval=timedelta(milliseconds=1),
         )
 
         muse = await Muse.create(config, timeout=10.0)

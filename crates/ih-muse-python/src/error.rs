@@ -15,6 +15,8 @@ pub enum PyMusesErr {
     #[error("{0}")]
     Uuid(String),
     #[error("{0}")]
+    Chrono(String),
+    #[error("{0}")]
     Other(String),
 }
 
@@ -27,6 +29,12 @@ impl std::convert::From<std::io::Error> for PyMusesErr {
 impl std::convert::From<uuid::Error> for PyMusesErr {
     fn from(err: uuid::Error) -> Self {
         PyMusesErr::Uuid(err.to_string())
+    }
+}
+
+impl From<chrono::OutOfRangeError> for PyMusesErr {
+    fn from(err: chrono::OutOfRangeError) -> Self {
+        PyMusesErr::Chrono(err.to_string())
     }
 }
 
@@ -58,6 +66,9 @@ impl std::convert::From<PyMusesErr> for PyErr {
                 MuseError::InvalidMetricCode(name) => {
                     InvalidMetricCodeError::new_err(name.to_string())
                 }
+                MuseError::DurationConversion(err) => {
+                    DurationConversionError::new_err(err.to_string())
+                }
             },
             _ => default(),
         }
@@ -70,6 +81,7 @@ impl Debug for PyMusesErr {
         match self {
             Muses(err) => write!(f, "{err:?}"),
             PyMusesErr::Uuid(err) => write!(f, "UUID error {err:?}"),
+            PyMusesErr::Chrono(err) => write!(f, "Chrono error {err:?}"),
             Other(err) => write!(f, "BindingsError: {err:?}"),
         }
     }

@@ -1,5 +1,6 @@
 # ih_muse/ih_muse.pyi
 
+from datetime import timedelta
 from typing import Any, Optional
 
 __version__: str
@@ -36,6 +37,9 @@ class PyConfig:
         max_reg_elem_retries: int,
         recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
+        recording_flush_interval: Optional[timedelta] = None,
+        initialization_interval: Optional[timedelta] = None,
+        cluster_monitor_interval: Optional[timedelta] = None,
     ) -> None: ...
 
 class ClientType:

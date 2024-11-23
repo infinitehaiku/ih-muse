@@ -11,7 +11,7 @@ The configuration allows you to:
 - Define element kinds and metric definitions for registration and reporting.
 - Set default timestamp resolutions.
 - Enable or disable event recording and specify recording paths.
-- Configure retries and intervals for various operations.
+- Configure retries and intervals for various operations, including initialization, cluster monitoring, and recording flush intervals.
 
 ## Configuration Fields
 
@@ -19,10 +19,12 @@ The configuration allows you to:
 - **Client Type**: Determines the type of client (`Poet` or `Mock`).
 - **Recording Enabled**: Enables or disables event recording.
 - **Recording Path**: File path for recording events (required if recording is enabled).
+- **Recording Flush Interval**: Interval for flushing recorded events to storage (optional).
 - **Default Resolution**: Default timestamp resolution for metrics.
 - **Element Kinds**: List of element kinds to register.
 - **Metric Definitions**: List of metric definitions available for reporting.
 - **Cluster Monitor Interval**: Interval for cluster monitoring tasks (optional).
+- **Initialization Interval**: Interval for performing initialization tasks (optional).
 - **Max Registration Retries**: Maximum number of retries for element registration.
 
 ## Validation Rules
@@ -44,6 +46,7 @@ Below are examples of how to define the configuration in both Python and Rust.
 
 ```python
 import asyncio
+from datetime import timedelta
 from ih_muse import Muse, Config, ClientType, TimestampResolution
 from ih_muse.proto import ElementKindRegistration, MetricDefinition
 
@@ -59,8 +62,11 @@ config = Config(
         MetricDefinition("metric_code", "description")
     ],
     max_reg_elem_retries=3,
-    recording_enabled=False,
-    recording_path=None,  # Optional if recording is disabled
+    recording_enabled=True,
+    recording_path="recording.json",
+    recording_flush_interval=timedelta(seconds=1),
+    initialization_interval=timedelta(milliseconds=500),
+    cluster_monitor_interval=timedelta(seconds=30),
 )
 
 # Initialize the Muse client
@@ -80,7 +86,6 @@ asyncio.run(main())
 use ih_muse::prelude::*;
 use ih_muse::config::{ClientType, Config};
 use ih_muse_proto::prelude::*;
-use std::collections::HashMap;
 use std::time::Duration;
 
 #[tokio::main]
@@ -89,13 +94,15 @@ async fn main() -> MuseResult<()> {
     let config = Config::new(
         vec!["http://localhost:8080".to_string()],
         ClientType::Poet,
-        false,                      // recording_enabled
-        None,                       // recording_path
+        true,
+        Some("recording.json".to_string()),
+        Some(Duration::from_secs(1)),
         TimestampResolution::Milliseconds,
         vec![ElementKindRegistration::new("kind_code", "description")],
         vec![MetricDefinition::new("metric_code", "description")],
-        Some(Duration::from_secs(60)),  // cluster_monitor_interval
-        3,                              // max_reg_elem_retries
+        Some(Duration::from_millis(500)),  // Initialization interval
+        Some(Duration::from_secs(30)),    // Cluster monitor interval
+        3,                                // Max retries for element registration
     )?;
 
     // Initialize the Muse client
@@ -141,13 +148,26 @@ A list of `ElementKindRegistration` instances that define the kinds of elements 
 
 A list of `MetricDefinition` instances that define the metrics you plan to report.
 
-### Cluster Monitor Interval
-
-(Optional) The interval at which the client should perform cluster monitoring tasks. This is typically relevant for advanced configurations.
-
 ### Max Registration Retries
 
 Specifies how many times the client should retry registering an element in case of failure.
+
+### New Timing Fields
+
+#### Recording Flush Interval
+
+- Configures the frequency of writing recorded events to storage.
+- Optional field. Defaults to one second if not specified.
+
+#### Initialization Interval
+
+- Defines the interval for performing initialization tasks, such as health checks and registrations.
+- Optional field. Defaults to one second if not specified.
+
+#### Cluster Monitor Interval
+
+- Specifies the interval at which cluster monitoring tasks are performed.
+- Optional field. Defaults to one minute if not specified.
 
 ## Validation Behavior (Rust Implementation)
 
@@ -166,12 +186,3 @@ If any of these validations fail, the client initialization will return a `MuseE
 - **Missing Endpoints**: Ensure that you provide at least one endpoint when using the `Poet` client.
 - **Empty Element Kinds or Metric Definitions**: Provide at least one element kind and one metric definition.
 - **Recording Enabled Without Path**: If you enable recording, you must specify a valid path for the recording file.
-
-## Tips
-
-- **Asynchronous Initialization**: Both Python and Rust clients use asynchronous initialization methods. Ensure you await these calls appropriately.
-- **Error Handling**: Always handle potential errors that may arise during client initialization or operation, especially network-related issues.
-
-## Conclusion
-
-Properly configuring the Muse client is crucial for successful integration with the Muse system. By understanding and utilizing the configuration options available, you can tailor the client to meet your specific needs, whether you're developing in Python or Rust.

@@ -4,10 +4,9 @@ use std::path::PathBuf;
 
 use clap::Args;
 
-use ih_muse_core::MuseResult;
-use ih_muse_record::{FileRecorder, RecordedEvent, Recorder};
+use ih_muse::prelude::*;
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 pub struct RecordArgs {
     /// Output file path
     #[arg(short, long)]
@@ -16,11 +15,7 @@ pub struct RecordArgs {
 }
 
 pub async fn execute(args: RecordArgs) -> MuseResult<()> {
-    let mut recorder = FileRecorder::new(&args.output)?;
-
-    // Example event recording
-    let event = RecordedEvent::EndpointUpdate(vec!["http://localhost:8000".to_string()]);
-    recorder.record(event).await?;
-
-    recorder.close().await
+    // TODO probably not necessary
+    println!("Called record with {:?}: Not implemented", args);
+    Ok(())
 }

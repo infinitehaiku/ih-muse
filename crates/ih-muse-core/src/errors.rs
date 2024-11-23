@@ -2,6 +2,7 @@
 
 use std::time::Duration;
 
+use chrono::OutOfRangeError;
 use thiserror::Error;
 
 pub type MuseResult<T> = Result<T, MuseError>;
@@ -24,4 +25,12 @@ pub enum MuseError {
     InvalidElementKindCode(String),
     #[error("Invalid Metric Code {0}")]
     InvalidMetricCode(String),
+    #[error("Duration conversion error: {0}")]
+    DurationConversion(String),
+}
+
+impl From<OutOfRangeError> for MuseError {
+    fn from(err: OutOfRangeError) -> Self {
+        MuseError::DurationConversion(err.to_string())
+    }
 }

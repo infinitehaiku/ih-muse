@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Optional
 from ih_muse.ih_muse import ClientType, PyConfig, TimestampResolution
 
 if TYPE_CHECKING:
+    from datetime import timedelta
+
     from ih_muse.proto import ElementKindRegistration, MetricDefinition
 
 
@@ -29,6 +31,12 @@ class Config:
         Enables event recording if set to `True`.
     :param Optional[str] recording_path:
         File path for recording events (required if `recording_enabled` is `True`).
+    :param Optional[timedelta] recording_flush_interval:
+        Interval to flush recordings (required if `recording_enabled` is `True`).
+    :param Optional[timedelta] initialization_interval:
+        Interval for the muse initialization task.
+    :param Optional[timedelta] cluster_monitor_interval:
+        Interval for the cluster monitoring task.
 
     ```python
     # Example usage:
@@ -59,6 +67,9 @@ class Config:
         max_reg_elem_retries: int,
         recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
+        recording_flush_interval: Optional[timedelta] = None,
+        initialization_interval: Optional[timedelta] = None,
+        cluster_monitor_interval: Optional[timedelta] = None,
     ) -> None:
         """Initialize the Config instance."""
         py_element_kinds = [ekr._elem_kind_reg for ekr in element_kinds]
@@ -73,4 +84,7 @@ class Config:
             max_reg_elem_retries,
             recording_enabled,
             recording_path,
+            recording_flush_interval,
+            initialization_interval,
+            cluster_monitor_interval,
         )

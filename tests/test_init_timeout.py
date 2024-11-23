@@ -44,7 +44,7 @@ async def test_muse_initialization_timeout() -> None:
     muse = Muse(config)
 
     with pytest.raises(MuseInitializationTimeoutError):
-        await muse.initialize(timeout=2.0)
+        await muse.initialize(timeout=0.25)
 
     assert (
         not muse.is_initialized()

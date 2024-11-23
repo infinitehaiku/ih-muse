@@ -88,6 +88,11 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
         py.get_type_bound::<exceptions::InvalidMetricCodeError>(),
     )
     .unwrap();
+    m.add(
+        "DurationConversionError",
+        py.get_type_bound::<exceptions::DurationConversionError>(),
+    )
+    .unwrap();
 
     // Build info
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
