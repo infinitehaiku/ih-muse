@@ -16,46 +16,46 @@ permissions:
   id-token: write
 
 jobs:
-  rust-release:
-    name: Rust Release
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-      release_created: ${{ steps.release-drafter.outputs.release_created }}
-    steps:
-      - uses: actions/checkout@v4
+  # rust-release:
+  #   name: Rust Release
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     version: ${{ steps.version.outputs.version }}
+  #     release_created: ${{ steps.release-drafter.outputs.release_created }}
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Extract version from Cargo.toml
-        id: version
-        run: |
-          VERSION=$(grep '^version = ' Cargo.toml | head -n 1 | cut -d '"' -f 2)
-          echo "Detected version: $VERSION"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+  #     - name: Extract version from Cargo.toml
+  #       id: version
+  #       run: |
+  #         VERSION=$(grep '^version = ' Cargo.toml | head -n 1 | cut -d '"' -f 2)
+  #         echo "Detected version: $VERSION"
+  #         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Release Drafter
-        id: release-drafter
-        uses: release-drafter/release-drafter@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          config-name: release-drafter.yml
+  #     - name: Release Drafter
+  #       id: release-drafter
+  #       uses: release-drafter/release-drafter@v5
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         config-name: release-drafter.yml
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+  #     - name: Set up Rust
+  #       uses: dtolnay/rust-toolchain@stable
 
-      - name: Publish IH-Muse package
-        run: |
-          cd crates
-          cargo publish --allow-dirty -p ih-muse-proto --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          cargo publish --allow-dirty -p ih-muse-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          cargo publish --allow-dirty -p ih-muse-record --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          cargo publish --allow-dirty -p ih-muse-client --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          cargo publish --allow-dirty -p ih-muse --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
-          cargo publish --allow-dirty -p ih-muse-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #     - name: Publish IH-Muse package
+  #       run: |
+  #         cd crates
+  #         cargo publish --allow-dirty -p ih-muse-proto --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #         cargo publish --allow-dirty -p ih-muse-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #         cargo publish --allow-dirty -p ih-muse-record --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #         cargo publish --allow-dirty -p ih-muse-client --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #         cargo publish --allow-dirty -p ih-muse --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #         cargo publish --allow-dirty -p ih-muse-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
   python-release:
     name: Python Release
-    needs: rust-release
+    # needs: rust-release
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -104,31 +104,31 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           verify-metadata: false
 
-  update-changelog:
-    name: Update Changelog
-    needs: rust-release
-    runs-on: ubuntu-latest
-    # if: needs.rust-release.outputs.release_created == 'true'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # update-changelog:
+  #   name: Update Changelog
+  #   needs: rust-release
+  #   runs-on: ubuntu-latest
+  #   # if: needs.rust-release.outputs.release_created == 'true'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Update Changelog
-        uses: stefanzweifel/changelog-updater-action@v1
-        with:
-          latest-version: ${{ needs.rust-release.outputs.version }}
-          release-notes: ${{ needs.rust-release.outputs.body }}
+  #     - name: Update Changelog
+  #       uses: stefanzweifel/changelog-updater-action@v1
+  #       with:
+  #         latest-version: ${{ needs.rust-release.outputs.version }}
+  #         release-notes: ${{ needs.rust-release.outputs.body }}
 
-      - name: Commit updated Changelog
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          branch: main
-          commit_message: "docs(changelog): update changelog"
-          file_pattern: CHANGELOG.md
+  #     - name: Commit updated Changelog
+  #       uses: stefanzweifel/git-auto-commit-action@v4
+  #       with:
+  #         branch: main
+  #         commit_message: "docs(changelog): update changelog"
+  #         file_pattern: CHANGELOG.md
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            CHANGELOG.md
-          generate_release_notes: true
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           CHANGELOG.md
+  #         generate_release_notes: true
