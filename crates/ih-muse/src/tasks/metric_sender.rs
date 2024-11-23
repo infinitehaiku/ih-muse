@@ -6,7 +6,7 @@ use tokio::select;
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
-use super::calculate_interval_duration;
+use crate::timing::metric_sending_interval;
 use ih_muse_core::{time, MetricBuffer, MuseResult, State, Transport};
 use ih_muse_proto::MetricPayload;
 
@@ -17,7 +17,7 @@ pub async fn start_metric_sender_task(
     metric_buffer: Arc<MetricBuffer>,
 ) {
     loop {
-        let interval = calculate_interval_duration(state.get_finest_resolution(), 1);
+        let interval = metric_sending_interval(state.get_finest_resolution());
         select! {
             _ = cancellation_token.cancelled() => {
                 println!("Metric sender task was cancelled.");

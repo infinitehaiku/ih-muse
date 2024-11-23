@@ -15,10 +15,11 @@ pub async fn start_init_task(
     state: Arc<State>,
     element_kinds: Vec<ElementKindRegistration>,
     metric_definitions: Vec<MetricDefinition>,
+    initialization_interval_duration: Duration,
     is_initialized: Arc<AtomicBool>,
 ) {
     let mut step = InitializationStep::HealthCheck;
-    let mut interval = interval(Duration::from_secs(1));
+    let mut interval = interval(initialization_interval_duration);
     loop {
         tokio::select! {
             _ = cancellation_token.cancelled() => {

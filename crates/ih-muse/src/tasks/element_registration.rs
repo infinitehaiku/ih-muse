@@ -6,7 +6,7 @@ use tokio::select;
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
 
-use super::calculate_interval_duration;
+use crate::timing::element_registration_interval;
 use ih_muse_core::{ElementBuffer, MuseResult, State, Transport};
 use ih_muse_proto::*;
 
@@ -17,7 +17,7 @@ pub async fn start_element_registration_task(
     element_buffer: Arc<ElementBuffer>,
 ) {
     loop {
-        let interval = calculate_interval_duration(state.get_finest_resolution(), 4);
+        let interval = element_registration_interval(state.get_finest_resolution());
         select! {
             _ = cancellation_token.cancelled() => {
                 println!("Element registration task was cancelled.");

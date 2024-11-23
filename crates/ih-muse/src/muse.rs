@@ -11,6 +11,7 @@ use tokio::time::Duration;
 use tokio_util::sync::CancellationToken;
 
 use crate::tasks;
+use crate::timing;
 use ih_muse_client::{MockClient, PoetClient};
 use ih_muse_core::prelude::*;
 use ih_muse_proto::prelude::*;
@@ -80,7 +81,7 @@ impl Muse {
     pub fn new(config: &Config) -> MuseResult<Self> {
         let client: Arc<dyn Transport + Send + Sync> = match config.client_type {
             ClientType::Poet => Arc::new(PoetClient::new(&config.endpoints)),
-            ClientType::Mock => Arc::new(MockClient::new()),
+            ClientType::Mock => Arc::new(MockClient::new(config.default_resolution)),
         };
 
         let recorder: Option<Arc<Mutex<dyn Recorder + Send + Sync>>> = if config.recording_enabled {
@@ -102,7 +103,7 @@ impl Muse {
 
         Ok(Self {
             client,
-            state: Arc::new(State::new()),
+            state: Arc::new(State::new(config.default_resolution)),
             recorder,
             tasks: Vec::new(),
             cancellation_token: cancellation_token.clone(),
@@ -136,9 +137,14 @@ impl Muse {
                 .expect("Failed to record MuseConfig event");
         }
         // Start background tasks
+        let init_interval = self
+            .config
+            .initialization_interval
+            .unwrap_or(timing::INITIALIZATION_INTERVAL);
         self.start_tasks(
             self.config.element_kinds.to_vec(),
             self.config.metric_definitions.to_vec(),
+            init_interval,
             self.config.cluster_monitor_interval,
         );
         // Wait for initialization to complete, with an optional timeout
@@ -149,7 +155,7 @@ impl Muse {
                     return Err(MuseError::MuseInitializationTimeout(timeout.unwrap()));
                 }
             }
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            tokio::time::sleep(init_interval).await;
         }
         Ok(())
     }
@@ -161,6 +167,15 @@ impl Muse {
     /// An `Arc` pointing to the internal `State`.
     pub fn get_state(&self) -> Arc<State> {
         self.state.clone()
+    }
+
+    /// Retrieves the finest resolution of timestamps from the state.
+    ///
+    /// # Returns
+    ///
+    /// The current `TimestampResolution` as set in the state.
+    pub fn get_finest_resolution(&self) -> TimestampResolution {
+        self.state.get_finest_resolution()
     }
 
     /// Retrieves a reference to the internal transport client.
@@ -176,6 +191,7 @@ impl Muse {
         &mut self,
         element_kinds: Vec<ElementKindRegistration>,
         metric_definitions: Vec<MetricDefinition>,
+        initialization_interval: Duration,
         cluster_monitor_interval: Option<Duration>,
     ) {
         let cancellation_token = self.cancellation_token.clone();
@@ -188,7 +204,7 @@ impl Muse {
             let flush_interval = self
                 .config
                 .recording_flush_interval
-                .unwrap_or(Duration::from_secs(1));
+                .unwrap_or(timing::RECORDING_FLUSH_INTERVAL);
             let flush_task = tokio::spawn(tasks::start_recorder_flush_task(
                 cancellation_token.clone(),
                 recorder.clone(),
@@ -204,6 +220,7 @@ impl Muse {
             state.clone(),
             element_kinds,
             metric_definitions,
+            initialization_interval,
             is_initialized.clone(),
         ));
         self.tasks.push(init_task_handle);
@@ -214,7 +231,7 @@ impl Muse {
             client.clone(),
             state.clone(),
             is_initialized,
-            cluster_monitor_interval.unwrap_or(Duration::from_secs(60)),
+            cluster_monitor_interval.unwrap_or(timing::CLUSTER_MONITOR_INTERVAL),
         ));
         self.tasks.push(cluster_monitoring_handle);
 
@@ -402,7 +419,7 @@ impl Muse {
                 "Cannot replay with recording enabled".to_string(),
             ));
         }
-        let mut replayer = FileReplayer::new(replay_path)?;
+        let mut replayer = FileReplayer::new(replay_path).await?;
 
         let mut last_timestamp = None;
 
@@ -461,15 +478,14 @@ impl Muse {
     /// # Returns
     /// A new Muse instance initialized with the Config extracted from the replay file.
     pub async fn from_replay(replay_path: &Path) -> MuseResult<Self> {
-        let mut replayer = FileReplayer::new(replay_path)?;
+        let mut replayer = FileReplayer::new(replay_path).await?;
         let mut config: Option<Config> = None;
 
         // Extract the ConfigUpdate event from the replay file.
-        while let Some(timed_event) = replayer.next_event().await? {
+        if let Some(timed_event) = replayer.next_event().await? {
             if let RecordedEvent::MuseConfig(mut c) = timed_event.event {
                 c.recording_enabled = false;
                 config = Some(c);
-                break;
             }
         }
 

@@ -1,6 +1,5 @@
 // tests/it/test_cluster.rs
-use super::common::{TestContext, DEFAULT_WAIT_TIME};
-use tokio::time::sleep;
+use super::common::TestContext;
 
 #[tokio::test]
 async fn test_cluster_monitor_updates_state() {
@@ -9,7 +8,7 @@ async fn test_cluster_monitor_updates_state() {
     let state = ctx.muse.get_state();
 
     // Wait for cluster monitor to update
-    sleep(DEFAULT_WAIT_TIME).await;
+    ctx.wait_for_cluster_monitoring_task().await;
 
     // Verify state updates
     let nodes = state.get_nodes().await;

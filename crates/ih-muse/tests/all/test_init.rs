@@ -1,5 +1,5 @@
 // tests/it/test_init.rs
-use super::common::{client_type_from_env, TestContext, DEFAULT_WAIT_TIME};
+use super::common::{client_type_from_env, TestContext};
 use ih_muse::prelude::*;
 use std::time::Duration;
 
@@ -38,6 +38,7 @@ async fn test_muse_initialization_with_mock() {
 #[tokio::test]
 async fn test_muse_initialization_with_custom_config() {
     // Custom configuration with different settings
+    let init_duration = Duration::from_millis(10);
     let config = Config {
         endpoints: vec!["http://localhost:8000".to_string()],
         client_type: client_type_from_env(),
@@ -53,12 +54,19 @@ async fn test_muse_initialization_with_custom_config() {
             MetricDefinition::new("cpu_usage", "CPU Usage", "CPU usage metric"),
             MetricDefinition::new("memory_usage", "Memory Usage", "Memory usage metric"),
         ],
-        cluster_monitor_interval: Some(Duration::from_secs(1)),
+        initialization_interval: Some(init_duration),
+        cluster_monitor_interval: Some(init_duration),
         max_reg_elem_retries: 5,
     };
 
     let mut muse = Muse::new(&config).expect("Failed to create the Muse");
-    TestContext::wait_for_init(&mut muse).await;
+
+    muse.initialize(Some(timing::adjust_duration_by_modifier(
+        init_duration,
+        10.0,
+    )))
+    .await
+    .expect("Muse Initialization failed");
 
     assert!(
         muse.is_initialized(),
@@ -76,9 +84,12 @@ async fn test_muse_initialization_with_custom_config() {
 
     // Wait for element registration
     let start_time = tokio::time::Instant::now();
-    while state.get_element_id(&local_elem_id).is_none() && start_time.elapsed() < DEFAULT_WAIT_TIME
-    {
-        tokio::time::sleep(Duration::from_millis(100)).await;
+    let elem_reg_duration = timing::element_registration_interval(muse.get_finest_resolution());
+    let timeout = timing::adjust_duration_by_modifier(elem_reg_duration, 2.0);
+
+    while state.get_element_id(&local_elem_id).is_none() && start_time.elapsed() < timeout {
+        let elem_reg_duration = timing::element_registration_interval(muse.get_finest_resolution());
+        tokio::time::sleep(elem_reg_duration).await;
     }
 
     assert!(
@@ -104,6 +115,7 @@ async fn test_muse_initialization_timeout() {
         default_resolution: TimestampResolution::Seconds,
         element_kinds: vec![],
         metric_definitions: vec![],
+        initialization_interval: None,
         cluster_monitor_interval: None,
         max_reg_elem_retries: 1, // Set low retry count for faster test
     };

@@ -4,6 +4,7 @@ try:
     from ih_muse.ih_muse import (
         ClientError,
         ConfigurationError,
+        DurationConversionError,
         InvalidElementKindCodeError,
         InvalidFileExtensionError,
         InvalidMetricCodeError,
@@ -47,6 +48,9 @@ except ImportError:
         """TODO DOCS."""
 
     class InvalidMetricCodeError(MuseError):  # type: ignore[no-redef, misc]
+        """TODO DOCS."""
+
+    class DurationConversionError(MuseError):  # type: ignore[no-redef, misc]
         """TODO DOCS."""
 
     class PanicException(MuseError):  # type: ignore[no-redef, misc]

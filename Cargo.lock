@@ -837,6 +837,7 @@ dependencies = [
 name = "ih-muse-python"
 version = "0.0.8"
 dependencies = [
+ "chrono",
  "ih-muse",
  "ih-muse-core",
  "ih-muse-proto",
@@ -1192,6 +1193,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f402062616ab18202ae8319da13fa4279883a2b8a9d9f83f20dbade813ce1884"
 dependencies = [
  "cfg-if",
+ "chrono",
  "indoc",
  "libc",
  "memoffset",

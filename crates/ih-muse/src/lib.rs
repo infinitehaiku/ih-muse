@@ -19,9 +19,11 @@
 //!         ClientType::Poet,
 //!         false,
 //!         None,
+//!         None,
 //!         TimestampResolution::Milliseconds,
 //!         vec![ElementKindRegistration::new("kind_code", Some("parent_code"), "kind_name", "description")],
 //!         vec![MetricDefinition::new("metric_code", "metric_name", "description")],
+//!         Some(std::time::Duration::from_secs(60)),
 //!         Some(std::time::Duration::from_secs(60)),
 //!         3,
 //!     )?;
@@ -69,6 +71,7 @@
 mod muse;
 pub mod prelude;
 mod tasks;
+pub mod timing;
 
 pub use ih_muse_core::MuseError;
 pub use muse::Muse;

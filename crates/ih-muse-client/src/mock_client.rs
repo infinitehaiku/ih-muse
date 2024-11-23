@@ -31,12 +31,12 @@ pub struct MockClient {
 
 impl Default for MockClient {
     fn default() -> Self {
-        Self::new()
+        Self::new(TimestampResolution::default())
     }
 }
 
 impl MockClient {
-    pub fn new() -> Self {
+    pub fn new(default_resolution: TimestampResolution) -> Self {
         let node_id = Uuid::new_v4();
         let node_info = NodeInfo {
             start_date: Utc::now().timestamp(),
@@ -60,15 +60,9 @@ impl MockClient {
         MockClient {
             metrics: Arc::new(Mutex::new(Vec::new())),
             sent_metrics: Arc::new(Mutex::new(Vec::new())),
-            finest_resolution: Arc::new(Mutex::new(TimestampResolution::default())),
+            finest_resolution: Arc::new(Mutex::new(default_resolution)),
             node_state,
         }
-    }
-
-    /// Sets a new finest resolution value
-    pub async fn set_finest_resolution(&self, resolution: TimestampResolution) {
-        let mut finest_res = self.finest_resolution.lock().await;
-        *finest_res = resolution;
     }
 }
 

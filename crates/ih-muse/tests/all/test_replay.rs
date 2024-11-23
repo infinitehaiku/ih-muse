@@ -2,7 +2,7 @@
 
 use tokio::time::Duration;
 
-use super::common::{client_type_from_env, TestContext, DEFAULT_WAIT_TIME};
+use super::common::{client_type_from_env, TestContext};
 use ih_muse::prelude::*;
 
 #[tokio::test]
@@ -18,16 +18,12 @@ async fn test_record_and_replay_with_timestamps() {
     let local_elem_id = ctx.register_test_element().await;
 
     // Record metrics with delays
-    for (i, value) in [42.0, 43.0, 44.0].iter().enumerate() {
+    for value in [42.0, 43.0, 44.0].iter() {
         ctx.muse
             .send_metric(local_elem_id, "cpu_usage", *value)
             .await
             .expect("Failed to send metric");
-        let node_resolution = ctx.muse.get_state().get_finest_resolution();
-        // Wait enough time (min 2 times finest_resolution) to flush metrics to Poet client
-        for _ in 0..i + 2 {
-            tokio::time::sleep(node_resolution.to_duration()).await;
-        }
+        ctx.wait_for_metrics_sending_task().await;
     }
 
     // On case of poet check existing metrics before replaying (multiple tests may write)
@@ -79,8 +75,10 @@ async fn test_record_and_replay_with_timestamps() {
         .get_element_id(&local_elem_id)
         .expect("Element was not registered");
 
-    // Wait for the metrics to be processed
-    tokio::time::sleep(DEFAULT_WAIT_TIME).await;
+    // Wait for the lat metric of the replay to be sent
+    let metric_task_duration = timing::metric_sending_interval(replay_muse.get_finest_resolution());
+    let wait_metric = timing::adjust_duration_by_modifier(metric_task_duration, 1.5);
+    tokio::time::sleep(wait_metric).await;
 
     // Retrieve metrics from the Mock client
     let poet_client = replay_muse.get_client();
@@ -129,33 +127,33 @@ async fn test_check_and_replay() {
     let temp_dir = tempfile::tempdir().expect("Failed to create temp directory");
     let replay_path = temp_dir.path().join("test_replay.json");
 
+    let initial_config = Config::new(
+        vec!["http://localhost:8000".to_string()],
+        client_type_from_env(),
+        true, // Initially enabled recording
+        Some("recording.json".to_string()),
+        Some(Duration::from_millis(1)),
+        TimestampResolution::Milliseconds,
+        vec![ElementKindRegistration::new(
+            "kind_code",
+            None,
+            "kind_name",
+            "desc",
+        )],
+        vec![MetricDefinition::new("metric_code", "metric_name", "desc")],
+        Some(Duration::from_millis(1)),
+        Some(Duration::from_millis(1)),
+        3,
+    )
+    .expect("Failed to create config");
+
     // Create a replay file with a ConfigUpdate event
     {
         let mut recorder = FileRecorder::new(&replay_path).expect("Failed to create FileRecorder");
-
-        let config = Config::new(
-            vec!["http://localhost:8000".to_string()],
-            ClientType::Poet,
-            true, // Initially enabled recording
-            Some("recording.json".to_string()),
-            Some(Duration::from_millis(1)),
-            TimestampResolution::Milliseconds,
-            vec![ElementKindRegistration::new(
-                "kind_code",
-                None,
-                "kind_name",
-                "desc",
-            )],
-            vec![MetricDefinition::new("metric_code", "metric_name", "desc")],
-            Some(Duration::from_secs(60)),
-            3,
-        )
-        .expect("Failed to create config");
-
         recorder
             .record(RecordedEventWithTime {
                 timestamp: utc_now_i64(),
-                event: RecordedEvent::MuseConfig(config.clone()),
+                event: RecordedEvent::MuseConfig(initial_config.clone()),
             })
             .await
             .expect("Failed to record ConfigUpdate");
@@ -172,7 +170,9 @@ async fn test_check_and_replay() {
     assert!(replay_path.exists(), "Replay file does not exist");
 
     // Verify that the replayed config matches expectations
-    let mut replayer = FileReplayer::new(&replay_path).expect("Failed to create FileReplayer");
+    let mut replayer = FileReplayer::new(&replay_path)
+        .await
+        .expect("Failed to create FileReplayer");
     let mut replayed_config: Option<Config> = None;
 
     while let Some(event) = replayer
@@ -187,31 +187,7 @@ async fn test_check_and_replay() {
     }
 
     let replayed_config = replayed_config.expect("No ConfigUpdate found in replay file");
-    assert_eq!(
-        replayed_config.endpoints,
-        vec!["http://localhost:8000"],
-        "Replay config endpoints do not match"
-    );
-    assert_eq!(
-        replayed_config.client_type,
-        ClientType::Poet,
-        "Replay config client_type does not match"
-    );
-    assert_eq!(
-        replayed_config.default_resolution,
-        TimestampResolution::Milliseconds,
-        "Replay config resolution does not match"
-    );
-    assert_eq!(
-        replayed_config.element_kinds.len(),
-        1,
-        "Replay config element_kinds count does not match"
-    );
-    assert_eq!(
-        replayed_config.metric_definitions.len(),
-        1,
-        "Replay config metric_definitions count does not match"
-    );
+    assert_eq!(replayed_config, initial_config);
 }
 
 #[tokio::test]
@@ -222,7 +198,7 @@ async fn test_initialize_with_config_recording() {
     // Create a configuration
     let config = Config::new(
         vec!["http://localhost:8000".to_string()],
-        ClientType::Poet,
+        client_type_from_env(),
         true, // Enable recording
         Some(record_path.to_str().unwrap().to_string()),
         Some(Duration::from_millis(1)),
@@ -234,7 +210,8 @@ async fn test_initialize_with_config_recording() {
             "desc",
         )],
         vec![MetricDefinition::new("metric_code", "metric_name", "desc")],
-        Some(Duration::from_secs(60)),
+        Some(Duration::from_millis(1)),
+        Some(Duration::from_millis(1)),
         3,
     )
     .expect("Failed to create config");
@@ -246,7 +223,9 @@ async fn test_initialize_with_config_recording() {
         .expect("Failed to initialize Muse");
 
     // Check if the configuration was recorded
-    let mut replayer = FileReplayer::new(&record_path).expect("Failed to create FileReplayer");
+    let mut replayer = FileReplayer::new(&record_path)
+        .await
+        .expect("Failed to create FileReplayer");
     let mut found_config_event = false;
 
     while let Some(event) = replayer

@@ -1,7 +1,6 @@
 // crates/ih-muse-python/src/config/general.rs
 
-use std::time::Duration;
-
+use chrono::Duration;
 use pyo3::prelude::*;
 
 use super::{PyClientType, PyConfig};
@@ -14,7 +13,7 @@ use ih_muse::prelude::Config as RustConfig;
 #[pymethods]
 impl PyConfig {
     #[new]
-    #[pyo3(signature = (endpoints, client_type, default_resolution, element_kinds, metric_definitions, max_reg_elem_retries, recording_enabled, recording_path=None, recording_flush_secs=None))]
+    #[pyo3(signature = (endpoints, client_type, default_resolution, element_kinds, metric_definitions, max_reg_elem_retries, recording_enabled, recording_path=None, recording_flush_interval=None, initialization_interval=None, cluster_monitor_interval=None))]
     pub fn __init__(
         endpoints: Vec<String>,
         client_type: PyClientType,
@@ -24,18 +23,33 @@ impl PyConfig {
         max_reg_elem_retries: usize,
         recording_enabled: bool,
         recording_path: Option<String>,
-        recording_flush_secs: Option<u64>,
+        recording_flush_interval: Option<Duration>,
+        initialization_interval: Option<Duration>,
+        cluster_monitor_interval: Option<Duration>,
     ) -> PyResult<Self> {
+        let recording_flush_d = match recording_flush_interval {
+            Some(d) => Some(d.to_std().map_err(PyMusesErr::from)?),
+            None => None,
+        };
+        let initialization_d = match initialization_interval {
+            Some(d) => Some(d.to_std().map_err(PyMusesErr::from)?),
+            None => None,
+        };
+        let cluster_monitor_d = match cluster_monitor_interval {
+            Some(d) => Some(d.to_std().map_err(PyMusesErr::from)?),
+            None => None,
+        };
         let muse = RustConfig::new(
             endpoints,
             client_type.into(),
             recording_enabled,
             recording_path,
-            recording_flush_secs.map(Duration::from_secs),
+            recording_flush_d,
             default_resolution.into(),
             element_kinds.into_iter().map(|p| p.inner).collect(),
             metric_definitions.into_iter().map(|p| p.inner).collect(),
-            None,
+            initialization_d,
+            cluster_monitor_d,
             max_reg_elem_retries,
         )
         .map_err(PyMusesErr::from)?;

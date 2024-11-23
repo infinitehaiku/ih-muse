@@ -39,6 +39,8 @@ pub struct Config {
     pub element_kinds: Vec<ElementKindRegistration>,
     /// List of metric definitions available for reporting.
     pub metric_definitions: Vec<MetricDefinition>,
+    /// Interval for initialization tasks (optional).
+    pub initialization_interval: Option<Duration>,
     /// Interval for cluster monitoring tasks (optional).
     pub cluster_monitor_interval: Option<Duration>,
     /// Maximum number of retries for element registration.
@@ -58,6 +60,7 @@ impl Config {
     /// - `default_resolution`: Default timestamp resolution.
     /// - `element_kinds`: Element kinds to register.
     /// - `metric_definitions`: Metric definitions for reporting.
+    /// - `initialization_interval`: Interval for the initialization task.
     /// - `cluster_monitor_interval`: Interval for cluster monitoring.
     /// - `max_reg_elem_retries`: Max retries for element registration.
     ///
@@ -68,7 +71,8 @@ impl Config {
     /// # Examples
     ///
     /// ```rust
-    /// use ih_muse::prelude::*;
+    /// use ih_muse_core::prelude::*;
+    /// use ih_muse_proto::prelude::*;
     ///
     /// let config = Config::new(
     ///     vec!["http://localhost:8080".to_string()],
@@ -79,6 +83,7 @@ impl Config {
     ///     TimestampResolution::Milliseconds,
     ///     vec![ElementKindRegistration::new("kind_code", Some("parent_code"), "kind_name", "description")],
     ///     vec![MetricDefinition::new("metric_code", "metric_name", "description")],
+    ///     Some(std::time::Duration::from_secs(60)),
     ///     Some(std::time::Duration::from_secs(60)),
     ///     3,
     /// ).expect("Failed to create config");
@@ -93,6 +98,7 @@ impl Config {
         default_resolution: TimestampResolution,
         element_kinds: Vec<ElementKindRegistration>,
         metric_definitions: Vec<MetricDefinition>,
+        initialization_interval: Option<Duration>,
         cluster_monitor_interval: Option<Duration>,
         max_reg_elem_retries: usize,
     ) -> MuseResult<Self> {
@@ -105,6 +111,7 @@ impl Config {
             default_resolution,
             element_kinds,
             metric_definitions,
+            initialization_interval,
             cluster_monitor_interval,
             max_reg_elem_retries,
         };
@@ -270,6 +277,7 @@ mod tests {
                 "desc",
             )],
             metric_definitions: vec![MetricDefinition::new("metric_code", "metric_name", "desc")],
+            initialization_interval: Some(Duration::from_secs(60)),
             cluster_monitor_interval: Some(Duration::from_secs(60)),
             max_reg_elem_retries: 3,
         };
@@ -288,6 +296,7 @@ mod tests {
                 "desc",
             )],
             metric_definitions: vec![MetricDefinition::new("metric_code", "metric_name", "desc")],
+            initialization_interval: Some(Duration::from_secs(60)),
             cluster_monitor_interval: Some(Duration::from_secs(60)),
             max_reg_elem_retries: 3,
         };

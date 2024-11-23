@@ -20,7 +20,7 @@ async def test_send_and_receive_metric() -> None:
     await ctx.muse.send_metric(local_elem_id, "cpu_usage", 42.0)
 
     # Wait for the metric to be processed
-    await asyncio.sleep(5)
+    await asyncio.sleep(1)
 
     # Query the metrics
     query = MetricQuery()

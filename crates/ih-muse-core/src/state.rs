@@ -26,12 +26,12 @@ pub struct State {
 
 impl Default for State {
     fn default() -> Self {
-        Self::new()
+        Self::new(TimestampResolution::default())
     }
 }
 
 impl State {
-    pub fn new() -> Self {
+    pub fn new(default_resolution: TimestampResolution) -> Self {
         Self {
             nodes: Arc::new(ArcSwap::from_pointee(HashMap::new())),
             element_kinds: OnceLock::new(),
@@ -40,7 +40,7 @@ impl State {
             min_element_id: Arc::new(ArcSwapOption::empty()),
             max_element_id: Arc::new(ArcSwapOption::empty()),
             range_to_node: Arc::new(ArcSwap::from_pointee(OrdMap::new())),
-            finest_resolution: TimestampResolution::default().as_u8().into(),
+            finest_resolution: default_resolution.as_u8().into(),
             element_id_map: Arc::new(ArcSwap::from_pointee(HashMap::new())),
         }
     }

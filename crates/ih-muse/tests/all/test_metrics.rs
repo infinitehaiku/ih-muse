@@ -1,7 +1,6 @@
 // tests/it/test_metrics.rs
-use super::common::{TestContext, DEFAULT_WAIT_TIME};
+use super::common::TestContext;
 use ih_muse_proto::MetricQuery;
-use tokio::time::sleep;
 
 #[tokio::test]
 async fn test_send_and_receive_metric() {
@@ -19,7 +18,7 @@ async fn test_send_and_receive_metric() {
         .await
         .expect("Failed to send metric");
 
-    sleep(DEFAULT_WAIT_TIME).await;
+    ctx.wait_for_metrics_sending_task().await;
 
     // Retrieve and verify metrics
     let poet_client = ctx.muse.get_client();
