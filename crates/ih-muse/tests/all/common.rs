@@ -86,8 +86,7 @@ impl TestContext {
     pub async fn wait_for_metrics_sending_task(&self) {
         let metric_send_interval =
             timing::metric_sending_interval(self.muse.get_finest_resolution());
-        timing::adjust_duration_by_modifier(metric_send_interval, 1.5);
-        let waiting = timing::adjust_duration_by_modifier(metric_send_interval, 1.5);
+        let waiting = timing::adjust_duration_by_modifier(metric_send_interval, 2.0);
         sleep(waiting).await;
     }
 
