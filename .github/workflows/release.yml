@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "crates/**"
-      - "docs/**"
-      - "py-ih-muse/**"
-      - "Cargo.toml"
+    # paths:
+    #   - "crates/**"
+    #   - "docs/**"
+    #   - "py-ih-muse/**"
+    #   - "Cargo.toml"
 
 permissions:
   contents: write
