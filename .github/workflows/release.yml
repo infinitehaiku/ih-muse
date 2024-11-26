@@ -61,6 +61,7 @@ jobs:
       matrix:
         # TODO: windows not supported yet (tests failing)
         os: [ubuntu-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11"]
     environment:
       name: pypi
       url: https://pypi.org/project/ih-muse/
@@ -71,23 +72,31 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
-      - name: Install cibuildwheel
-        run: pip install cibuildwheel==2.14.1
+      - name: Build wheels with maturin
+        uses: messense/maturin-action@v1
+        with:
+          command: build
+          args: --release --out dist
+          working-directory: py-ih-muse
 
-      - name: Build and publish wheels
-        env:
-          CIBW_BEFORE_ALL: "pip install maturin"
-          CIBW_BUILD: "cp3?-*"
-          CIBW_BUILD_FRONTEND: "build"
-          CIBW_ENVIRONMENT: |
-            MATURIN_BUILD_EXTRA_ARGS="--cargo-extra-args='--features pyo3/extension-module'"
-        run: |
-          cibuildwheel py-ih-muse --output-dir dist
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/*.whl
 
-      - name: Upload to PyPI
+      - name: Publish to PyPI
         if: needs.rust-release.outputs.release_created == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
@@ -95,7 +104,7 @@ jobs:
           password: ${{ secrets.PYPI_API_TOKEN }}
           verify-metadata: false
 
-      - name: Upload to TestPyPI
+      - name: Publish to TestPyPI
         if: needs.rust-release.outputs.release_created != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
