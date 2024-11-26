@@ -81,7 +81,7 @@ jobs:
         env:
           CIBW_BEFORE_ALL: "pip install maturin"
           CIBW_BUILD: "cp3?-*"
-          CIBW_BUILD_FRONTEND: "build-system"
+          CIBW_BUILD_FRONTEND: "build"
           CIBW_ENVIRONMENT: |
             MATHURIN_BUILD_EXTRA_ARGS="--cargo-extra-args='--features pyo3/extension-module'"
         run: |
