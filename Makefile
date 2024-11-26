@@ -30,7 +30,7 @@ check: check-python check-rust check-pre-commit
 .PHONY: build
 build: clean-build ## Build wheel file
 	@echo "🚀 Creating wheel file"
-	@uvx maturin build --release -m py-ih-muse/Cargo.toml --out dist
+	@uvx maturin build --release -m py-ih-muse/Cargo.toml --out dist --sdist
 
 .PHONY: develop
 develop: ## Build and install the package in develop mode
