@@ -90,19 +90,14 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
-    needs: python-release
+    needs: [rust-release, python-release]
     runs-on: ubuntu-latest
-    if: needs.rust-release.result == 'success'
     steps:
-      - name: Download all artifacts
+      - name: Download wheels
         uses: actions/download-artifact@v3
         with:
-          path: artifacts
-
-      - name: Collect wheels
-        run: |
-          mkdir -p dist
-          find artifacts -name "*.whl" -exec cp {} dist/ \;
+          name: wheels
+          path: dist
 
       - name: List dist contents
         run: ls -l dist/
@@ -150,11 +145,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Generate Release Notes
+        id: release-notes
+        run: |
+          RELEASE_NOTES=$(echo "Release version ${{ needs.rust-release.outputs.version }}")
+          echo "body=$RELEASE_NOTES" >> $GITHUB_OUTPUT
+
       - name: Update Changelog
         uses: stefanzweifel/changelog-updater-action@v1
         with:
           latest-version: ${{ needs.rust-release.outputs.version }}
-          release-notes: ${{ needs.rust-release.outputs.body }}
+          release-notes: ${{ steps.release-notes.outputs.body }}
 
       - name: Commit updated Changelog
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -168,4 +169,5 @@ jobs:
         with:
           files: |
             CHANGELOG.md
+          body: ${{ steps.release-notes.outputs.body }}
           generate_release_notes: true
