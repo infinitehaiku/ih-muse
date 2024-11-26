@@ -85,7 +85,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
-          name: wheels
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
           path: dist/*.whl
 
   publish-to-pypi:
@@ -94,11 +94,15 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.rust-release.result == 'success'
     steps:
-      - name: Download wheels
+      - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          name: wheels
-          path: dist
+          path: artifacts
+
+      - name: Collect wheels
+        run: |
+          mkdir -p dist
+          find artifacts -name "*.whl" -exec cp {} dist/ \;
 
       - name: List dist contents
         run: ls -l dist/
@@ -116,11 +120,15 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.rust-release.result != 'success'
     steps:
-      - name: Download wheels
+      - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          name: wheels
-          path: dist
+          path: artifacts
+
+      - name: Collect wheels
+        run: |
+          mkdir -p dist
+          find artifacts -name "*.whl" -exec cp {} dist/ \;
 
       - name: List dist contents
         run: ls -l dist/
@@ -149,7 +157,7 @@ jobs:
           release-notes: ${{ needs.rust-release.outputs.body }}
 
       - name: Commit updated Changelog
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
           commit_message: "docs(changelog): update changelog"
