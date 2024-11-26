@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "crates/**"
-      - "docs/**"
-      - "py-ih-muse/**"
-      - "Cargo.toml"
+    # paths:
+    #   - "crates/**"
+    #   - "docs/**"
+    #   - "py-ih-muse/**"
+    #   - "Cargo.toml"
 
 permissions:
   contents: write
@@ -83,7 +83,7 @@ jobs:
           CIBW_BUILD: "cp3?-*"
           CIBW_BUILD_FRONTEND: "build"
           CIBW_ENVIRONMENT: |
-            MATHURIN_BUILD_EXTRA_ARGS="--cargo-extra-args='--features pyo3/extension-module'"
+            MATURIN_BUILD_EXTRA_ARGS="--cargo-extra-args='--features pyo3/extension-module'"
         run: |
           cibuildwheel py-ih-muse --output-dir dist
 
