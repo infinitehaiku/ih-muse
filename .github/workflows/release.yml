@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-    # paths:
-    #   - "crates/**"
-    #   - "docs/**"
-    #   - "py-ih-muse/**"
-    #   - "Cargo.toml"
+    paths:
+      - "crates/**"
+      - "docs/**"
+      - "py-ih-muse/**"
+      - "Cargo.toml"
 
 permissions:
   contents: write
@@ -55,7 +55,7 @@ jobs:
 
   python-release:
     name: Python Release
-    # needs: rust-release
+    needs: rust-release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -88,21 +88,21 @@ jobs:
           cibuildwheel py-ih-muse --output-dir dist
 
       - name: Upload to PyPI
-        # if: needs.rust-release.outputs.release_created == 'true'
+        if: needs.rust-release.outputs.release_created == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
           password: ${{ secrets.PYPI_API_TOKEN }}
           verify-metadata: false
 
-      # - name: Upload to TestPyPI
-      #   if: needs.rust-release.outputs.release_created != 'true'
-      #   uses: pypa/gh-action-pypi-publish@release/v1
-      #   with:
-      #     packages-dir: dist/
-      #     repository-url: https://test.pypi.org/legacy/
-      #     password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-      #     verify-metadata: false
+      - name: Upload to TestPyPI
+        if: needs.rust-release.outputs.release_created != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          verify-metadata: false
 
   update-changelog:
     name: Update Changelog
