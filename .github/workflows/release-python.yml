@@ -52,7 +52,7 @@ jobs:
       - name: Test sdist
         run: |
           pip install --force-reinstall --verbose dist/*.tar.gz
-          python -c 'import polars'
+          python -c 'import ih-muse'
 
       - name: Upload sdist
         uses: actions/upload-artifact@v4

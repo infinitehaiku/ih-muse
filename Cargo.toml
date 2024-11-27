@@ -50,3 +50,13 @@ unsafe_code = "warn"
 
 [workspace.lints.clippy]
 module_name_repetitions = "allow"
+
+[profile.release]
+lto = "thin"
+debug = "line-tables-only"
+
+[profile.dist-release]
+inherits = "release"
+codegen-units = 1
+debug = false
+lto = "fat"

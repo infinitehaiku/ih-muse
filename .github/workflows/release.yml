@@ -79,15 +79,21 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Build distribution packages with maturin
+      - name: Build source distribution with maturin
+        uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: >
+            --manifest-path py-ih-muse/Cargo.toml
+            --out dist
+
+      - name: Build wheels with maturin
         uses: PyO3/maturin-action@v1
         with:
           command: build
           args: >
             --manifest-path py-ih-muse/Cargo.toml
             --out dist
-            --sdist
-            --wheel
 
       - name: Debug - List dist contents
         run: |
