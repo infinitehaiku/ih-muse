@@ -79,27 +79,37 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Build wheels with maturin
+      - name: Build distribution packages with maturin
         uses: PyO3/maturin-action@v1
         with:
           command: build
           args: >
             --manifest-path py-ih-muse/Cargo.toml
             --out dist
+            --sdist
+            --wheel
+
+      - name: Debug - List dist contents
+        run: |
+          echo "Contents of dist directory:"
+          ls -l dist/
 
       - name: Test sdist
         run: |
-          pip install --force-reinstall --verbose dist/*.tar.gz
+          # Find the first .tar.gz file in the dist directory
+          SDIST=$(find dist -name "*.tar.gz" | head -n 1)
+          if [ -z "$SDIST" ]; then
+            echo "No source distribution found!"
+            exit 1
+          fi
+          pip install --force-reinstall --verbose "$SDIST"
           python -c 'import ih_muse'
 
-      - name: List dist contents
-        run: ls -l dist/
-
-      - name: Upload wheels
+      - name: Upload wheels and source distribution
         uses: actions/upload-artifact@v3
         with:
-          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: dist/*.whl
+          name: dist-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/*
 
   publish-to-pypi:
     name: Publish to PyPI

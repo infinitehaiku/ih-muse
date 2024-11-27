@@ -46,7 +46,7 @@ jobs:
         with:
           command: sdist
           args: >
-            --manifest-path py-polars/Cargo.toml
+            --manifest-path py-ih-muse/Cargo.toml
             --out dist
 
       - name: Test sdist
@@ -65,12 +65,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-13, windows-32gb-ram]
-        architecture: [x86-64, aarch64]
-        exclude:
-          # TODO fix windows (test failing)
-          - os: windows-32gb-ram
-            architecture: aarch64
+        os: [ubuntu-latest, macos-13]
+        architecture: [x86-64]
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -87,9 +83,8 @@ jobs:
           target: ${{ steps.target.outputs.target }}
           args: >
             --profile dist-release
-            --manifest-path py-polars/Cargo.toml
+            --manifest-path py-ih-muse/Cargo.toml
             --out dist
-          manylinux: ${{ matrix.architecture == 'aarch64' && '2_24' || 'auto' }}
 
       - name: Test wheel
         # Only test on x86-64 for now as this matches the runner architecture
