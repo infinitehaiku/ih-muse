@@ -121,30 +121,47 @@ jobs:
     name: Publish to PyPI
     needs: python-release
     runs-on: ubuntu-latest
-    if: needs.rust-release.result == 'success'
+    if: github.event_name == 'release' && github.event.action == 'created'
     steps:
-      - name: Download all wheel artifacts
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
-          name: "wheels-*"
           path: dist
+          pattern: dist-*
 
       - name: List dist contents
         run: |
+          echo "All artifacts:"
           ls -l dist/
+          echo "Wheel files:"
           find dist -name "*.whl"
+          echo "Source distribution files:"
+          find dist -name "*.tar.gz"
 
-      - name: Prepare wheels for upload
+      - name: Prepare wheels and sdist for upload
         run: |
           mkdir -p final-dist
           find dist -name "*.whl" -exec cp {} final-dist/ \;
+          find dist -name "*.tar.gz" -exec cp {} final-dist/ \;
 
       - name: List final dist contents
         run: ls -l final-dist/
 
-      - name: Publish to PyPI
+      - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: final-dist/
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
           verify-metadata: false
+
+      # - name: Publish to PyPI
+      #   if: github.event_name == 'release' && github.event.action == 'created'
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     packages-dir: final-dist/
+      #     password: ${{ secrets.PYPI_API_TOKEN }}
+      #     verify-metadata: false
