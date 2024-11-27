@@ -80,11 +80,20 @@ jobs:
           override: true
 
       - name: Build wheels with maturin
-        uses: messense/maturin-action@v1
+        uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release --out dist
-          working-directory: py-ih-muse
+          args: >
+            --manifest-path py-ih-muse/Cargo.toml
+            --out dist
+
+      - name: Test sdist
+        run: |
+          pip install --force-reinstall --verbose dist/*.tar.gz
+          python -c 'import ih_muse'
+
+      - name: List dist contents
+        run: ls -l dist/
 
       - name: Upload wheels
         uses: actions/upload-artifact@v3
@@ -101,8 +110,8 @@ jobs:
       - name: Download all wheel artifacts
         uses: actions/download-artifact@v3
         with:
+          name: "wheels-*"
           path: dist
-          pattern: wheels-*
 
       - name: List dist contents
         run: |
@@ -122,37 +131,4 @@ jobs:
         with:
           packages-dir: final-dist/
           password: ${{ secrets.PYPI_API_TOKEN }}
-          verify-metadata: false
-
-  publish-to-testpypi:
-    name: Publish to TestPyPI
-    needs: python-release
-    runs-on: ubuntu-latest
-    if: needs.rust-release.result != 'success'
-    steps:
-      - name: Download all wheel artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: dist
-          pattern: wheels-*
-
-      - name: List dist contents
-        run: |
-          ls -l dist/
-          find dist -name "*.whl"
-
-      - name: Prepare wheels for upload
-        run: |
-          mkdir -p final-dist
-          find dist -name "*.whl" -exec cp {} final-dist/ \;
-
-      - name: List final dist contents
-        run: ls -l final-dist/
-
-      - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
-          repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           verify-metadata: false
