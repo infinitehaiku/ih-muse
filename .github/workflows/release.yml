@@ -10,6 +10,10 @@ on:
       - "py-ih-muse/**"
       - "Cargo.toml"
 
+  release:
+    types:
+      - released
+
 permissions:
   contents: write
   pull-requests: write
@@ -31,14 +35,6 @@ jobs:
           echo "Detected version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Release Drafter
-        id: release-drafter
-        uses: release-drafter/release-drafter@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          config-name: release-drafter.yml
-
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
@@ -51,6 +47,14 @@ jobs:
           cargo publish --allow-dirty -p ih-muse-client --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
           cargo publish --allow-dirty -p ih-muse --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
           cargo publish --allow-dirty -p ih-muse-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish the release notes
+        uses: release-drafter/release-drafter@v5.23.0
+        with:
+          publish: true
+          tag: v${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   python-release:
     name: Python Release
@@ -90,22 +94,33 @@ jobs:
 
   publish-to-pypi:
     name: Publish to PyPI
-    needs: [rust-release, python-release]
+    needs: python-release
     runs-on: ubuntu-latest
+    if: needs.rust-release.result == 'success'
     steps:
-      - name: Download wheels
+      - name: Download all wheel artifacts
         uses: actions/download-artifact@v3
         with:
-          name: wheels
           path: dist
+          pattern: wheels-*
 
       - name: List dist contents
-        run: ls -l dist/
+        run: |
+          ls -l dist/
+          find dist -name "*.whl"
+
+      - name: Prepare wheels for upload
+        run: |
+          mkdir -p final-dist
+          find dist -name "*.whl" -exec cp {} final-dist/ \;
+
+      - name: List final dist contents
+        run: ls -l final-dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: final-dist/
           password: ${{ secrets.PYPI_API_TOKEN }}
           verify-metadata: false
 
@@ -115,18 +130,24 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.rust-release.result != 'success'
     steps:
-      - name: Download all artifacts
+      - name: Download all wheel artifacts
         uses: actions/download-artifact@v3
         with:
-          path: artifacts
-
-      - name: Collect wheels
-        run: |
-          mkdir -p dist
-          find artifacts -name "*.whl" -exec cp {} dist/ \;
+          path: dist
+          pattern: wheels-*
 
       - name: List dist contents
-        run: ls -l dist/
+        run: |
+          ls -l dist/
+          find dist -name "*.whl"
+
+      - name: Prepare wheels for upload
+        run: |
+          mkdir -p final-dist
+          find dist -name "*.whl" -exec cp {} final-dist/ \;
+
+      - name: List final dist contents
+        run: ls -l final-dist/
 
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -135,39 +156,3 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
           verify-metadata: false
-
-  update-changelog:
-    name: Update Changelog
-    needs: rust-release
-    runs-on: ubuntu-latest
-    if: needs.rust-release.result == 'success'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Generate Release Notes
-        id: release-notes
-        run: |
-          RELEASE_NOTES=$(echo "Release version ${{ needs.rust-release.outputs.version }}")
-          echo "body=$RELEASE_NOTES" >> $GITHUB_OUTPUT
-
-      - name: Update Changelog
-        uses: stefanzweifel/changelog-updater-action@v1
-        with:
-          latest-version: ${{ needs.rust-release.outputs.version }}
-          release-notes: ${{ steps.release-notes.outputs.body }}
-
-      - name: Commit updated Changelog
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: main
-          commit_message: "docs(changelog): update changelog"
-          file_pattern: CHANGELOG.md
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            CHANGELOG.md
-          body: ${{ steps.release-notes.outputs.body }}
-          generate_release_notes: true
