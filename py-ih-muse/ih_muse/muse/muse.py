@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
-from ih_muse.ih_muse import PyMuse
+from ih_muse.ih_muse import PyMuse, TimestampResolution
 from ih_muse.proto import MetricPayload
 
 if TYPE_CHECKING:
@@ -70,6 +70,14 @@ class Muse:
             `True` if initialized, `False` otherwise.
         """
         return self._muse.is_initialized
+
+    def get_finest_resolution(self) -> TimestampResolution:
+        """Get the finest resolution stored by the Poet.
+
+        :return:
+            The current TimestampResolution stored in the poet.
+        """
+        return self._muse.get_finest_resolution()
 
     def get_remote_element_id(self, local_elem_id: int) -> Optional[int]:
         """Retrieve the remote Element ID associated with a local Element ID.

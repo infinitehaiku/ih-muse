@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
+use crate::proto::PyTimestampResolution;
 use num_traits::cast::AsPrimitive;
 use pyo3::prelude::*;
 use pyo3_async_runtimes::tokio::future_into_py;
@@ -52,6 +53,15 @@ impl PyMuse {
     #[getter]
     pub fn is_initialized(&self) -> PyResult<bool> {
         Ok(self.is_initialized.load(Ordering::SeqCst))
+    }
+
+    #[getter]
+    pub fn get_finest_resolution(&self) -> PyTimestampResolution {
+        let muse = self.muse.clone();
+        // Use a blocking mutex lock instead of creating an async context
+        let muse_guard = muse.blocking_lock();
+        let finest_resolution = muse_guard.get_finest_resolution();
+        finest_resolution.into()
     }
 
     #[pyo3(signature = (kind_code, name, metadata, parent_id=None))]
