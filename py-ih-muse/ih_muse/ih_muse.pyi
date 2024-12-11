@@ -58,6 +58,8 @@ class TimestampResolution:
     Milliseconds: TimestampResolution
     Microseconds: TimestampResolution
 
+    def to_timedelta(self) -> timedelta: ...
+
 class PyMetricDefinition:
     def __init__(self, code: str, name: str, description: str) -> None: ...
 
