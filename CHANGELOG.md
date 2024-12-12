@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.23 - 2024-12-12
+
+### What's Changed
+
+$CATEGORIES
+
+### Contributors
+
+@codelluis
+
 ## 0.0.22 - 2024-11-28
 
 ### What's Changed
