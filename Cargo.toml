@@ -14,7 +14,7 @@ default-members = [
 ]
 
 [workspace.package]
-version = "0.0.22"
+version = "0.0.23"
 edition = "2021"
 rust-version = "1.78"
 homepage = "https://infinitehaiku.com"
@@ -23,12 +23,12 @@ authors = ["Luis Diaz <code.luis.diaz@proton.me"]
 license = "MIT"
 
 [workspace.dependencies]
-ih-muse = { version = "0.0.22", path = "crates/ih-muse" }
-ih-muse-client = { version = "0.0.22", path = "crates/ih-muse-client" }
-ih-muse-core = { version = "0.0.22", path = "crates/ih-muse-core" }
-ih-muse-python = { version = "0.0.22", path = "crates/ih-muse-python" }
-ih-muse-proto = { version = "0.0.22", path = "crates/ih-muse-proto" }
-ih-muse-record = { version = "0.0.22", path = "crates/ih-muse-record" }
+ih-muse = { version = "0.0.23", path = "crates/ih-muse" }
+ih-muse-client = { version = "0.0.23", path = "crates/ih-muse-client" }
+ih-muse-core = { version = "0.0.23", path = "crates/ih-muse-core" }
+ih-muse-python = { version = "0.0.23", path = "crates/ih-muse-python" }
+ih-muse-proto = { version = "0.0.23", path = "crates/ih-muse-proto" }
+ih-muse-record = { version = "0.0.23", path = "crates/ih-muse-record" }
 
 async-trait = "0.1"
 chrono = "0.4.38"
