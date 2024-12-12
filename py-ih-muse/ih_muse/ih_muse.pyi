@@ -7,8 +7,8 @@ __version__: str
 
 class PyMuse:
     is_initialized: bool
+    finest_resolution: TimestampResolution
     async def initialize(self, timeout: Optional[float] = None) -> None: ...
-    def get_finest_resolution(self) -> TimestampResolution: ...
     def get_remote_element_id(self, local_elem_id: int) -> Optional[int]: ...
     async def register_element(
         self,

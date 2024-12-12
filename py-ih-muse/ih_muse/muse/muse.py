@@ -63,6 +63,7 @@ class Muse:
         await instance.initialize(timeout)
         return instance
 
+    @property
     def is_initialized(self) -> bool:
         """Check whether the Muse client is initialized.
 
@@ -71,13 +72,14 @@ class Muse:
         """
         return self._muse.is_initialized
 
-    def get_finest_resolution(self) -> TimestampResolution:
+    @property
+    def finest_resolution(self) -> TimestampResolution:
         """Get the finest resolution stored by the Poet.
 
         :return:
             The current TimestampResolution stored in the poet.
         """
-        return self._muse.get_finest_resolution()
+        return self._muse.finest_resolution
 
     def get_remote_element_id(self, local_elem_id: int) -> Optional[int]:
         """Retrieve the remote Element ID associated with a local Element ID.
