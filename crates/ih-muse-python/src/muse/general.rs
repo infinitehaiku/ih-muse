@@ -56,7 +56,7 @@ impl PyMuse {
     }
 
     #[getter]
-    pub fn get_finest_resolution(&self) -> PyTimestampResolution {
+    pub fn finest_resolution(&self) -> PyTimestampResolution {
         let muse = self.muse.clone();
         // Use a blocking mutex lock instead of creating an async context
         let muse_guard = muse.blocking_lock();

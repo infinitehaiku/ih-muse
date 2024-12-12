@@ -21,17 +21,22 @@ async def test_muse() -> None:
         "Metric1",
         "Test Metric",
     )
-
+    default_resolution = ih_muse.TimestampResolution.Seconds
     config = ih_muse.Config(
         endpoints=["http://localhost:8000"],
         client_type=get_client_type_from_env(),
         recording_enabled=False,
         recording_path=None,
-        default_resolution=ih_muse.TimestampResolution.Seconds,
+        default_resolution=default_resolution,
         element_kinds=[element_kind],
         metric_definitions=[metric_definition],
         max_reg_elem_retries=5,
     )
 
     muse = ih_muse.Muse(config)
+
+    assert muse.finest_resolution == default_resolution
+
+    assert not muse.is_initialized
     await muse.initialize(10)
+    assert muse.is_initialized

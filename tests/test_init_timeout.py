@@ -47,5 +47,5 @@ async def test_muse_initialization_timeout() -> None:
         await muse.initialize(timeout=0.25)
 
     assert (
-        not muse.is_initialized()
+        not muse.is_initialized
     ), "Muse should not initialize with unreachable endpoint"
