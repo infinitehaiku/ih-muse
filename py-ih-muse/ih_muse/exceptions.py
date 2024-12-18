@@ -10,6 +10,7 @@ try:
         InvalidMetricCodeError,
         MuseError,
         MuseInitializationTimeoutError,
+        NotAvailableRemoteElementIdError,
         RecordingError,
         ReplayingError,
     )
@@ -47,6 +48,9 @@ except ImportError:
     class InvalidElementKindCodeError(MuseError):  # type: ignore[no-redef, misc]
         """TODO DOCS."""
 
+    class NotAvailableRemoteElementIdError(MuseError):  # type: ignore[no-redef, misc]
+        """TODO DOCS."""
+
     class InvalidMetricCodeError(MuseError):  # type: ignore[no-redef, misc]
         """TODO DOCS."""
 
@@ -65,6 +69,7 @@ __all__ = [
     "InvalidMetricCodeError",
     "MuseError",
     "MuseInitializationTimeoutError",
+    "NotAvailableRemoteElementIdError",
     "PanicException",
     "RecordingError",
     "ReplayingError",

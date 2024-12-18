@@ -5,6 +5,8 @@ use std::time::Duration;
 use chrono::OutOfRangeError;
 use thiserror::Error;
 
+use ih_muse_proto::prelude::*;
+
 pub type MuseResult<T> = Result<T, MuseError>;
 
 #[derive(Error, Debug)]
@@ -23,6 +25,8 @@ pub enum MuseError {
     InvalidFileExtension(Option<String>),
     #[error("Invalid Element Kind Code {0}")]
     InvalidElementKindCode(String),
+    #[error("Do not exists a remote element id for {0}")]
+    NotAvailableRemoteElementId(LocalElementId),
     #[error("Invalid Metric Code {0}")]
     InvalidMetricCode(String),
     #[error("Duration conversion error: {0}")]

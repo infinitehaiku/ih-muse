@@ -9,17 +9,17 @@ class PyMuse:
     is_initialized: bool
     finest_resolution: TimestampResolution
     async def initialize(self, timeout: Optional[float] = None) -> None: ...
-    def get_remote_element_id(self, local_elem_id: int) -> Optional[int]: ...
+    def get_remote_element_id(self, local_elem_id: str) -> Optional[int]: ...
     async def register_element(
         self,
         kind_code: str,
         name: str,
         metadata: dict[str, str],
-        parent_id: Optional[int] = None,
-    ) -> int: ...
+        parent_id: Optional[str] = None,
+    ) -> str: ...
     async def send_metric(
         self,
-        local_elem_id: int,
+        local_elem_id: str,
         metric_code: str,
         value: float,
     ) -> None: ...

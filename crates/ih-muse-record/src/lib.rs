@@ -36,7 +36,7 @@ pub enum RecordedEvent {
         kind_code: String,
         name: String,
         metadata: HashMap<String, String>,
-        parent_id: Option<ElementId>,
+        parent_id: Option<LocalElementId>,
     },
     SendMetric {
         local_elem_id: LocalElementId,
