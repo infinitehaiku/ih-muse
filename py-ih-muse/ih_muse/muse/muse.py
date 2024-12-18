@@ -81,7 +81,7 @@ class Muse:
         """
         return self._muse.finest_resolution
 
-    def get_remote_element_id(self, local_elem_id: int) -> Optional[int]:
+    def get_remote_element_id(self, local_elem_id: str) -> Optional[int]:
         """Retrieve the remote Element ID associated with a local Element ID.
 
         :param str local_elem_id:
@@ -97,8 +97,8 @@ class Muse:
         kind_code: str,
         name: str,
         metadata: dict[str, str],
-        parent_id: Optional[int] = None,
-    ) -> int:
+        parent_id: Optional[str] = None,
+    ) -> str:
         """Register a new element with the Muse system.
 
         :param str kind_code:
@@ -126,7 +126,7 @@ class Muse:
 
     async def send_metric(
         self,
-        local_elem_id: int,
+        local_elem_id: str,
         metric_code: str,
         value: float,
     ) -> None:

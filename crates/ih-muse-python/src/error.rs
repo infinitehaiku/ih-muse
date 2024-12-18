@@ -63,6 +63,9 @@ impl std::convert::From<PyMusesErr> for PyErr {
                 MuseError::InvalidElementKindCode(name) => {
                     InvalidElementKindCodeError::new_err(name.to_string())
                 }
+                MuseError::NotAvailableRemoteElementId(id) => {
+                    NotAvailableRemoteElementIdError::new_err(id.to_string())
+                }
                 MuseError::InvalidMetricCode(name) => {
                     InvalidMetricCodeError::new_err(name.to_string())
                 }

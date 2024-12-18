@@ -70,13 +70,17 @@ impl PyMuse {
         kind_code: &str,
         name: String,
         metadata: HashMap<String, String>,
-        parent_id: Option<u64>,
+        parent_id: Option<&str>,
         py: Python<'p>,
     ) -> PyResult<Bound<'p, PyAny>> {
         let muse = self.muse.clone();
         let kind_code = kind_code.to_string();
         let name = name.clone();
         let metadata = metadata.clone();
+        let parent_id = parent_id
+            .map(LocalElementId::parse_str)
+            .transpose()
+            .map_err(PyMusesErr::from)?;
         future_into_py(py, async move {
             let muse_guard = muse.lock().await;
             let local_elem_id = muse_guard

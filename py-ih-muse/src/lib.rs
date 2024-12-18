@@ -84,6 +84,11 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     )
     .unwrap();
     m.add(
+        "NotAvailableRemoteElementIdError",
+        py.get_type_bound::<exceptions::NotAvailableRemoteElementIdError>(),
+    )
+    .unwrap();
+    m.add(
         "InvalidMetricCodeError",
         py.get_type_bound::<exceptions::InvalidMetricCodeError>(),
     )

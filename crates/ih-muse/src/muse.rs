@@ -270,7 +270,7 @@ impl Muse {
     /// - `kind_code`: The kind code of the element.
     /// - `name`: The name of the element.
     /// - `metadata`: A map of metadata key-value pairs.
-    /// - `parent_id`: Optional parent element ID.
+    /// - `parent_id`: Optional parent [`LocalElementId`].
     ///
     /// # Returns
     ///
@@ -284,7 +284,7 @@ impl Muse {
         kind_code: &str,
         name: String,
         metadata: HashMap<String, String>,
-        parent_id: Option<ElementId>,
+        parent_id: Option<LocalElementId>,
     ) -> MuseResult<LocalElementId> {
         let local_elem_id = generate_local_element_id();
         self.register_element_inner(local_elem_id, kind_code, name, metadata, parent_id)
@@ -298,7 +298,7 @@ impl Muse {
         kind_code: &str,
         name: String,
         metadata: HashMap<String, String>,
-        parent_id: Option<ElementId>,
+        parent_id: Option<LocalElementId>,
     ) -> MuseResult<()> {
         // Record the event if recorder is enabled
         if let Some(recorder) = &self.recorder {
@@ -318,7 +318,16 @@ impl Muse {
         if !self.state.is_valid_element_kind_code(kind_code) {
             return Err(MuseError::InvalidElementKindCode(kind_code.to_string()));
         }
-        let element = ElementRegistration::new(kind_code, name, metadata, parent_id);
+        let remote_parent_id = match parent_id {
+            Some(p) => {
+                let remote_id = self
+                    .get_remote_element_id(&p)
+                    .ok_or(MuseError::NotAvailableRemoteElementId(p))?;
+                Some(remote_id)
+            }
+            None => None,
+        };
+        let element = ElementRegistration::new(kind_code, name, metadata, remote_parent_id);
         self.element_buffer
             .add_element(local_elem_id, element)
             .await;

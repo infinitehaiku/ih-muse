@@ -85,7 +85,7 @@ class MuseTestContext:
         endpoint = "http://localhost:8000"
         return cls(muse, endpoint)
 
-    async def register_test_element(self) -> int:
+    async def register_test_element(self) -> str:
         """Register a test element with the Muse system.
 
         This method registers an element with default parameters suitable for testing.
