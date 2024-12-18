@@ -3,7 +3,7 @@
 [project]
 name = "ih-muse"
 # version = "0.0.1"
-# dynamic = ["version"]
+dynamic = ["version"]
 description = "Common muse library for python"
 authors = [{ name = "Luis Diaz" }]
 readme = "README.md"
