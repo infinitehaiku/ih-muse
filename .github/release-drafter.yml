@@ -22,15 +22,19 @@ categories:
     labels:
       - "deps"
       - "dependencies"
+  - title: "📦 Miscellaneous"
+    labels: []
 
 change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
 
 template: |
-  ## What's Changed
+  ## v$RESOLVED_VERSION - {{date}}
+
+  ### What's Changed
 
   $CATEGORIES
 
-  ## Contributors
+  ### Contributors
 
   $CONTRIBUTORS
 
