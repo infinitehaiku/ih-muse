@@ -27,6 +27,8 @@ class Config:
         List of metric definitions available for reporting.
     :param int max_reg_elem_retries:
         Maximum number of retries for element registration.
+    :param int max_endpoint_retries:
+        Maximum number of Poet endpoints retries, None for no limit.
     :param bool recording_enabled:
         Enables event recording if set to `True`.
     :param Optional[str] recording_path:
@@ -50,6 +52,7 @@ class Config:
         element_kinds=[ElementKindRegistration("kind_code", "description")],
         metric_definitions=[MetricDefinition("metric_code", "description")],
         max_reg_elem_retries=3,
+        max_endpoint_retries=None,
         recording_enabled=False,
     )
     ```
@@ -65,6 +68,7 @@ class Config:
         element_kinds: list[ElementKindRegistration],
         metric_definitions: list[MetricDefinition],
         max_reg_elem_retries: int,
+        max_endpoint_retries: Optional[int],
         recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
         recording_flush_interval: Optional[timedelta] = None,
@@ -82,6 +86,7 @@ class Config:
             py_element_kinds,
             py_metric_definitions,
             max_reg_elem_retries,
+            max_endpoint_retries,
             recording_enabled,
             recording_path,
             recording_flush_interval,

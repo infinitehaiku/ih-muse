@@ -144,6 +144,7 @@ async fn test_check_and_replay() {
         Some(Duration::from_millis(1)),
         Some(Duration::from_millis(1)),
         3,
+        None,
     )
     .expect("Failed to create config");
 
@@ -213,6 +214,7 @@ async fn test_initialize_with_config_recording() {
         Some(Duration::from_millis(1)),
         Some(Duration::from_millis(1)),
         3,
+        None,
     )
     .expect("Failed to create config");
 

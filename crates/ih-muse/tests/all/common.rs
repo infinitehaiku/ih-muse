@@ -51,6 +51,7 @@ pub fn default_config(client_type: Option<ClientType>) -> Config {
         initialization_interval: Some(Duration::from_millis(100)),
         cluster_monitor_interval: Some(Duration::from_millis(100)),
         max_reg_elem_retries: 3,
+        max_endpoint_retries: None,
     }
 }
 

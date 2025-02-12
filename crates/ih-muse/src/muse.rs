@@ -80,7 +80,10 @@ impl Muse {
     /// Returns a [`MuseError::Configuration`] if the client cannot be created with the provided configuration.
     pub fn new(config: &Config) -> MuseResult<Self> {
         let client: Arc<dyn Transport + Send + Sync> = match config.client_type {
-            ClientType::Poet => Arc::new(PoetClient::new(&config.endpoints)),
+            ClientType::Poet => Arc::new(PoetClient::new(
+                &config.endpoints,
+                config.max_endpoint_retries,
+            )),
             ClientType::Mock => Arc::new(MockClient::new(config.default_resolution)),
         };
 

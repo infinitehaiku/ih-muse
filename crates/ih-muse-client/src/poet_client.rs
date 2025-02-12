@@ -1,9 +1,11 @@
 // crates/ih-muse-client/src/poet_client.rs
 
 use std::net::SocketAddr;
+use std::time::Duration;
 
 use async_trait::async_trait;
 use reqwest::{Client, StatusCode};
+use tokio::time::sleep;
 
 use ih_muse_core::{MuseError, MuseResult, Transport};
 use ih_muse_proto::*;
@@ -11,15 +13,16 @@ use ih_muse_proto::*;
 pub struct PoetClient {
     client: Client,
     endpoints: Vec<String>,
-    // You can add cache_strategy here if needed in the future
+    max_retries: Option<usize>,
 }
 
 impl PoetClient {
-    pub fn new(endpoints: &[String]) -> Self {
+    pub fn new(endpoints: &[String], max_retries: Option<usize>) -> Self {
         let client = Client::new();
         Self {
             client,
             endpoints: endpoints.to_vec(),
+            max_retries,
         }
     }
 
@@ -33,6 +36,37 @@ impl PoetClient {
         match node_addr {
             Some(addr) => format!("http://{}{}", addr, path),
             None => format!("{}{}", self.get_base_url(), path),
+        }
+    }
+
+    /// Helper function to send a request with retry logic for SERVICE_UNAVAILABLE responses.
+    async fn send_with_retry<F>(&self, request_builder: F) -> MuseResult<reqwest::Response>
+    where
+        F: Fn() -> reqwest::RequestBuilder,
+    {
+        let mut retries = 0;
+        loop {
+            let response = request_builder()
+                .send()
+                .await
+                .map_err(|e| MuseError::Client(format!("Failed to send request: {}", e)))?;
+            if response.status() == StatusCode::SERVICE_UNAVAILABLE {
+                if retries < self.max_retries.unwrap_or(usize::MAX) {
+                    let retry_after = response
+                        .headers()
+                        .get("Retry-After")
+                        .and_then(|h| h.to_str().ok())
+                        .and_then(|s| s.parse::<u64>().ok())
+                        .unwrap_or(1);
+                    sleep(Duration::from_secs(retry_after)).await;
+                    retries += 1;
+                    continue;
+                } else {
+                    return Err(MuseError::Client("Max retries exceeded".into()));
+                }
+            } else {
+                return Ok(response);
+            }
         }
     }
 }
@@ -234,12 +268,8 @@ impl Transport for PoetClient {
     ) -> MuseResult<Vec<MuseResult<ElementId>>> {
         let url = format!("{}/ds/elements", self.get_base_url());
         let response = self
-            .client
-            .post(&url)
-            .json(elements)
-            .send()
-            .await
-            .map_err(|e| MuseError::Client(format!("Failed to register elements: {}", e)))?;
+            .send_with_retry(|| self.client.post(&url).json(elements))
+            .await?;
 
         match response.status() {
             StatusCode::CREATED | StatusCode::MULTI_STATUS | StatusCode::BAD_REQUEST => {
@@ -274,12 +304,8 @@ impl Transport for PoetClient {
     ) -> MuseResult<()> {
         let url = format!("{}/ds/element_kinds", self.get_base_url());
         let response = self
-            .client
-            .post(&url)
-            .json(element_kind)
-            .send()
-            .await
-            .map_err(|e| MuseError::Client(format!("Failed to register element kind: {}", e)))?;
+            .send_with_retry(|| self.client.post(&url).json(element_kind))
+            .await?;
 
         if response.status().is_success() {
             Ok(())

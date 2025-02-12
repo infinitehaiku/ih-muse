@@ -82,6 +82,7 @@ async def main():
         element_kinds=[ElementKindRegistration("kind_code", "description")],
         metric_definitions=[MetricDefinition("metric_code", "description")],
         max_reg_elem_retries=3,
+        max_endpoint_retries=None,
         recording_enabled=False,
     )
     muse = Muse(config)

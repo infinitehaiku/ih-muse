@@ -23,7 +23,7 @@
 
 ### API
 
-`````{py:class} Config(endpoints: list[str], client_type: ih_muse.ih_muse.ClientType, default_resolution: ih_muse.ih_muse.TimestampResolution, element_kinds: list[ih_muse.proto.ElementKindRegistration], metric_definitions: list[ih_muse.proto.MetricDefinition], max_reg_elem_retries: int, recording_enabled: bool, recording_path: str | None = None)
+`````{py:class} Config(endpoints: list[str], client_type: ih_muse.ih_muse.ClientType, default_resolution: ih_muse.ih_muse.TimestampResolution, element_kinds: list[ih_muse.proto.ElementKindRegistration], metric_definitions: list[ih_muse.proto.MetricDefinition], max_reg_elem_retries: int, max_endpoint_retries: int | None, recording_enabled: bool, recording_path: str | None = None)
 :canonical: ih_muse.config.config.Config
 
 ```{autodoc2-docstring} ih_muse.config.config.Config

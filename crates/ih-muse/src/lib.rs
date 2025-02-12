@@ -26,6 +26,7 @@
 //!         Some(std::time::Duration::from_secs(60)),
 //!         Some(std::time::Duration::from_secs(60)),
 //!         3,
+//!         None,
 //!     )?;
 //!
 //!     let mut muse = Muse::new(&config)?;

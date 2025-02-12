@@ -57,6 +57,7 @@ async fn test_muse_initialization_with_custom_config() {
         initialization_interval: Some(init_duration),
         cluster_monitor_interval: Some(init_duration),
         max_reg_elem_retries: 5,
+        max_endpoint_retries: None,
     };
 
     let mut muse = Muse::new(&config).expect("Failed to create the Muse");
@@ -118,6 +119,7 @@ async fn test_muse_initialization_timeout() {
         initialization_interval: None,
         cluster_monitor_interval: None,
         max_reg_elem_retries: 1, // Set low retry count for faster test
+        max_endpoint_retries: None,
     };
 
     let mut muse = Muse::new(&config).expect("Failed to create the Muse");

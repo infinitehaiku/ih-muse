@@ -13,7 +13,7 @@ pub type MuseResult<T> = Result<T, MuseError>;
 pub enum MuseError {
     #[error("Configuration error {0}")]
     Configuration(String),
-    #[error("Network error occurred")]
+    #[error("Error on Poet client {0}")]
     Client(String),
     #[error("Muse initialization timeout {0:?}")]
     MuseInitializationTimeout(Duration),

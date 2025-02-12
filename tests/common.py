@@ -20,14 +20,14 @@ from ih_muse import (
 
 
 def get_client_type_from_env() -> ClientType:
-    """Retrieve the ClientType from the environment variable `MUSE_CLIENT_TYPE`.
+    """Retrieve the ClientType from the environment variable `IH_MUSE_CLIENT_TYPE`.
 
     Defaults to `Mock` if the variable is not set or invalid.
 
     :return:  The client type to use.
 
     """
-    client_type_str = os.getenv("MUSE_CLIENT_TYPE", "Mock").lower()
+    client_type_str = os.getenv("IH_MUSE_CLIENT_TYPE", "Mock").lower()
     if client_type_str == "poet":
         return ClientType.Poet
     return ClientType.Mock
@@ -77,6 +77,7 @@ class MuseTestContext:
             element_kinds=[element_kind],
             metric_definitions=[metric_definition],
             max_reg_elem_retries=3,
+            max_endpoint_retries=10,
             initialization_interval=timedelta(milliseconds=1),
             cluster_monitor_interval=timedelta(milliseconds=1),
         )

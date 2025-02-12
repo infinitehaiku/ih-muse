@@ -62,6 +62,7 @@ config = Config(
         MetricDefinition("metric_code", "description")
     ],
     max_reg_elem_retries=3,
+    max_endpoint_retries=None,
     recording_enabled=True,
     recording_path="recording.json",
     recording_flush_interval=timedelta(seconds=1),

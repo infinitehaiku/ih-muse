@@ -39,6 +39,7 @@ async def test_muse_initialization_timeout() -> None:
         element_kinds=[element_kind],
         metric_definitions=[metric_definition],
         max_reg_elem_retries=1,  # Set low retry count for faster test
+        max_endpoint_retries=None,
     )
 
     muse = Muse(config)

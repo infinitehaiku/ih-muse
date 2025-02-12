@@ -45,6 +45,8 @@ pub struct Config {
     pub cluster_monitor_interval: Option<Duration>,
     /// Maximum number of retries for element registration.
     pub max_reg_elem_retries: usize,
+    /// Maximum number of Poet endpoints retries, None for no limit.
+    pub max_endpoint_retries: Option<usize>,
 }
 
 impl Config {
@@ -63,6 +65,7 @@ impl Config {
     /// - `initialization_interval`: Interval for the initialization task.
     /// - `cluster_monitor_interval`: Interval for cluster monitoring.
     /// - `max_reg_elem_retries`: Max retries for element registration.
+    /// - `max_endpoint_retries`: Max retries for Poet endpoints.
     ///
     /// # Errors
     ///
@@ -86,6 +89,7 @@ impl Config {
     ///     Some(std::time::Duration::from_secs(60)),
     ///     Some(std::time::Duration::from_secs(60)),
     ///     3,
+    ///     None,
     /// ).expect("Failed to create config");
     /// ```
     #[allow(clippy::too_many_arguments)]
@@ -101,6 +105,7 @@ impl Config {
         initialization_interval: Option<Duration>,
         cluster_monitor_interval: Option<Duration>,
         max_reg_elem_retries: usize,
+        max_endpoint_retries: Option<usize>,
     ) -> MuseResult<Self> {
         let config = Self {
             endpoints,
@@ -114,6 +119,7 @@ impl Config {
             initialization_interval,
             cluster_monitor_interval,
             max_reg_elem_retries,
+            max_endpoint_retries,
         };
         config.validate()?;
         Ok(config)
@@ -223,6 +229,13 @@ impl Config {
             ));
         }
 
+        if self.max_endpoint_retries != other.max_endpoint_retries {
+            differences.push(format!(
+                "max_endpoint_retries: {:?} != {:?}",
+                self.max_endpoint_retries, other.max_endpoint_retries
+            ));
+        }
+
         differences
     }
 
@@ -253,6 +266,7 @@ impl Config {
             && self.metric_definitions == other.metric_definitions
             && self.cluster_monitor_interval == other.cluster_monitor_interval
             && self.max_reg_elem_retries == other.max_reg_elem_retries
+            && self.max_endpoint_retries == other.max_endpoint_retries
     }
 }
 
@@ -280,6 +294,7 @@ mod tests {
             initialization_interval: Some(Duration::from_secs(60)),
             cluster_monitor_interval: Some(Duration::from_secs(60)),
             max_reg_elem_retries: 3,
+            max_endpoint_retries: None,
         };
 
         let config2 = Config {
@@ -299,6 +314,7 @@ mod tests {
             initialization_interval: Some(Duration::from_secs(60)),
             cluster_monitor_interval: Some(Duration::from_secs(60)),
             max_reg_elem_retries: 3,
+            max_endpoint_retries: None,
         };
 
         assert!(

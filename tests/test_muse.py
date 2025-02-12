@@ -31,6 +31,7 @@ async def test_muse() -> None:
         element_kinds=[element_kind],
         metric_definitions=[metric_definition],
         max_reg_elem_retries=5,
+        max_endpoint_retries=None,
     )
 
     muse = ih_muse.Muse(config)

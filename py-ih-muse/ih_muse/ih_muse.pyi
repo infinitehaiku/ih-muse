@@ -36,6 +36,7 @@ class PyConfig:
         element_kinds: list[Any],  # PyElementKindRegistration
         metric_definitions: list[Any],  # PyMetricDefinition
         max_reg_elem_retries: int,
+        max_endpoint_retries: Optional[int],
         recording_enabled: bool,  # noqa: FBT001
         recording_path: Optional[str] = None,
         recording_flush_interval: Optional[timedelta] = None,
