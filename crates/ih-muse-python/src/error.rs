@@ -50,6 +50,9 @@ impl std::convert::From<PyMusesErr> for PyErr {
                     MuseInitializationTimeoutError::new_err(format!("Duration: {:?}", d))
                 }
                 MuseError::Client(err) => ClientError::new_err(err.to_string()),
+                MuseError::Validation(err)
+                | MuseError::Unavailable(err)
+                | MuseError::Backpressure(err) => ClientError::new_err(err.to_string()),
                 MuseError::Recording(err) => RecordingError::new_err(err.to_string()),
                 MuseError::Replaying(err) => ReplayingError::new_err(err.to_string()),
                 MuseError::InvalidFileExtension(ext) => {

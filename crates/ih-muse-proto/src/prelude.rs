@@ -3,6 +3,10 @@ pub use crate::element::{generate_local_element_id, ElementRegistration, NewElem
 pub use crate::element_kind::ElementKindRegistration;
 pub use crate::metric::{metric_id_from_code, MetricDefinition, MetricPayload, MetricQuery};
 pub use crate::node_elem_ranges::{GetRangesRequest, NodeElementRange, OrdRangeInc};
+pub use crate::producer::{
+    ProducerBatch, ProducerEnvelope, ProducerValidationError, MAX_BATCH_MEASUREMENTS,
+    PRODUCER_PROTOCOL_VERSION,
+};
 pub use crate::timestamp_resolution::TimestampResolution;
 pub use crate::types::{
     ElementId, ElementKindId, LocalElementId, MetricId, MetricValue, Timestamp,

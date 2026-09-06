@@ -15,6 +15,12 @@ pub enum MuseError {
     Configuration(String),
     #[error("Network error occurred")]
     Client(String),
+    #[error("Producer request validation failed: {0}")]
+    Validation(String),
+    #[error("Producer service is unavailable: {0}")]
+    Unavailable(String),
+    #[error("Producer service applied backpressure: {0}")]
+    Backpressure(String),
     #[error("Muse initialization timeout {0:?}")]
     MuseInitializationTimeout(Duration),
     #[error("Recording error {0}")]

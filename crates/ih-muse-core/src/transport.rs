@@ -7,7 +7,7 @@ use async_trait::async_trait;
 pub use crate::errors::MuseResult;
 pub use ih_muse_proto::{
     types::*, ElementKindRegistration, ElementRegistration, MetricDefinition, MetricPayload,
-    MetricQuery, NodeElementRange, NodeState, TimestampResolution,
+    MetricQuery, NodeElementRange, NodeState, ProducerEnvelope, TimestampResolution,
 };
 
 #[async_trait]
@@ -40,4 +40,19 @@ pub trait Transport {
         payload: Vec<MetricPayload>,
         node_addr: Option<SocketAddr>,
     ) -> MuseResult<()>;
+
+    async fn send_producer_batch(&self, envelope: ProducerEnvelope) -> MuseResult<()> {
+        envelope
+            .validate()
+            .map_err(|error| crate::errors::MuseError::Validation(error.to_string()))?;
+        self.send_metrics(envelope.batch.measurements, None).await
+    }
+
+    async fn flush(&self) -> MuseResult<()> {
+        Ok(())
+    }
+
+    async fn shutdown(&self) -> MuseResult<()> {
+        self.flush().await
+    }
 }

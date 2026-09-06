@@ -89,7 +89,7 @@ impl State {
         // Load the Arc<HashMap> from `registered_metrics` and check for the presence of the code
         self.registered_metrics
             .get()
-            .map_or(false, |metrics| metrics.contains_key(metric_code))
+            .is_some_and(|metrics| metrics.contains_key(metric_code))
     }
 
     /// Update `metric_order` atomically with a new order.

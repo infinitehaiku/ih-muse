@@ -6,6 +6,7 @@ mod element_kind;
 mod metric;
 mod node_elem_ranges;
 pub mod prelude;
+mod producer;
 mod timestamp_resolution;
 pub mod types;
 mod utils;
@@ -15,5 +16,9 @@ pub use element::{generate_local_element_id, ElementRegistration, NewElementsRes
 pub use element_kind::ElementKindRegistration;
 pub use metric::{metric_id_from_code, MetricDefinition, MetricPayload, MetricQuery};
 pub use node_elem_ranges::{GetRangesRequest, NodeElementRange, OrdRangeInc};
+pub use producer::{
+    ProducerBatch, ProducerEnvelope, ProducerValidationError, MAX_BATCH_MEASUREMENTS,
+    PRODUCER_PROTOCOL_VERSION,
+};
 pub use timestamp_resolution::TimestampResolution;
 pub use types::{ElementId, ElementKindId, LocalElementId, MetricId, MetricValue, Timestamp};

@@ -384,7 +384,7 @@ impl Muse {
 
         self.metric_buffer
             .add_metric(local_elem_id, metric_code.to_string(), value)
-            .await;
+            .await?;
 
         Ok(())
     }
