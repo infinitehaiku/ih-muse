@@ -25,7 +25,7 @@ impl PyMetricPayload {
         time: i64,
         element_id: u64,
         metric_ids: Vec<u32>,
-        values: Vec<Option<f32>>,
+        values: Vec<Option<f64>>,
     ) -> PyResult<Self> {
         let ekr = RustMetricPayload::new(time, element_id, metric_ids, values);
         Ok(Self::from(ekr))
@@ -47,7 +47,7 @@ impl PyMetricPayload {
     }
 
     #[getter]
-    pub fn values(&self) -> Vec<Option<f32>> {
+    pub fn values(&self) -> Vec<Option<f64>> {
         self.inner.values.clone()
     }
 }

@@ -49,6 +49,9 @@ impl std::convert::From<PyMusesErr> for PyErr {
                 MuseError::MuseInitializationTimeout(d) => {
                     MuseInitializationTimeoutError::new_err(format!("Duration: {:?}", d))
                 }
+                MuseError::MuseShutdownTimeout(d) => {
+                    ClientError::new_err(format!("undelivered metrics at shutdown after {d:?}"))
+                }
                 MuseError::Client(err) => ClientError::new_err(err.to_string()),
                 MuseError::Validation(err)
                 | MuseError::Unavailable(err)

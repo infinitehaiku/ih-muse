@@ -1,0 +1,14 @@
+{
+  "revision": "ih.graph.v1.review.1",
+  "base_manifest_sha256": "3d0056ce561e613e6720b6bedefb6d621a97e59284e411618ec176975fbf6ba7",
+  "source_sha256": {
+    "src/graph.rs": "0418e10ea67774bc5052ed85923c766662a34cd06ac2afc0ce3f9a4afe1989ea"
+  },
+  "changes": [
+    "Reject cross-organization additive edges even without batch validation",
+    "Reject mismatched observation intervals and floating-point sum overflow",
+    "Reject non-finite metric values before durable encoding"
+  ],
+  "wire_revision": "ih.graph.v1",
+  "expected_records": "Unchanged; the original contract-manifest.json remains historical evidence"
+}

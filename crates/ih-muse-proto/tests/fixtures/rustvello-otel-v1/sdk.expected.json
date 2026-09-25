@@ -1,0 +1,2129 @@
+[
+  {
+    "attempt": null,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "worker.started"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "worker.started"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 0,
+        "observedTimeUnixNano": "1788952000000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "",
+        "timeUnixNano": "1788952000000000000",
+        "traceId": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952000000000000,
+    "invocation_id": null,
+    "last_time_unix_nano": 1788952000000000000,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "logs",
+    "span_id": null,
+    "task_id": null,
+    "trace_id": null
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "submitter"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.submitted"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.submitted"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 1,
+        "observedTimeUnixNano": "1788952000000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "0000000000000001",
+        "timeUnixNano": "1788952000000000000",
+        "traceId": "00000000000000000000000000000022"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952000000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952000000000000,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "logs",
+    "span_id": "0000000000000001",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.started"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.started"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 1,
+        "observedTimeUnixNano": "1788952000000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "000000000000000a",
+        "timeUnixNano": "1788952000000000000",
+        "traceId": "00000000000000000000000000000022"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952000000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952000000000000,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "logs",
+    "span_id": "000000000000000a",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.failed"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.failed"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 1,
+        "observedTimeUnixNano": "1788952001000000000",
+        "severityNumber": 17,
+        "severityText": "",
+        "spanId": "000000000000000a",
+        "timeUnixNano": "1788952001000000000",
+        "traceId": "00000000000000000000000000000022"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952001000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952001000000000,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "logs",
+    "span_id": "000000000000000a",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.retry_scheduled"
+            }
+          },
+          {
+            "key": "rustvello.next_attempt",
+            "value": {
+              "intValue": "1"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.retry_scheduled"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 1,
+        "observedTimeUnixNano": "1788952001000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "000000000000000a",
+        "timeUnixNano": "1788952001000000000",
+        "traceId": "00000000000000000000000000000022"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952001000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952001000000000,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "logs",
+    "span_id": "000000000000000a",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "droppedEventsCount": 0,
+        "droppedLinksCount": 0,
+        "endTimeUnixNano": "1788952001000000000",
+        "events": [],
+        "flags": 768,
+        "kind": 5,
+        "links": [],
+        "name": "rustvello.task.execute",
+        "parentSpanId": "0000000000000001",
+        "spanId": "000000000000000a",
+        "startTimeUnixNano": "1788952000000000000",
+        "status": {
+          "code": 2,
+          "message": "fixture_failure"
+        },
+        "traceId": "00000000000000000000000000000022",
+        "traceState": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952000000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952001000000000,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "traces",
+    "span_id": "000000000000000a",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": null,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "worker.stopped"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "worker.stopped"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 0,
+        "observedTimeUnixNano": "1788952001000000200",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "",
+        "timeUnixNano": "1788952001000000200",
+        "traceId": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "42"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952001000000200,
+    "invocation_id": null,
+    "last_time_unix_nano": 1788952001000000200,
+    "resource_id": "859669a510e4c4d491a602216991f892607a101bf04d8198917ddc0f92844a6d",
+    "signal": "logs",
+    "span_id": null,
+    "task_id": null,
+    "trace_id": null
+  },
+  {
+    "attempt": null,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "worker.started"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "worker.started"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 0,
+        "observedTimeUnixNano": "1788952002000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "",
+        "timeUnixNano": "1788952002000000000",
+        "traceId": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952002000000000,
+    "invocation_id": null,
+    "last_time_unix_nano": 1788952002000000000,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "logs",
+    "span_id": null,
+    "task_id": null,
+    "trace_id": null
+  },
+  {
+    "attempt": 1,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "1"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.started"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.started"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 1,
+        "observedTimeUnixNano": "1788952002000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "000000000000000b",
+        "timeUnixNano": "1788952002000000000",
+        "traceId": "00000000000000000000000000000022"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952002000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952002000000000,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "logs",
+    "span_id": "000000000000000b",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.child"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-child"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          },
+          {
+            "key": "rustvello.parent.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "droppedEventsCount": 0,
+        "droppedLinksCount": 0,
+        "endTimeUnixNano": "1788952002000000200",
+        "events": [],
+        "flags": 256,
+        "kind": 5,
+        "links": [],
+        "name": "rustvello.task.execute",
+        "parentSpanId": "000000000000000b",
+        "spanId": "000000000000000c",
+        "startTimeUnixNano": "1788952002000000100",
+        "status": {
+          "code": 1,
+          "message": ""
+        },
+        "traceId": "00000000000000000000000000000022",
+        "traceState": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952002000000100,
+    "invocation_id": "python-child",
+    "last_time_unix_nano": 1788952002000000200,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "traces",
+    "span_id": "000000000000000c",
+    "task_id": "fixture.child",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 1,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "1"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.succeeded"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.succeeded"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 1,
+        "observedTimeUnixNano": "1788952003000000000",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "000000000000000b",
+        "timeUnixNano": "1788952003000000000",
+        "traceId": "00000000000000000000000000000022"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952003000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952003000000000,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "logs",
+    "span_id": "000000000000000b",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 1,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "python-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "1"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "droppedEventsCount": 0,
+        "droppedLinksCount": 0,
+        "endTimeUnixNano": "1788952003000000000",
+        "events": [],
+        "flags": 768,
+        "kind": 5,
+        "links": [
+          {
+            "attributes": [],
+            "droppedAttributesCount": 0,
+            "flags": 256,
+            "spanId": "000000000000000a",
+            "traceId": "00000000000000000000000000000022",
+            "traceState": ""
+          }
+        ],
+        "name": "rustvello.task.execute",
+        "parentSpanId": "0000000000000001",
+        "spanId": "000000000000000b",
+        "startTimeUnixNano": "1788952002000000000",
+        "status": {
+          "code": 1,
+          "message": ""
+        },
+        "traceId": "00000000000000000000000000000022",
+        "traceState": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952002000000000,
+    "invocation_id": "python-invocation",
+    "last_time_unix_nano": 1788952003000000000,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "traces",
+    "span_id": "000000000000000b",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000022"
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "unsampled-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.workflow.id",
+            "value": {
+              "stringValue": "fixture-workflow"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "submitter"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "task.submitted"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "task.submitted"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 0,
+        "observedTimeUnixNano": "1788952003000000100",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "0000000000000002",
+        "timeUnixNano": "1788952003000000100",
+        "traceId": "00000000000000000000000000000023"
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952003000000100,
+    "invocation_id": "unsampled-invocation",
+    "last_time_unix_nano": 1788952003000000100,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "logs",
+    "span_id": "0000000000000002",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000023"
+  },
+  {
+    "attempt": null,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.event",
+            "value": {
+              "stringValue": "worker.stopped"
+            }
+          }
+        ],
+        "body": {
+          "stringValue": "worker.stopped"
+        },
+        "droppedAttributesCount": 0,
+        "eventName": "",
+        "flags": 0,
+        "observedTimeUnixNano": "1788952003000000200",
+        "severityNumber": 9,
+        "severityText": "",
+        "spanId": "",
+        "timeUnixNano": "1788952003000000200",
+        "traceId": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "host.name",
+              "value": {
+                "stringValue": "fixture-host"
+              }
+            },
+            {
+              "key": "process.pid",
+              "value": {
+                "intValue": "43"
+              }
+            },
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952003000000200,
+    "invocation_id": null,
+    "last_time_unix_nano": 1788952003000000200,
+    "resource_id": "7cedf22deb03195a1cac47cc2d933b59546c25d5ad0d8be980b895be00578101",
+    "signal": "logs",
+    "span_id": null,
+    "task_id": null,
+    "trace_id": null
+  },
+  {
+    "attempt": null,
+    "data": {
+      "record": {
+        "metric": {
+          "description": "Completed attempts",
+          "metadata": [],
+          "name": "rustvello.task.completed",
+          "sum": {
+            "aggregationTemporality": 2,
+            "dataPoints": [
+              {
+                "asInt": 0,
+                "attributes": [
+                  {
+                    "key": "rustvello.task.id",
+                    "value": {
+                      "stringValue": "fixture.fail_once"
+                    }
+                  },
+                  {
+                    "key": "rustvello.queue",
+                    "value": {
+                      "stringValue": "fixture"
+                    }
+                  },
+                  {
+                    "key": "outcome",
+                    "value": {
+                      "stringValue": "succeeded"
+                    }
+                  }
+                ],
+                "exemplars": [],
+                "flags": 0,
+                "startTimeUnixNano": "1788952000000000000",
+                "timeUnixNano": "1788952004000000000"
+              }
+            ],
+            "isMonotonic": true
+          },
+          "unit": "{attempt}"
+        },
+        "missing": false
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "python-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952004000000000,
+    "invocation_id": null,
+    "last_time_unix_nano": 1788952004000000000,
+    "resource_id": "58bf0e8f3a049fb74759ef7b35cafc7ab2ed3c21f4be02f735b19365138a2a14",
+    "signal": "metrics",
+    "span_id": null,
+    "task_id": "fixture.fail_once",
+    "trace_id": null
+  },
+  {
+    "attempt": 0,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "rust-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "0"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "droppedEventsCount": 0,
+        "droppedLinksCount": 0,
+        "endTimeUnixNano": "1788952001000000000",
+        "events": [],
+        "flags": 769,
+        "kind": 5,
+        "links": [],
+        "name": "rustvello.task.execute",
+        "parentSpanId": "0000000000000001",
+        "spanId": "000000000000000a",
+        "startTimeUnixNano": "1788952000000000000",
+        "status": {
+          "code": 2,
+          "message": "fixture_failure"
+        },
+        "traceId": "00000000000000000000000000000011",
+        "traceState": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "rust-worker-0"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "rust-worker-0"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952000000000000,
+    "invocation_id": "rust-invocation",
+    "last_time_unix_nano": 1788952001000000000,
+    "resource_id": "c8a91887b6bbf537620938273aa0e7beefa180953429b7b1b9ca2075a7e94447",
+    "signal": "traces",
+    "span_id": "000000000000000a",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000011"
+  },
+  {
+    "attempt": 1,
+    "data": {
+      "record": {
+        "attributes": [
+          {
+            "key": "ih.mapping.revision",
+            "value": {
+              "stringValue": "ih.rustvello-otel.v1"
+            }
+          },
+          {
+            "key": "rustvello.task.id",
+            "value": {
+              "stringValue": "fixture.fail_once"
+            }
+          },
+          {
+            "key": "rustvello.invocation.id",
+            "value": {
+              "stringValue": "rust-invocation"
+            }
+          },
+          {
+            "key": "rustvello.attempt",
+            "value": {
+              "intValue": "1"
+            }
+          },
+          {
+            "key": "rustvello.queue",
+            "value": {
+              "stringValue": "fixture"
+            }
+          },
+          {
+            "key": "rustvello.worker.role",
+            "value": {
+              "stringValue": "executor"
+            }
+          }
+        ],
+        "droppedAttributesCount": 0,
+        "droppedEventsCount": 0,
+        "droppedLinksCount": 0,
+        "endTimeUnixNano": "1788952003000000000",
+        "events": [],
+        "flags": 769,
+        "kind": 5,
+        "links": [
+          {
+            "attributes": [],
+            "droppedAttributesCount": 0,
+            "flags": 257,
+            "spanId": "000000000000000a",
+            "traceId": "00000000000000000000000000000011",
+            "traceState": ""
+          }
+        ],
+        "name": "rustvello.task.execute",
+        "parentSpanId": "0000000000000001",
+        "spanId": "000000000000000b",
+        "startTimeUnixNano": "1788952002000000000",
+        "status": {
+          "code": 1,
+          "message": ""
+        },
+        "traceId": "00000000000000000000000000000011",
+        "traceState": ""
+      },
+      "resource": {
+        "attributes": {
+          "attributes": [
+            {
+              "key": "rustvello.app.id",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            },
+            {
+              "key": "rustvello.worker.id",
+              "value": {
+                "stringValue": "rust-worker-1"
+              }
+            },
+            {
+              "key": "service.instance.id",
+              "value": {
+                "stringValue": "rust-worker-1"
+              }
+            },
+            {
+              "key": "service.name",
+              "value": {
+                "stringValue": "rustvello"
+              }
+            },
+            {
+              "key": "service.namespace",
+              "value": {
+                "stringValue": "fixture-app"
+              }
+            }
+          ],
+          "droppedAttributesCount": 0,
+          "entityRefs": []
+        },
+        "schema_url": ""
+      },
+      "scope": {
+        "instrumentation": {
+          "attributes": [],
+          "droppedAttributesCount": 0,
+          "name": "rustvello.lifecycle",
+          "version": "1"
+        },
+        "schema_url": ""
+      }
+    },
+    "first_time_unix_nano": 1788952002000000000,
+    "invocation_id": "rust-invocation",
+    "last_time_unix_nano": 1788952003000000000,
+    "resource_id": "cd82233de6220f1f0d40d9f1c9d2b37191690100bd03aa6fadb1c174851d68a1",
+    "signal": "traces",
+    "span_id": "000000000000000b",
+    "task_id": "fixture.fail_once",
+    "trace_id": "00000000000000000000000000000011"
+  }
+]

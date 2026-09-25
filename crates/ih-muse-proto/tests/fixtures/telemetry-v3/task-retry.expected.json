@@ -1,0 +1,19 @@
+{
+  "schema_version": 3,
+  "resource_count": 12,
+  "relationship_count": 11,
+  "metric_count": 7,
+  "span_count": 2,
+  "log_count": 2,
+  "metric_results": [
+    { "name": "process.cpu.utilization", "time_unix_nano": 1788876003000000000, "status": "measured", "number_type": "f64", "number": 0.0 },
+    { "name": "process.network.io", "time_unix_nano": 1788876003000000000, "status": "missing", "missing_reason": "unsupported" },
+    { "name": "task.execution.duration", "time_unix_nano": 1788876004000000000, "status": "measured", "histogram_count": 2 },
+    { "name": "task.attempt.completed", "time_unix_nano": 1788876004000000000, "status": "measured", "number_type": "u64", "number": 2 },
+    { "name": "task.attempt.completed", "time_unix_nano": 1788876004500000000, "status": "measured", "number_type": "u64", "number": 1 },
+    { "name": "fixture.precision.counter", "time_unix_nano": 1788876003000000123, "status": "measured", "number_type": "u64", "number": 9007199254740993 },
+    { "name": "worker.queue.latency", "time_unix_nano": 1788876004000000000, "status": "measured", "histogram_count": 3 }
+  ],
+  "span_ids": ["0011223344556677", "8899aabbccddeeff"],
+  "log_event_ids": ["event-attempt-1", "event-attempt-2"]
+}

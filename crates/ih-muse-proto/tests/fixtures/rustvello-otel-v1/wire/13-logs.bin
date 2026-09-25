@@ -1,0 +1,30 @@
+
+„
+è
+
+service.name
+	rustvello
+"
+service.namespace
+fixture-app
+(
+service.instance.id
+python-worker-1
+!
+rustvello.app.id
+fixture-app
+(
+rustvello.worker.id
+python-worker-1
+
+	host.name
+fixture-host
+
+process.pid+–
+
+rustvello.lifecycle1z	ÈÞ	S^¢Ó	*
+worker.stopped2-
+ih.mapping.revision
+ih.rustvello-otel.v12#
+rustvello.event
+worker.stoppedYÈÞ	S^¢Ó

@@ -105,7 +105,7 @@ impl PyMuse {
         &self,
         local_elem_id: &str,
         metric_code: &str,
-        value: f32,
+        value: f64,
         py: Python<'p>,
     ) -> PyResult<Bound<'p, PyAny>> {
         let muse = self.muse.clone();

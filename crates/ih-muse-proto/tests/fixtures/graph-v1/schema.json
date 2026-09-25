@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinite-haiku.invalid/contracts/ih.graph.v1.schema.json",
+  "title": "Infinite Haiku canonical temporal graph batch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "contract_revision", "entities", "relations", "observations", "events", "derivations", "availability"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "contract_revision": {"const": "ih.graph.v1"},
+    "entities": {"type": "array", "items": {"$ref": "#/$defs/entity"}},
+    "relations": {"type": "array", "items": {"$ref": "#/$defs/relation"}},
+    "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
+    "events": {"type": "array", "items": {"$ref": "#/$defs/event"}},
+    "derivations": {"type": "array", "items": {"$ref": "#/$defs/derivation"}},
+    "availability": {"type": "array", "items": {"$ref": "#/$defs/availability"}}
+  },
+  "$defs": {
+    "time_range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from_unix_nano", "to_unix_nano"],
+      "properties": {"from_unix_nano": {"type": "integer", "minimum": 0}, "to_unix_nano": {"type": "integer", "minimum": 1}}
+    },
+    "entity_key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["organization", "identity"],
+      "properties": {"organization": {"type": "string", "minLength": 1}, "identity": {"type": "object", "required": ["kind"]}}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "source_revision", "observed_at_unix_nano", "join_status"],
+      "properties": {
+        "source_id": {"type": "string", "minLength": 1},
+        "source_revision": {"type": "string", "minLength": 1},
+        "observed_at_unix_nano": {"type": "integer", "minimum": 1},
+        "join_status": {"enum": ["resolved", "missing_identity", "ambiguous", "outside_lifetime", "untrusted_scope"]}
+      }
+    },
+    "entity": {"type": "object", "required": ["key", "lifetime", "attributes"], "properties": {"key": {"$ref": "#/$defs/entity_key"}, "lifetime": {"$ref": "#/$defs/time_range"}, "attributes": {"type": "object"}}},
+    "relation": {"type": "object", "required": ["subject", "object", "kind", "valid_time", "provenance", "attributes"], "properties": {"subject": {"$ref": "#/$defs/entity_key"}, "object": {"$ref": "#/$defs/entity_key"}, "kind": {"type": "string"}, "valid_time": {"$ref": "#/$defs/time_range"}, "provenance": {"$ref": "#/$defs/provenance"}, "attributes": {"type": "object"}}},
+    "observation": {"type": "object", "required": ["entity", "scope", "descriptor", "attributes", "time_unix_nano", "value", "provenance"], "properties": {"entity": {"$ref": "#/$defs/entity_key"}, "scope": {"type": "object"}, "descriptor": {"type": "object"}, "ratio_denominator": {"anyOf": [{"$ref": "#/$defs/entity_key"}, {"type": "null"}]}, "attributes": {"type": "object"}, "time_unix_nano": {"type": "integer", "minimum": 1}, "value": {"type": "object"}, "provenance": {"$ref": "#/$defs/provenance"}}},
+    "event": {"type": "object", "required": ["entity", "kind", "event_id", "time", "scope", "attributes", "provenance"], "properties": {"entity": {"$ref": "#/$defs/entity_key"}, "kind": {"enum": ["span", "span_event", "log", "domain"]}, "event_id": {"type": "string", "minLength": 1}, "time": {"$ref": "#/$defs/time_range"}, "scope": {"type": "object"}, "attributes": {"type": "object"}, "provenance": {"$ref": "#/$defs/provenance"}}},
+    "derivation": {"type": "object", "required": ["derivation_id", "definition", "definition_version", "source_partitions", "source_watermark_unix_nano", "output_entities", "sufficient_statistics", "provenance"]},
+    "availability": {"type": "object", "required": ["entity", "available_time", "resolution_unix_nano", "coverage_fraction", "retained_from_unix_nano", "provenance"], "properties": {"coverage_fraction": {"type": "number", "minimum": 0, "maximum": 1}, "resolution_unix_nano": {"type": "integer", "minimum": 1}}}
+  }
+}

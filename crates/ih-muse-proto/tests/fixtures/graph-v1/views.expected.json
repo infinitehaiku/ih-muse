@@ -1,0 +1,32 @@
+{
+  "organization": "org-a",
+  "entities": [
+    "organization:org-a",
+    "cluster:cluster-a",
+    "node:node-uid-a",
+    "namespace:namespace-uid-a",
+    "workload:workload-uid-a",
+    "pod:pod-uid-a",
+    "process:laptop-a:42:10",
+    "standalone_environment:laptop-a",
+    "request:request-a",
+    "invocation:invocation-parent",
+    "invocation:invocation-child",
+    "attempt:invocation-child:0",
+    "attempt:invocation-child:1",
+    "worker:worker-a",
+    "runner:runner-a"
+  ],
+  "placement_view": ["organization:org-a", "cluster:cluster-a", "node:node-uid-a", "pod:pod-uid-a"],
+  "workload_view": ["organization:org-a", "cluster:cluster-a", "namespace:namespace-uid-a", "workload:workload-uid-a", "pod:pod-uid-a"],
+  "independent_environment_view": ["organization:org-a", "standalone_environment:laptop-a", "process:laptop-a:42:10"],
+  "causal_relations": [
+    "invocation-child child_invocation_of invocation-parent",
+    "invocation-child triggered_by request-a",
+    "attempt-0 attempt_of invocation-child",
+    "attempt-1 attempt_of invocation-child",
+    "worker-a executes_on attempt-0",
+    "runner-a executes_on attempt-1"
+  ],
+  "accounting": "placement and workload are separate projections over the same pod identity; selection and causal relations never add it twice"
+}

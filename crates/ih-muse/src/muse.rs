@@ -36,6 +36,9 @@ pub struct Muse {
     config: Config,
 }
 
+/// How long dropping a `Muse` waits to deliver buffered metrics.
+const DROP_FLUSH_TIMEOUT: Duration = Duration::from_secs(2);
+
 impl Drop for Muse {
     /// Cleans up resources when the `Muse` instance is dropped.
     ///
@@ -47,6 +50,31 @@ impl Drop for Muse {
         for task in &self.tasks {
             task.abort();
         }
+
+        // Best effort: deliver what is still buffered (use `shutdown` to wait
+        // for it and see errors). Bounded so a dead Poet cannot hang the drop.
+        let (client, state, buffer) = (
+            self.client.clone(),
+            self.state.clone(),
+            self.metric_buffer.clone(),
+        );
+        let _ = std::thread::spawn(move || {
+            let Ok(rt) = tokio::runtime::Runtime::new() else {
+                return;
+            };
+            rt.block_on(async {
+                if buffer.is_empty().await {
+                    return;
+                }
+                let flush = tasks::send_metrics(&client, &state, &buffer);
+                match tokio::time::timeout(DROP_FLUSH_TIMEOUT, flush).await {
+                    Ok(Ok(())) => {}
+                    Ok(Err(e)) => eprintln!("Muse dropped with undelivered metrics: {e:?}"),
+                    Err(_) => eprintln!("Muse dropped before buffered metrics were delivered"),
+                }
+            });
+        })
+        .join();
 
         // Flush and close the recorder synchronously if it exists
         if let Some(recorder) = &self.recorder {
@@ -112,6 +140,30 @@ impl Muse {
             metric_buffer: Arc::new(MetricBuffer::new()),
             config: config.clone(),
         })
+    }
+
+    /// Sends every buffered metric now instead of waiting for the next interval.
+    ///
+    /// Values that cannot be delivered stay buffered for the next attempt.
+    pub async fn flush(&self) -> MuseResult<()> {
+        tasks::send_metrics(&self.client, &self.state, &self.metric_buffer).await
+    }
+
+    /// Stops the background tasks after delivering buffered metrics.
+    ///
+    /// Waits at most `timeout` for delivery and returns its error, so a caller
+    /// knows whether data was lost. Prefer this over dropping the `Muse`.
+    pub async fn shutdown(mut self, timeout: Duration) -> MuseResult<()> {
+        self.cancellation_token.cancel();
+        for task in self.tasks.drain(..) {
+            task.abort();
+        }
+        let delivered = match tokio::time::timeout(timeout, self.flush()).await {
+            Ok(result) => result,
+            Err(_) => Err(MuseError::MuseShutdownTimeout(timeout)),
+        };
+        let closed = self.client.shutdown().await;
+        delivered.and(closed)
     }
 
     /// Initializes the Muse client and starts background tasks.

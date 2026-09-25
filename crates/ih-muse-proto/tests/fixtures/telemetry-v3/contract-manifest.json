@@ -1,0 +1,15 @@
+{
+  "contract_revision": "ih.telemetry.v3",
+  "schema_version": 3,
+  "crate": { "name": "ih-muse-proto", "version": "0.0.25" },
+  "rust_sdk": { "opentelemetry": "0.32.0", "validation": "poet real HTTP exporter test" },
+  "python_sdk": { "opentelemetry": "1.41.1", "manifest": "otlp-python/manifest.json" },
+  "sha256": {
+    "src/telemetry.rs": "2145e1b6882bbd964673c356b8edf50eca11c69f350b59daf81fd7b3f5a4720e",
+    "profile.json": "25aa158f0b33df843fce6cd13b9669d29b3df80e01d50c795934b717d9177ff5",
+    "task-retry.json": "c33a32d41160f5c13db3dd9a4a66dce9d30c31ae1d8ece5bd275258e3c20e4c2",
+    "task-retry.expected.json": "26c2bb77482d188bd0e39f21eeef6d529caa90b0f9dd3c8254831e77ed22493f",
+    "task-retry.projected.json": "89091c8c547bec097afd7256c3e15174401757e4b0c61b3af7f0485e8a5f4ef5",
+    "otlp-python/manifest.json": "23a9e8d03ee502c6d036160d76c8916a498b3686673e2d26a17711d3e8798495"
+  }
+}

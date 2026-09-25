@@ -23,12 +23,30 @@
 
 ## Table of Contents
 
+- [Typed Telemetry Contract](#typed-telemetry-contract)
 - [Installation](#installation)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
 - [Examples](#examples)
 - [Contributing](#contributing)
 - [License](#license)
+
+## Typed Telemetry Contract
+
+`ih-muse-proto` defines qualified contract revision `ih.telemetry.v3` for normalized
+metrics, resources, time-qualified relationships, spans, logs, and bounded query
+messages. Executable golden fixtures are under
+`crates/ih-muse-proto/tests/fixtures/telemetry-v3`; `contract-manifest.json`
+pins their hashes and the Rust/Python OpenTelemetry SDK versions. Run:
+
+```bash
+cargo test -p ih-muse-proto --test telemetry_contract
+```
+
+The schema and deterministic full persistence projection are implemented. Poet
+implements a bounded authenticated OTLP/HTTP-Protobuf profile described in the
+Infinite Haiku v3 contract reference. Muse client transport still uses the
+legacy path until its coordinated migration.
 
 ## Installation
 

@@ -11,3 +11,4 @@ pub use element_registration::start_element_registration_task;
 pub use flush_task::start_recorder_flush_task;
 pub use init_task::start_init_task;
 pub use metric_sender::start_metric_sender_task;
+pub(crate) use metric_sender::send_metrics;

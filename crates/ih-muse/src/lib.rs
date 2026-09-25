@@ -68,6 +68,7 @@
 //! [`muse`]: crate::muse
 //! [`tasks`]: crate::tasks
 
+pub mod graph_muse;
 mod muse;
 pub mod prelude;
 mod tasks;

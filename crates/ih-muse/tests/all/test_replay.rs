@@ -105,7 +105,7 @@ async fn test_record_and_replay_with_timestamps() {
         );
 
         // Verify replayed metric values
-        let replayed_values: Vec<Option<f32>> =
+        let replayed_values: Vec<Option<f64>> =
             metrics.into_iter().flat_map(|m| m.values).collect();
         assert_eq!(
             replayed_values,

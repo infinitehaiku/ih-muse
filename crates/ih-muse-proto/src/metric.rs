@@ -15,6 +15,57 @@ pub struct MetricDefinition {
     pub code: String,
     pub name: String,
     pub description: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display: Option<MetricDisplay>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+pub struct MetricDisplay {
+    pub unit: String,
+    pub kind: String,
+    pub aggregation: String,
+    pub direction: String,
+    pub precision: u8,
+    #[serde(default)]
+    pub element_kinds: Vec<String>,
+}
+
+impl MetricDisplay {
+    pub fn infer(code: &str) -> Self {
+        let unit = if code.ends_with("percent_per_hour") {
+            "percent_per_hour"
+        } else if code.ends_with("percent") {
+            "percent"
+        } else if code.contains("bytes") {
+            "bytes"
+        } else if code.ends_with("celsius") {
+            "celsius"
+        } else if code.ends_with("charging") || code.ends_with("on_battery") {
+            "boolean"
+        } else {
+            "number"
+        };
+        let kind = if code.ends_with("_delta") {
+            "delta"
+        } else if code.contains(".total_") {
+            "counter"
+        } else {
+            "gauge"
+        };
+        Self {
+            unit: unit.into(),
+            kind: kind.into(),
+            aggregation: if code.starts_with("process.") || kind == "delta" {
+                "sum"
+            } else {
+                "none"
+            }
+            .into(),
+            direction: "neutral".into(),
+            precision: 1,
+            element_kinds: Vec::new(),
+        }
+    }
 }
 
 impl MetricDefinition {
@@ -24,7 +75,24 @@ impl MetricDefinition {
             code: code.to_string(),
             name: name.to_string(),
             description: description.to_string(),
+            display: Some(MetricDisplay::infer(code)),
         }
+    }
+}
+
+#[cfg(test)]
+mod display_tests {
+    use super::*;
+    #[test]
+    fn old_definitions_and_explicit_metadata_round_trip() {
+        let old = r#"{"id":1,"code":"memory_bytes","name":"Memory","description":""}"#;
+        let mut definition: MetricDefinition = serde_json::from_str(old).unwrap();
+        assert!(definition.display.is_none());
+        definition.display = Some(MetricDisplay::infer(&definition.code));
+        let restored: MetricDefinition =
+            serde_json::from_str(&serde_json::to_string(&definition).unwrap()).unwrap();
+        assert_eq!(restored, definition);
+        assert_eq!(restored.display.unwrap().unit, "bytes");
     }
 }
 

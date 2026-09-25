@@ -1,0 +1,36 @@
+{
+  "base_contract": "ih.telemetry.v3",
+  "revision": "ih.rustvello-otel.v1",
+  "scope": "SDK mapping and receiver qualification; not Rustvello scheduling qualification",
+  "sdk": {
+    "python": "1.41.1",
+    "rust": {
+      "opentelemetry": "0.32.0",
+      "opentelemetry-otlp": "0.32.0",
+      "opentelemetry-proto": "0.32.0",
+      "opentelemetry_sdk": "0.32.1"
+    }
+  },
+  "sha256": {
+    "mapping.json": "f32e98ffab3da3610a8c57ed7bcd7fa65721aefd4ad8b3eda635f89fa4e8c52f",
+    "sdk.expected.json": "800d9269953312ff0456f8c06494ca40ce6b54d4dd20663def813c614567f7b9",
+    "wire/00-logs.bin": "1e3ac2172ea707f92147a9ddbd7989718a95cc9098e90f1a5805e9745cd5c758",
+    "wire/01-logs.bin": "a7c21f3ba2fe4d239e2cf4a31b5dc543b565e648ca68a66594397ed2af80078f",
+    "wire/02-logs.bin": "18054dd53772baedb2f672507cc9c5a820f8b27ea5f0ac63a5661c86e22ffa09",
+    "wire/03-logs.bin": "6bb9f6d470111665e1b1ec225e32e6289150b01c89578fd049db64b7b51b2742",
+    "wire/04-logs.bin": "8b3c6d150d88a000e154c16b472179750d7254d2ccbe86c86f757c60f9271ff2",
+    "wire/05-traces.bin": "c9a15c82752d445c9475ec7298e14305d814eedf3ae431d778c985150cdc2456",
+    "wire/06-logs.bin": "8c69f118adc8679fe319138ef58a412ea23ac7a50a28eaa1402daad682903734",
+    "wire/07-logs.bin": "534983437ec41933d53179449542332753c8d0dff3b0b0c9c51c735a68800633",
+    "wire/08-logs.bin": "a4e0a3463e153c69ddcbcf69719eded9ce66846afc01c92ed2426f4afe2f1732",
+    "wire/09-traces.bin": "0e010f1fd2ef9a38c85312dfc108e6c638518fc5fc468703a19d9cd14a4ad866",
+    "wire/10-logs.bin": "8f4b6ca4496b6d605f42b1eaf96ab40bdd1cfc53a5a6e545b78379aa3f5ee025",
+    "wire/11-traces.bin": "25a743cb7d90f21946a784373449324568f306b169b4024157233af29683504b",
+    "wire/12-logs.bin": "2d622946f4de65c3565877e551b6d0c9b9fe8be92e77899c22c52576eac12a04",
+    "wire/13-logs.bin": "506bb068f6d530e0620a5cfed6020dd9b3ec6034be353a9a3deaa80b618544b1",
+    "wire/14-metrics.bin": "3aff4877a1f2065a536a9c0de403b72ff96bb9cbb73ff8d88e15b6a9979d3adc",
+    "wire/15-traces.bin": "6b6571bfc657a001d9f0aaefaf6edb357c54d65d20d89bc12baa48674460b57f",
+    "wire/16-traces.bin": "a22188b6235c59f8311366130c0cc0b3e89a76e4902050b6987b4baaf23861f6"
+  },
+  "validation": "make test-otlp-process"
+}

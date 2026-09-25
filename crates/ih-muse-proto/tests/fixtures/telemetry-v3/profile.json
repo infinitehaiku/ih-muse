@@ -1,0 +1,17 @@
+{
+  "schema_version": 3,
+  "contract_revision": "ih.telemetry.v3",
+  "normalized_signals": ["gauge", "sum", "histogram", "exponential_histogram", "span", "log"],
+  "unsupported_otlp_metric_kinds": [
+    { "kind": "summary", "behavior": "reject", "reason": "quantiles cannot be safely reaggregated" }
+  ],
+  "tenant_identity": "authenticated_transport_only",
+  "native_delivery": "batch_id_deduplicated",
+  "otlp_log_delivery_without_event_id": "at_least_once",
+  "otlp_http_protobuf": {
+    "metrics": ["gauge", "sum"],
+    "traces": ["span", "event", "link"],
+    "logs": ["log_record"],
+    "partial_rejection": ["histogram", "exponential_histogram", "summary"]
+  }
+}

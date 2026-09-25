@@ -1,0 +1,16 @@
+{
+  "revision": "ih.graph.v1.review.2",
+  "previous_review_sha256": "1202f08b446d7db4898103894437e2265b38991ac41306801d25a1cbfe1fe97d",
+  "base_manifest_sha256": "3d0056ce561e613e6720b6bedefb6d621a97e59284e411618ec176975fbf6ba7",
+  "source_sha256": {
+    "src/graph.rs": "65d713131cadd2cbd9350d337003f8babfecb9a61b87eac92fb07cc8dbe55ba5"
+  },
+  "changes": [
+    "Add an owner-scoped ih.graph.intake.v1 envelope for authenticated delivery",
+    "Reject malformed delivery identities and cross-organization batches before persistence",
+    "Preserve the reviewed ih.graph.v1 entity, relation, observation and projection wire contract"
+  ],
+  "wire_revision": "ih.graph.v1",
+  "intake_revision": "ih.graph.intake.v1",
+  "expected_records": "Unchanged; contract-manifest.json and review-v1.json remain immutable historical evidence"
+}

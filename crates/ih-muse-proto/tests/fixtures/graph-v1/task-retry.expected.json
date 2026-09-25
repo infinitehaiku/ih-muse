@@ -1,0 +1,11 @@
+{
+  "contract_revision": "ih.graph.v1",
+  "schema_version": 1,
+  "organization": "org-fixture",
+  "entity_count": 14,
+  "relation_count": 14,
+  "observation_count": 7,
+  "event_count": 5,
+  "attempts": [0, 1],
+  "relation_kinds": ["attempt_of", "contains", "executes_on", "member_of", "represents", "scheduled_on", "trace_link"]
+}

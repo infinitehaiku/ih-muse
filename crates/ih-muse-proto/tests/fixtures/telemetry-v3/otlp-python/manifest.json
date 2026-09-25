@@ -1,0 +1,22 @@
+{
+  "files": {
+    "logs.bin": {
+      "bytes": 467,
+      "sha256": "e5d87581ca279acb3656d6f74489731a4ca1c1ee4402b834219de3705a93a178"
+    },
+    "metrics.bin": {
+      "bytes": 851,
+      "sha256": "9b082135306dd19db6225bd2716f6aa086ec1c2d0257f3f39a2ae806d75de4a2"
+    },
+    "traces.bin": {
+      "bytes": 306,
+      "sha256": "1e6fbc4392c31566b73e9fe48e4803db494285a288c24a1c84ed0827a1dd77dc"
+    }
+  },
+  "generator": "python-otel-sdk",
+  "versions": {
+    "opentelemetry-api": "1.41.1",
+    "opentelemetry-exporter-otlp-proto-http": "1.41.1",
+    "opentelemetry-sdk": "1.41.1"
+  }
+}

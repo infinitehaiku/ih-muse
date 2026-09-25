@@ -23,6 +23,9 @@ pub enum MuseError {
     Backpressure(String),
     #[error("Muse initialization timeout {0:?}")]
     MuseInitializationTimeout(Duration),
+    /// Buffered metrics were still undelivered when a shutdown deadline passed.
+    #[error("Muse shutdown timed out after {0:?} with undelivered metrics")]
+    MuseShutdownTimeout(Duration),
     #[error("Recording error {0}")]
     Recording(String),
     #[error("Replaying error {0}")]

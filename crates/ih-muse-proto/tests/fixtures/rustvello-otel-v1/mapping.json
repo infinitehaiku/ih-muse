@@ -1,0 +1,77 @@
+{
+  "revision": "ih.rustvello-otel.v1",
+  "base_contract": "ih.telemetry.v3",
+  "native_lifecycle_version": 1,
+  "instrumentation_scope": "rustvello.lifecycle",
+  "scope_version": "1",
+  "resource_attributes": {
+    "service.name": "rustvello",
+    "service.namespace": "app_id",
+    "service.instance.id": "worker.runner_id",
+    "rustvello.app.id": "app_id",
+    "rustvello.worker.id": "worker.runner_id",
+    "rustvello.worker.parent.id": "worker.parent_runner_id, when known",
+    "host.name": "worker.hostname; not a host identity",
+    "process.pid": "worker.process_id; not a process identity",
+    "rustvello.worker.language": "worker.runner_language",
+    "rustvello.worker.executor": "worker.executor_kind"
+  },
+  "record_attributes": {
+    "ih.mapping.revision": "ih.rustvello-otel.v1",
+    "rustvello.task.id": "task_id",
+    "rustvello.invocation.id": "invocation_id",
+    "rustvello.attempt": "attempt, integer, zero-based",
+    "rustvello.queue": "queue",
+    "rustvello.parent.invocation.id": "parent_invocation_id, when known",
+    "rustvello.workflow.id": "workflow.workflow_id, when known",
+    "rustvello.workflow.type": "workflow.workflow_type, when known",
+    "rustvello.workflow.parent.id": "workflow.parent_id, when known",
+    "rustvello.workflow.depth": "workflow.depth, integer, zero-based",
+    "thread.id": "worker.thread_id; execution-thread fact, not worker resource identity",
+    "rustvello.worker.role": "submitter for Submitted; executor for Started/Succeeded/Failed/RetryScheduled",
+    "rustvello.event": "event name below"
+  },
+  "events": {
+    "Submitted": {"log": "task.submitted", "severity": "INFO", "span": "none"},
+    "Started": {"log": "task.started", "severity": "INFO", "span": "start rustvello.task.execute, CONSUMER"},
+    "Succeeded": {"log": "task.succeeded", "severity": "INFO", "span": "end attempt, OK"},
+    "Failed": {"log": "task.failed", "severity": "ERROR", "span": "end attempt, ERROR; sanitized error category only"},
+    "RetryScheduled": {"log": "task.retry_scheduled", "severity": "INFO", "span": "none; rustvello.next_attempt integer > attempt"},
+    "WorkerStarted": {"log": "worker.started", "severity": "INFO", "span": "none"},
+    "WorkerStopped": {"log": "worker.stopped", "severity": "INFO", "span": "none"}
+  },
+  "attempt_identity": ["authenticated_tenant", "rustvello.app.id", "rustvello.invocation.id", "rustvello.attempt"],
+  "event_fields": {
+    "context_version": "must equal native_lifecycle_version; unknown versions fail adapter validation",
+    "event_time": "original UTC event time in nanoseconds; observed timestamp is receipt/export time, never a substitute when event time exists",
+    "duration": "monotonic execution duration converted to seconds; record rustvello.duration.s on terminal logs/spans; do not derive start from duration if Started was lost",
+    "next_attempt": "rustvello.next_attempt on RetryScheduled; integer greater than current attempt",
+    "error": "redacted; export an allowlisted rustvello.error.type category, never the original error string",
+    "runner_cls": "rustvello.worker.class on worker resource",
+    "worker_events": "resource context plus mapping revision and event name only; no fabricated task/attempt context",
+    "unknown_events": "reject adapter mapping visibly rather than reinterpret as success"
+  },
+  "relationships": {
+    "retry": "new span ID; same invocation and inherited trace parent; link previous attempt when known; never reparent to the failed attempt",
+    "child": "active parent execution span overrides persisted ancestor; retain parent invocation and workflow independently of sampling",
+    "missing_start": "emit terminal log; do not invent execution start or span duration",
+    "missing_process_start": "preserve hostname/PID but leave process join unresolved",
+    "kubernetes": "preserve verified k8s.cluster.uid, k8s.namespace.name, k8s.pod.uid, container.id; never infer pod or process from worker name"
+  },
+  "sampling": "honor W3C sampled flag for spans; lifecycle logs are independent and may retain unsampled trace/span correlation; absent span is not absent task",
+  "redaction": "never export arguments, return values, raw exception messages, environment, credentials or baggage; allowlist attributes above and verified identity enrichment",
+  "metrics": {
+    "rustvello.task.completed": {"kind": "monotonic Sum", "unit": "{attempt}", "temporality": ["delta", "cumulative"], "attributes": ["rustvello.task.id", "rustvello.queue", "outcome"]},
+    "rustvello.task.duration": {"kind": "Histogram", "unit": "s", "receiver_supported": false},
+    "forbidden_dimensions": ["invocation_id", "attempt", "trace_id", "span_id", "workflow_id", "arguments"],
+    "missing": "NoRecordedValue flag means missing even with numeric placeholder; measured zero remains a value"
+  },
+  "receiver_profile": {
+    "transport": "OTLP/HTTP-Protobuf, identity encoding, bearer-authenticated tenant",
+    "supported": ["Gauge", "Sum delta/cumulative", "Span", "LogRecord"],
+    "unsupported": ["gRPC", "gzip", "Histogram", "ExponentialHistogram", "Summary"],
+    "ack": "SQLite durable journal plus decoded projection committed atomically",
+    "dedup": "metrics by stream/interval and spans by trace/span; conflicts rejected; logs at-least-once",
+    "query": "/api/v1/telemetry/records, version 1; bounded by bytes, count and time"
+  }
+}

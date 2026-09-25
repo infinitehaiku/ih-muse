@@ -1,0 +1,23 @@
+{
+  "contract_revision": "ih.graph.v1",
+  "schema_version": 1,
+  "imports": {
+    "ih.telemetry.v3": "lossless normalized metrics, spans, logs, resources and typed relations under authenticated organization scope",
+    "native_muse": "emit the same Entity, TemporalRelation, Observation, Event, Derivation and Availability records"
+  },
+  "identity": "organization scope plus UID/lifetime-bearing EntityIdentity; names are attributes only",
+  "ratio_denominators": "system-capacity, resource-limit and parent ratios bind the concrete denominator entity; one-logical-core ratios have a universal basis",
+  "unknown_joins": ["missing_identity", "ambiguous", "outside_lifetime", "untrusted_scope"],
+  "additive_projection": {
+    "selected_edges_must_be": ["resolved", "acyclic", "single_additive_parent"],
+    "never_additive": ["selected_by", "depends_on", "triggered_by", "trace_parent", "trace_link"],
+    "rejections": ["summed_quantiles", "mixed_descriptors_or_cpu_denominators", "span_duration_as_cpu", "ambiguous_fan_in"]
+  },
+  "historical_contracts": ["ih.telemetry.v2", "ih.telemetry.v3"],
+  "sha256": {
+    "src/graph.rs": "9328dd1b7cfa7510928fee92eb745636954e0b8b4681b4fd531ee2acb67dba43",
+    "schema.json": "a8de90850caa5d5234d01d0b705f5aa50a047224fb2e1198fd3511f90e3044fe",
+    "task-retry.expected.json": "860a075ea77a5e4dc171fd5e5fe25b07ef21e07129073bafbc3b13ee54e0b2ce",
+    "views.expected.json": "561b33675c4ff9397767b83618c0ed2ff353c346347c46c5f63d15872dcb853e"
+  }
+}
