@@ -3,12 +3,12 @@
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpStream};
-use std::os::unix::fs::PermissionsExt;
 use std::time::Duration;
 
 use ih_muse::graph_muse::{
     GraphMuse, GraphMuseConfig, KubernetesContext, RedisInfoAdapter, RustvelloRunnerContext,
 };
+use ih_muse::secret_file::read_secret_file;
 use ih_muse_client::GraphPoetClient;
 use ih_muse_core::MuseError;
 use uuid::Uuid;
@@ -74,20 +74,9 @@ fn rustvello_runner() -> Option<RustvelloRunnerContext> {
     }
 }
 
-fn private_token(path: &str) -> String {
-    let metadata = fs::metadata(path).expect("graph token file must exist");
-    assert!(metadata.is_file() && metadata.len() > 0 && metadata.len() <= 4096);
-    assert_eq!(
-        metadata.permissions().mode() & 0o077,
-        0,
-        "graph token file must be owner-only"
-    );
-    let token = fs::read_to_string(path).expect("graph token file must be UTF-8");
-    assert!(
-        !token.contains(['\r', '\n', '\0']),
-        "graph token contains control bytes"
-    );
-    token
+/// Read a credential file, panicking with a secret-free reason when it is refused.
+fn private_token(path: &str, label: &str) -> String {
+    read_secret_file(path, label).unwrap_or_else(|error| panic!("{error}"))
 }
 
 fn bounded_file(path: &str, label: &str) -> Vec<u8> {
@@ -123,7 +112,7 @@ impl RedisProbe {
                 );
                 Some(Self {
                     address,
-                    password: private_token(&password_file),
+                    password: private_token(&password_file, "Redis password"),
                     instance_id,
                     process_pid: process_pid
                         .parse()
@@ -196,7 +185,7 @@ async fn main() {
     let client = std::env::var("IH_GRAPH_POET_ENDPOINT")
         .ok()
         .map(|endpoint| {
-            let token = private_token(&required("IH_GRAPH_POET_TOKEN_FILE"));
+            let token = private_token(&required("IH_GRAPH_POET_TOKEN_FILE"), "graph Poet token");
             match std::env::var("IH_GRAPH_POET_CA_FILE") {
                 Ok(path) => GraphPoetClient::private_tls(
                     endpoint,

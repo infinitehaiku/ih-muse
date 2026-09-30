@@ -149,6 +149,10 @@ pub struct DatabaseSnapshot {
     pub replication_lag_bytes: Option<u64>,
     /// Cumulative PostgreSQL checkpoint writer time in seconds, when unit-qualified.
     pub checkpoint_write_seconds_total: Option<f64>,
+    /// Cumulative keys removed to respect a memory limit (Redis `evicted_keys`).
+    pub evictions: Option<u64>,
+    /// Keys stored across all logical databases (Redis `# Keyspace` totals).
+    pub keys: Option<u64>,
 }
 
 /// Read-only Redis `INFO` response adapter. It never requests or stores keys.
@@ -165,7 +169,17 @@ impl RedisInfoAdapter {
         let response = std::str::from_utf8(response)
             .map_err(|_| MuseError::Validation("Redis INFO response is not UTF-8".into()))?;
         let mut values = BTreeMap::new();
+        let mut keys: Option<u64> = None;
         for line in response.lines() {
+            if line.trim_end() == "# Keyspace" {
+                // The section is present, so an empty keyspace is a measured zero.
+                keys.get_or_insert(0);
+                continue;
+            }
+            if let Some(count) = redis_keyspace_keys(line) {
+                keys = Some(keys.unwrap_or(0).saturating_add(count));
+                continue;
+            }
             if let Some((key, value)) = line.split_once(':') {
                 if key.len() <= 128 && value.len() <= 64 {
                     if let Ok(number) = value.trim().parse::<u64>() {
@@ -188,8 +202,23 @@ impl RedisInfoAdapter {
             // master_repl_offset is an absolute byte position, not replication lag.
             replication_lag_bytes: None,
             checkpoint_write_seconds_total: None,
+            evictions: values.get("evicted_keys").copied(),
+            keys,
         })
     }
+}
+
+/// Key count of one Redis `INFO keyspace` line such as `db0:keys=10,expires=2,avg_ttl=0`.
+fn redis_keyspace_keys(line: &str) -> Option<u64> {
+    let (database, fields) = line.split_once(':')?;
+    let index = database.strip_prefix("db")?;
+    if index.is_empty() || index.len() > 5 || !index.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    fields
+        .split(',')
+        .find_map(|field| field.strip_prefix("keys="))
+        .and_then(|count| count.trim().parse::<u64>().ok())
 }
 
 /// One unit-qualified point from the maintained PostgreSQL OTel receiver.
@@ -674,6 +703,13 @@ impl GraphMuse {
                 snapshot.replication_lag_bytes,
                 false,
             ),
+            (
+                "database.cache.evictions",
+                "{key}",
+                snapshot.evictions,
+                true,
+            ),
+            ("database.keys", "{key}", snapshot.keys, false),
         ] {
             let metric_value = value.map_or(
                 MetricObservation::Missing {
@@ -1866,6 +1902,46 @@ mod tests {
             }
         ));
         graph.validate().unwrap();
+    }
+
+    #[test]
+    fn redis_info_reports_evictions_and_total_keys_across_databases() {
+        let info = b"# Stats\r\nevicted_keys:17\r\nexpired_keys:3\r\n# Keyspace\r\ndb0:keys=10,expires=2,avg_ttl=0,subexpiry=0\r\ndb3:keys=5,expires=0,avg_ttl=0\r\n";
+        let redis = RedisInfoAdapter::parse(info).unwrap();
+        assert_eq!(redis.evictions, Some(17));
+        assert_eq!(redis.keys, Some(15));
+        // An empty keyspace section is a measured zero, not a missing value.
+        let empty = RedisInfoAdapter::parse(b"evicted_keys:0\r\n# Keyspace\r\n").unwrap();
+        assert_eq!(empty.keys, Some(0));
+        // A response without a keyspace section does not claim zero keys.
+        let partial = RedisInfoAdapter::parse(b"connected_clients:1\r\n").unwrap();
+        assert_eq!(partial.keys, None);
+        assert_eq!(partial.evictions, None);
+
+        let mut muse = GraphMuse::new(config()).unwrap();
+        let mut batch = muse.collect(&[]).unwrap();
+        muse.append_database_snapshot(&mut batch, "redis", "redis-0", &redis)
+            .unwrap();
+        let value = |name: &str| {
+            batch
+                .observations
+                .iter()
+                .find(|item| item.descriptor.name == name)
+                .map(|item| item.value.clone())
+                .unwrap()
+        };
+        assert!(matches!(
+            value("database.cache.evictions"),
+            MetricObservation::Measured {
+                value: TypedMetricValue::Sum(Number::U64(17))
+            }
+        ));
+        assert!(matches!(
+            value("database.keys"),
+            MetricObservation::Measured {
+                value: TypedMetricValue::Gauge(Number::U64(15))
+            }
+        ));
     }
 
     #[test]
