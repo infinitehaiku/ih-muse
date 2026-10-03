@@ -323,6 +323,41 @@ fn the_macos_example_is_valid_and_matches_the_owner_mock() {
         .any(|panel| &panel.id == id && panel.group_by.is_some())));
 }
 
+/// Every example under `examples/dashboards` is valid, passes the JSON
+/// Schema (raw file and serialized form), and places each panel exactly
+/// once: in the implicit Measurements row (it has a golden signal) or in a
+/// block.
+#[test]
+fn every_shipped_example_is_valid_and_places_each_panel_once() {
+    let dir = workspace_file("examples/dashboards");
+    let mut ids = Vec::new();
+    for entry in std::fs::read_dir(&dir).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("json") {
+            continue;
+        }
+        let raw: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        assert!(
+            schema_errors(&raw).is_empty(),
+            "{path:?}: {:?}",
+            schema_errors(&raw)
+        );
+        let definition: DashboardDefinition = serde_json::from_value(raw).unwrap();
+        definition.validate().unwrap();
+        assert!(schema_errors(&serde_json::to_value(&definition).unwrap()).is_empty());
+        for panel in &definition.panels {
+            let placed = definition
+                .blocks
+                .iter()
+                .any(|block| block.panels.contains(&panel.id));
+            assert_eq!(placed, panel.signal.is_none(), "{path:?}: {}", panel.id);
+        }
+        ids.push(definition.id);
+    }
+    ids.sort();
+    assert_eq!(ids, ["k8s.cluster", "macos.host"]);
+}
+
 #[test]
 fn invalid_definitions_name_their_rule() {
     use DashboardDefinitionError as E;

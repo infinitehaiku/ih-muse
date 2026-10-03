@@ -5,6 +5,7 @@
 #![allow(clippy::disallowed_types)]
 
 pub mod config;
+pub mod dashboard;
 pub mod error;
 pub mod exceptions;
 pub mod muse;

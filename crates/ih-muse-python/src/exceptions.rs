@@ -22,3 +22,4 @@ create_exception!(
 );
 create_exception!(ih_muse.exceptions, InvalidMetricCodeError, MuseError);
 create_exception!(ih_muse.exceptions, DurationConversionError, MuseError);
+create_exception!(ih_muse.exceptions, DashboardDefinitionError, MuseError);
