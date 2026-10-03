@@ -1,0 +1,101 @@
+{
+  "id": "otel.redis",
+  "revision": 1,
+  "title": "Redis",
+  "description": "Commands, memory, clients and keyspace hits from a Muse reading Redis INFO beside the server.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "root_attributes": [
+        {
+          "key": "ih.database.role",
+          "value": "redis"
+        }
+      ]
+    }
+  },
+  "panels": [
+    {
+      "id": "commands",
+      "title": "Commands per second",
+      "metric": "database.commands",
+      "aggregation": "rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "memory",
+      "title": "Memory used",
+      "metric": "database.storage.bytes",
+      "aggregation": "last",
+      "signal": "saturation"
+    },
+    {
+      "id": "clients",
+      "title": "Connected clients",
+      "metric": "database.connections",
+      "aggregation": "last"
+    },
+    {
+      "id": "blocked",
+      "title": "Blocked clients",
+      "metric": "database.waits",
+      "aggregation": "last"
+    },
+    {
+      "id": "hits",
+      "title": "Keyspace hits",
+      "metric": "database.cache.hits",
+      "aggregation": "rate"
+    },
+    {
+      "id": "misses",
+      "title": "Keyspace misses",
+      "metric": "database.cache.misses",
+      "aggregation": "rate",
+      "signal": "errors"
+    },
+    {
+      "id": "persistence",
+      "title": "Persistence size (AOF or snapshot copy-on-write)",
+      "metric": "database.persistence.bytes",
+      "aggregation": "last"
+    },
+    {
+      "id": "keys",
+      "title": "Keys",
+      "metric": "database.keys",
+      "aggregation": "last"
+    },
+    {
+      "id": "evictions",
+      "title": "Evicted keys",
+      "metric": "database.cache.evictions",
+      "aggregation": "rate"
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Clients",
+      "panels": [
+        "clients",
+        "blocked"
+      ]
+    },
+    {
+      "label": "Keyspace",
+      "text": "Hits, keys and evictions. Evictions mean Redis hit its memory limit and dropped keys.",
+      "panels": [
+        "hits",
+        "keys",
+        "evictions"
+      ]
+    },
+    {
+      "label": "Persistence",
+      "panels": [
+        "persistence"
+      ]
+    }
+  ],
+  "columns": 3
+}

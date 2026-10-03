@@ -109,3 +109,51 @@ fn schema_command_prints_the_committed_schema() {
             .unwrap();
     assert_eq!(out, committed);
 }
+
+/// Every pack in `dashboards/packs` passes the checker, is an `otel` pack
+/// recognized from the source's data, and the folder holds the seven packs
+/// converted from Poet's built-in OpenTelemetry profiles.
+#[test]
+fn every_pack_passes_the_checker() {
+    let folder = workspace_file("dashboards/packs");
+    let mut packs: Vec<PathBuf> = std::fs::read_dir(&folder)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
+        .collect();
+    packs.sort();
+    let mut args: Vec<&std::ffi::OsStr> = vec!["dashboard".as_ref(), "check".as_ref()];
+    args.extend(packs.iter().map(|path| path.as_os_str()));
+    let (ok, out) = cli(&args);
+    assert!(ok, "{out}");
+    assert_eq!(out.lines().count(), packs.len(), "{out}");
+    assert!(out.lines().all(|line| line.starts_with("OK ")), "{out}");
+    let mut ids = Vec::new();
+    for path in &packs {
+        let pack: ih_muse_proto::dashboard::DashboardDefinition =
+            serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        assert_eq!(pack.muse_kind, "otel", "{}", path.display());
+        assert!(
+            matches!(
+                pack.applies_to,
+                ih_muse_proto::dashboard::DashboardAppliesTo::Recognition(_)
+            ),
+            "a pack is recognized from the source's data: {}",
+            path.display()
+        );
+        ids.push(pack.id);
+    }
+    ids.sort();
+    assert_eq!(
+        ids,
+        [
+            "otel.collector",
+            "otel.jvm",
+            "otel.mongodb",
+            "otel.postgresql",
+            "otel.rabbitmq",
+            "otel.redis",
+            "otel.rustvello"
+        ]
+    );
+}

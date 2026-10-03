@@ -1,0 +1,154 @@
+{
+  "id": "otel.collector",
+  "revision": 1,
+  "title": "OpenTelemetry Collector",
+  "description": "Metric points and spans each receiver accepted or refused and each exporter sent or failed to send, the export queue, memory and CPU, from the Collector's own telemetry sent over OTLP.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "scope_names": [
+        "go.opentelemetry.io/collector/service",
+        "go.opentelemetry.io/collector/receiver/receiverhelper",
+        "go.opentelemetry.io/collector/exporter/exporterhelper",
+        "go.opentelemetry.io/collector/processor/processorhelper"
+      ],
+      "metric_prefixes": [
+        "otelcol"
+      ],
+      "min_metrics": 3
+    }
+  },
+  "panels": [
+    {
+      "id": "accepted_points",
+      "title": "Metric points accepted",
+      "metric": "otelcol_receiver_accepted_metric_points",
+      "aggregation": "rate",
+      "signal": "traffic",
+      "group_by": {
+        "attribute": "receiver"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "refused_points",
+      "title": "Metric points refused",
+      "metric": "otelcol_receiver_refused_metric_points",
+      "aggregation": "rate",
+      "signal": "errors",
+      "group_by": {
+        "attribute": "receiver"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "sent_points",
+      "title": "Metric points exported",
+      "metric": "otelcol_exporter_sent_metric_points",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "exporter"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "failed_points",
+      "title": "Metric points failed to export",
+      "metric": "otelcol_exporter_send_failed_metric_points",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "exporter"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "accepted_spans",
+      "title": "Spans accepted",
+      "metric": "otelcol_receiver_accepted_spans",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "receiver"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "refused_spans",
+      "title": "Spans refused",
+      "metric": "otelcol_receiver_refused_spans",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "receiver"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "sent_spans",
+      "title": "Spans exported",
+      "metric": "otelcol_exporter_sent_spans",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "exporter"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "failed_spans",
+      "title": "Spans failed to export",
+      "metric": "otelcol_exporter_send_failed_spans",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "exporter"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "queue",
+      "title": "Export queue",
+      "metric": "otelcol_exporter_queue_size",
+      "aggregation": "max",
+      "signal": "saturation",
+      "group_by": {
+        "attribute": "exporter"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "memory",
+      "title": "Memory (RSS)",
+      "metric": "otelcol_process_memory_rss",
+      "aggregation": "last"
+    },
+    {
+      "id": "cpu",
+      "title": "CPU (cores)",
+      "metric": "otelcol_process_cpu_seconds",
+      "aggregation": "rate"
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Metric points",
+      "panels": [
+        "sent_points",
+        "failed_points"
+      ]
+    },
+    {
+      "label": "Spans",
+      "panels": [
+        "accepted_spans",
+        "refused_spans",
+        "sent_spans",
+        "failed_spans"
+      ]
+    },
+    {
+      "label": "Process",
+      "panels": [
+        "memory",
+        "cpu"
+      ]
+    }
+  ],
+  "columns": 4
+}

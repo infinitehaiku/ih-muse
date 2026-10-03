@@ -1,0 +1,88 @@
+{
+  "id": "otel.mongodb",
+  "revision": 1,
+  "title": "MongoDB",
+  "description": "Operations, connections, memory and network from the OpenTelemetry Collector mongodb receiver.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "scope_names": [
+        "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver",
+        "otelcol/mongodbreceiver"
+      ],
+      "metric_prefixes": [
+        "mongodb."
+      ],
+      "min_metrics": 2
+    }
+  },
+  "panels": [
+    {
+      "id": "operations",
+      "title": "Operations",
+      "metric": "mongodb.operation.count",
+      "aggregation": "rate",
+      "signal": "traffic",
+      "group_by": {
+        "attribute": "operation"
+      },
+      "top_n": 6
+    },
+    {
+      "id": "operation_time",
+      "title": "Operation time spent",
+      "metric": "mongodb.operation.time",
+      "aggregation": "rate"
+    },
+    {
+      "id": "connections",
+      "title": "Connections",
+      "metric": "mongodb.connection.count",
+      "aggregation": "last",
+      "signal": "saturation",
+      "group_by": {
+        "attribute": "type"
+      },
+      "top_n": 4
+    },
+    {
+      "id": "memory",
+      "title": "Memory",
+      "metric": "mongodb.memory.usage",
+      "aggregation": "last",
+      "group_by": {
+        "attribute": "type"
+      },
+      "top_n": 4
+    },
+    {
+      "id": "cursors",
+      "title": "Open cursors",
+      "metric": "mongodb.cursor.count",
+      "aggregation": "last"
+    },
+    {
+      "id": "data_size",
+      "title": "Data size",
+      "metric": "mongodb.data.size",
+      "aggregation": "last"
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Work",
+      "panels": [
+        "operation_time",
+        "cursors"
+      ]
+    },
+    {
+      "label": "Memory and data",
+      "panels": [
+        "memory",
+        "data_size"
+      ]
+    }
+  ],
+  "columns": 2
+}
