@@ -1,0 +1,100 @@
+{
+  "id": "k8s.cluster",
+  "revision": 1,
+  "title": "Kubernetes cluster",
+  "description": "Running pods, pods not ready, container restarts and the CPU and memory of containers and nodes, observed by the Kubernetes Muse.",
+  "muse_kind": "k8s",
+  "applies_to": {
+    "muse_roots": {
+      "identity_kinds": [
+        "cluster"
+      ]
+    }
+  },
+  "panels": [
+    {
+      "id": "pods_running",
+      "title": "Running pods",
+      "metric": "k8s.pod.phase.running",
+      "aggregation": "sum",
+      "signal": "traffic"
+    },
+    {
+      "id": "pods_not_ready",
+      "title": "Pods not ready",
+      "metric": "k8s.pod.not_ready",
+      "aggregation": "sum",
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1,
+        "critical": 3
+      }
+    },
+    {
+      "id": "restarts",
+      "title": "Container restarts",
+      "metric": "k8s.container.restarts",
+      "aggregation": "rate",
+      "signal": "errors",
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "cpu",
+      "title": "Container CPU (cores)",
+      "metric": "k8s.cpu.usage",
+      "aggregation": "avg",
+      "signal": "saturation",
+      "filters": [
+        {
+          "key": "k8s.level",
+          "op": "eq",
+          "value": "container"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "memory",
+      "title": "Container memory",
+      "metric": "k8s.memory.usage",
+      "aggregation": "avg",
+      "filters": [
+        {
+          "key": "k8s.level",
+          "op": "eq",
+          "value": "container"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "node_cpu",
+      "title": "Node CPU (cores)",
+      "metric": "k8s.cpu.usage",
+      "aggregation": "avg",
+      "filters": [
+        {
+          "key": "k8s.level",
+          "op": "eq",
+          "value": "node"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 8
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Cluster: what uses it",
+      "text": "The 8 containers that use the most memory and the 8 busiest nodes.",
+      "panels": [
+        "memory",
+        "node_cpu"
+      ]
+    }
+  ],
+  "columns": 3
+}
