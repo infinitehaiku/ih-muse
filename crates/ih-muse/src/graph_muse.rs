@@ -544,6 +544,7 @@ impl GraphMuse {
             events: Vec::new(),
             derivations: Vec::new(),
             availability: Vec::new(),
+            dashboards: Vec::new(),
         };
         self.append_host_metrics(&mut batch, &host, now);
         self.append_processes(&mut batch, &host, pids, now)?;
@@ -2032,6 +2033,7 @@ mod tests {
             events: Vec::new(),
             derivations: Vec::new(),
             availability: Vec::new(),
+            dashboards: Vec::new(),
         };
 
         let span = ServiceTraceSpan {

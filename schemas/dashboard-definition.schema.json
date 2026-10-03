@@ -1,0 +1,378 @@
+{
+  "$defs": {
+    "AttributeRule": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "maxLength": 255,
+          "minLength": 1,
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 255,
+          "type": "string"
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "type": "object"
+    },
+    "DashboardAppliesTo": {
+      "description": "Which sources the definition is drawn for: the owning Muse's own roots, or recognition rules for a pack.",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "muse_roots": {
+              "additionalProperties": false,
+              "properties": {
+                "entity_kinds": {
+                  "items": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 32,
+                  "type": "array"
+                },
+                "identity_kinds": {
+                  "items": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 32,
+                  "type": "array"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "muse_roots"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "recognition": {
+              "$ref": "#/$defs/ProfileRecognition"
+            }
+          },
+          "required": [
+            "recognition"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "DashboardBlock": {
+      "additionalProperties": false,
+      "description": "A titled group of panels drawn after the implicit Measurements row (panels with a golden signal).",
+      "properties": {
+        "label": {
+          "maxLength": 80,
+          "minLength": 1,
+          "type": "string"
+        },
+        "panels": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 24,
+          "minItems": 1,
+          "type": "array"
+        },
+        "text": {
+          "description": "Plain text or Markdown.",
+          "maxLength": 4096,
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "panels"
+      ],
+      "type": "object"
+    },
+    "PanelFilter": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "op": {
+          "enum": [
+            "eq",
+            "ne",
+            "ge",
+            "gt",
+            "le",
+            "lt",
+            "prefix"
+          ],
+          "type": "string"
+        },
+        "value": {}
+      },
+      "required": [
+        "key",
+        "op",
+        "value"
+      ],
+      "type": "object"
+    },
+    "PanelGroupBy": {
+      "oneOf": [
+        {
+          "description": "One series per measured entity.",
+          "enum": [
+            "entity"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "attribute": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "attribute"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "PanelSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "aggregation": {
+          "enum": [
+            "avg",
+            "max",
+            "min",
+            "last",
+            "sum",
+            "rate",
+            "count",
+            "count_rate",
+            "mean",
+            "p50",
+            "p90",
+            "p95",
+            "p99"
+          ],
+          "type": "string"
+        },
+        "filters": {
+          "items": {
+            "$ref": "#/$defs/PanelFilter"
+          },
+          "maxItems": 8,
+          "type": "array"
+        },
+        "group_by": {
+          "$ref": "#/$defs/PanelGroupBy"
+        },
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9_.-]+$",
+          "type": "string"
+        },
+        "metric": {
+          "description": "Exact metric name as stored (OTel or Muse metric code).",
+          "maxLength": 255,
+          "minLength": 1,
+          "type": "string"
+        },
+        "signal": {
+          "enum": [
+            "traffic",
+            "errors",
+            "latency",
+            "saturation"
+          ],
+          "type": "string"
+        },
+        "thresholds": {
+          "$ref": "#/$defs/PanelThresholds"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        },
+        "top_n": {
+          "maximum": 20,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "metric",
+        "aggregation"
+      ],
+      "type": "object"
+    },
+    "PanelThresholds": {
+      "additionalProperties": false,
+      "properties": {
+        "critical": {
+          "type": "number"
+        },
+        "higher_is_worse": {
+          "default": true,
+          "type": "boolean"
+        },
+        "warning": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "warning",
+        "critical"
+      ],
+      "type": "object"
+    },
+    "ProfileRecognition": {
+      "additionalProperties": false,
+      "description": "Any listed entity kind, identity kind, scope name or root attribute matches; otherwise at least min_metrics metrics with one of the prefixes.",
+      "properties": {
+        "entity_kinds": {
+          "items": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array"
+        },
+        "identity_kinds": {
+          "items": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array"
+        },
+        "metric_prefixes": {
+          "items": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array"
+        },
+        "min_metrics": {
+          "default": 1,
+          "maximum": 64,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "root_attributes": {
+          "items": {
+            "$ref": "#/$defs/AttributeRule"
+          },
+          "maxItems": 32,
+          "type": "array"
+        },
+        "scope_names": {
+          "items": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$id": "https://infinitehaiku.com/schemas/dashboard-definition.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A default dashboard a Muse's author defines in the Muse's code (or a pack for OpenTelemetry sources). Data only: no queries, scripts, URLs or credentials. The Rust validate() also enforces cross-field rules (id prefix, block panel ids, threshold order).",
+  "properties": {
+    "applies_to": {
+      "$ref": "#/$defs/DashboardAppliesTo"
+    },
+    "blocks": {
+      "items": {
+        "$ref": "#/$defs/DashboardBlock"
+      },
+      "maxItems": 12,
+      "type": "array"
+    },
+    "columns": {
+      "description": "Panels per row.",
+      "maximum": 4,
+      "minimum": 2,
+      "type": "integer"
+    },
+    "description": {
+      "maxLength": 1024,
+      "type": "string"
+    },
+    "id": {
+      "description": "`<muse_kind>.<name>`, for example `macos.host`.",
+      "maxLength": 96,
+      "pattern": "^[a-z0-9_-]+\\.[a-z0-9_.-]*[a-z0-9_-]$",
+      "type": "string"
+    },
+    "muse_kind": {
+      "description": "The Muse kind that owns the definition.",
+      "maxLength": 32,
+      "minLength": 1,
+      "pattern": "^[a-z0-9_-]+$",
+      "type": "string"
+    },
+    "muse_versions": {
+      "description": "Semver requirement on the Muse version the definition suits.",
+      "maxLength": 64,
+      "minLength": 1,
+      "type": "string"
+    },
+    "panels": {
+      "items": {
+        "$ref": "#/$defs/PanelSpec"
+      },
+      "maxItems": 24,
+      "minItems": 1,
+      "type": "array"
+    },
+    "revision": {
+      "description": "Starts at 1; bumped whenever the content changes.",
+      "maximum": 4294967295,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "title": {
+      "maxLength": 120,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "revision",
+    "title",
+    "description",
+    "muse_kind",
+    "applies_to",
+    "panels"
+  ],
+  "title": "DashboardDefinition",
+  "type": "object"
+}
