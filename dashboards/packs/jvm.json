@@ -1,0 +1,129 @@
+{
+  "id": "otel.jvm",
+  "revision": 1,
+  "title": "JVM service",
+  "description": "HTTP traffic, errors and latency percentiles plus JVM CPU, heap, threads and connection pool from the OpenTelemetry Java agent.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "scope_names": [
+        "io.opentelemetry.runtime-telemetry-java8",
+        "io.opentelemetry.runtime-telemetry-java17"
+      ],
+      "metric_prefixes": [
+        "jvm."
+      ],
+      "min_metrics": 2
+    }
+  },
+  "panels": [
+    {
+      "id": "requests",
+      "title": "Requests",
+      "metric": "http.server.request.duration",
+      "aggregation": "count_rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "errors",
+      "title": "Server errors (5xx)",
+      "metric": "http.server.request.duration",
+      "aggregation": "count_rate",
+      "signal": "errors",
+      "filters": [
+        {
+          "key": "http.response.status_code",
+          "op": "ge",
+          "value": 500
+        }
+      ]
+    },
+    {
+      "id": "latency_p95",
+      "title": "Latency p95",
+      "metric": "http.server.request.duration",
+      "aggregation": "p95",
+      "signal": "latency",
+      "thresholds": {
+        "warning": 0.5,
+        "critical": 1.0
+      }
+    },
+    {
+      "id": "latency_p50",
+      "title": "Latency p50",
+      "metric": "http.server.request.duration",
+      "aggregation": "p50"
+    },
+    {
+      "id": "cpu",
+      "title": "JVM CPU",
+      "metric": "jvm.cpu.recent_utilization",
+      "aggregation": "avg",
+      "signal": "saturation",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 0.95
+      }
+    },
+    {
+      "id": "heap",
+      "title": "Heap used",
+      "metric": "jvm.memory.used",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "jvm.memory.type",
+          "op": "eq",
+          "value": "heap"
+        }
+      ]
+    },
+    {
+      "id": "threads",
+      "title": "Threads",
+      "metric": "jvm.thread.count",
+      "aggregation": "sum"
+    },
+    {
+      "id": "gc",
+      "title": "GC pauses",
+      "metric": "jvm.gc.duration",
+      "aggregation": "count_rate"
+    },
+    {
+      "id": "db_pool",
+      "title": "DB pool connections",
+      "metric": "db.client.connections.usage",
+      "aggregation": "last",
+      "group_by": {
+        "attribute": "state"
+      },
+      "top_n": 3
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Latency",
+      "panels": [
+        "latency_p50"
+      ]
+    },
+    {
+      "label": "JVM",
+      "text": "Heap, threads and garbage collection pauses of the Java runtime.",
+      "panels": [
+        "heap",
+        "threads",
+        "gc"
+      ]
+    },
+    {
+      "label": "Database pool",
+      "panels": [
+        "db_pool"
+      ]
+    }
+  ],
+  "columns": 3
+}

@@ -1,0 +1,143 @@
+{
+  "id": "otel.rustvello",
+  "revision": 1,
+  "title": "Rustvello",
+  "description": "Task throughput and failures per task from one Rustvello runner's OTLP lifecycle export; queue depth, retries, latency and heartbeat once the runner reports them.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "root_attributes": [
+        {
+          "key": "rustvello.app.id"
+        }
+      ],
+      "scope_names": [
+        "rustvello.lifecycle"
+      ],
+      "metric_prefixes": [
+        "rustvello."
+      ],
+      "min_metrics": 1
+    }
+  },
+  "panels": [
+    {
+      "id": "throughput",
+      "title": "Completed tasks",
+      "metric": "rustvello.task.completed",
+      "aggregation": "rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "failures",
+      "title": "Failed tasks",
+      "metric": "rustvello.task.completed",
+      "aggregation": "rate",
+      "signal": "errors",
+      "filters": [
+        {
+          "key": "outcome",
+          "op": "eq",
+          "value": "failed"
+        }
+      ]
+    },
+    {
+      "id": "throughput_by_task",
+      "title": "Completed by task",
+      "metric": "rustvello.task.completed",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "failures_by_task",
+      "title": "Failures by task",
+      "metric": "rustvello.task.completed",
+      "aggregation": "rate",
+      "filters": [
+        {
+          "key": "outcome",
+          "op": "eq",
+          "value": "failed"
+        }
+      ],
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "throughput_by_queue",
+      "title": "Completed by queue",
+      "metric": "rustvello.task.completed",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "rustvello.queue"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "latency_p95_by_task",
+      "title": "Task duration p95 by task",
+      "metric": "rustvello.task.duration",
+      "aggregation": "p95",
+      "signal": "latency",
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "queue_depth",
+      "title": "Queue depth",
+      "metric": "rustvello.queue.depth",
+      "aggregation": "last",
+      "signal": "saturation",
+      "group_by": {
+        "attribute": "rustvello.queue"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "retries",
+      "title": "Retries",
+      "metric": "rustvello.task.retries",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "heartbeat_age",
+      "title": "Runner heartbeat age",
+      "metric": "rustvello.runner.heartbeat_age",
+      "aggregation": "max",
+      "thresholds": {
+        "warning": 5,
+        "critical": 15
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "label": "By task",
+      "panels": [
+        "throughput_by_task",
+        "failures_by_task",
+        "retries"
+      ]
+    },
+    {
+      "label": "Runner",
+      "panels": [
+        "throughput_by_queue",
+        "heartbeat_age"
+      ]
+    }
+  ],
+  "columns": 3
+}

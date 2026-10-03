@@ -1,0 +1,129 @@
+{
+  "id": "otel.rabbitmq",
+  "revision": 1,
+  "title": "RabbitMQ",
+  "description": "Messages published, delivered and acknowledged, queue depth, connections, consumers, memory and alarms of one RabbitMQ node, from the rabbitmq_prometheus plugin scraped by the OpenTelemetry Collector.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "metric_prefixes": [
+        "rabbitmq_"
+      ],
+      "min_metrics": 3
+    }
+  },
+  "panels": [
+    {
+      "id": "published",
+      "title": "Messages published",
+      "metric": "rabbitmq_global_messages_received_total",
+      "aggregation": "rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "delivered",
+      "title": "Messages delivered",
+      "metric": "rabbitmq_global_messages_delivered_total",
+      "aggregation": "rate"
+    },
+    {
+      "id": "acknowledged",
+      "title": "Messages acknowledged",
+      "metric": "rabbitmq_global_messages_acknowledged_total",
+      "aggregation": "rate"
+    },
+    {
+      "id": "ready",
+      "title": "Messages ready (queue depth)",
+      "metric": "rabbitmq_queue_messages_ready",
+      "aggregation": "last",
+      "signal": "saturation"
+    },
+    {
+      "id": "unacked",
+      "title": "Messages unacknowledged",
+      "metric": "rabbitmq_queue_messages_unacked",
+      "aggregation": "last"
+    },
+    {
+      "id": "redelivered",
+      "title": "Messages redelivered",
+      "metric": "rabbitmq_global_messages_redelivered_total",
+      "aggregation": "rate"
+    },
+    {
+      "id": "unroutable",
+      "title": "Unroutable messages dropped",
+      "metric": "rabbitmq_global_messages_unroutable_dropped_total",
+      "aggregation": "rate",
+      "signal": "errors"
+    },
+    {
+      "id": "connections",
+      "title": "Connections",
+      "metric": "rabbitmq_connections",
+      "aggregation": "last"
+    },
+    {
+      "id": "consumers",
+      "title": "Consumers",
+      "metric": "rabbitmq_consumers",
+      "aggregation": "last"
+    },
+    {
+      "id": "memory",
+      "title": "Memory (RSS)",
+      "metric": "rabbitmq_process_resident_memory_bytes",
+      "aggregation": "last"
+    },
+    {
+      "id": "memory_alarm",
+      "title": "Memory alarm",
+      "metric": "rabbitmq_alarms_memory_used_watermark",
+      "aggregation": "max",
+      "thresholds": {
+        "warning": 1,
+        "critical": 1
+      }
+    },
+    {
+      "id": "disk_alarm",
+      "title": "Free disk alarm",
+      "metric": "rabbitmq_alarms_free_disk_space_watermark",
+      "aggregation": "max",
+      "thresholds": {
+        "warning": 1,
+        "critical": 1
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Message flow",
+      "text": "Messages delivered, acknowledged and redelivered. Redeliveries mean consumers failed or rejected messages.",
+      "panels": [
+        "delivered",
+        "acknowledged",
+        "redelivered",
+        "unacked"
+      ]
+    },
+    {
+      "label": "Clients",
+      "panels": [
+        "connections",
+        "consumers"
+      ]
+    },
+    {
+      "label": "Node health",
+      "text": "Memory and the alarms that block publishers when raised.",
+      "panels": [
+        "memory",
+        "memory_alarm",
+        "disk_alarm"
+      ]
+    }
+  ],
+  "columns": 3
+}
