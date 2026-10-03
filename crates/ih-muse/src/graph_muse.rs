@@ -532,8 +532,8 @@ impl GraphMuse {
                 ),
             ],
             relations: vec![relation(
-                environment.clone(),
                 org,
+                environment.clone(),
                 RelationKind::Contains,
                 0,
                 u64::MAX,
@@ -1072,8 +1072,8 @@ impl GraphMuse {
             },
         );
         batch.relations.push(relation(
-            cluster.clone(),
             org,
+            cluster.clone(),
             RelationKind::Contains,
             0,
             u64::MAX,
@@ -1101,8 +1101,8 @@ impl GraphMuse {
                 )]),
             ));
             batch.relations.push(relation(
-                namespace.clone(),
                 cluster.clone(),
+                namespace.clone(),
                 RelationKind::Contains,
                 0,
                 u64::MAX,
@@ -1129,8 +1129,8 @@ impl GraphMuse {
             ));
             if let Some(namespace) = &namespace {
                 batch.relations.push(relation(
-                    pod.clone(),
                     namespace.clone(),
+                    pod.clone(),
                     RelationKind::Contains,
                     now,
                     u64::MAX,
@@ -1159,8 +1159,8 @@ impl GraphMuse {
                     )]),
                 ));
                 batch.relations.push(relation(
-                    node.clone(),
                     cluster.clone(),
+                    node.clone(),
                     RelationKind::Contains,
                     0,
                     u64::MAX,
@@ -1211,8 +1211,8 @@ impl GraphMuse {
                     .entities
                     .push(entity(container.clone(), now, u64::MAX, BTreeMap::new()));
                 batch.relations.push(relation(
-                    container.clone(),
                     pod.clone(),
+                    container.clone(),
                     RelationKind::Contains,
                     now,
                     u64::MAX,
@@ -1771,6 +1771,104 @@ mod tests {
                 && relation.kind == RelationKind::ExecutesOn
         }));
     }
+
+    /// A short role name for an entity, used to pin relation directions.
+    fn role(key: &EntityKey) -> String {
+        match &key.identity {
+            EntityIdentity::Organization { .. } => "organization".into(),
+            EntityIdentity::StandaloneEnvironment { .. } => "environment".into(),
+            EntityIdentity::Cluster { .. } => "cluster".into(),
+            EntityIdentity::Host { .. } => "host".into(),
+            EntityIdentity::Kubernetes { resource_kind, .. } => resource_kind.clone(),
+            EntityIdentity::Container { .. } => "container".into(),
+            EntityIdentity::Process { .. } => "process".into(),
+            EntityIdentity::Runner { .. } => "runner".into(),
+            other => format!("{other:?}"),
+        }
+    }
+
+    #[test]
+    fn every_emitted_relation_points_from_parent_or_dependent_the_contract_way() {
+        // The graph contract (ih-muse-proto graph_contract.rs) and Poet's
+        // relation_rule put the parent first in `contains`, and the placed
+        // thing first in `scheduled_on` / `executes_on`. A reversed
+        // `contains` made cycles in Poet's views (2026-10-03, k-lab ih-main).
+        let mut config = config();
+        config.kubernetes = KubernetesContext {
+            trusted: true,
+            cluster_uid: Some("cluster-uid".into()),
+            namespace_uid: Some("namespace-uid".into()),
+            namespace_name: Some("ih-main".into()),
+            pod_uid: Some("pod-uid".into()),
+            pod_name: Some("worker-pod".into()),
+            container_name: Some("worker".into()),
+            container_id: Some("containerd://abc".into()),
+            node_uid: Some("node-uid".into()),
+            node_name: Some("node-a".into()),
+            ..KubernetesContext::default()
+        };
+        config.rustvello_runner = Some(RustvelloRunnerContext {
+            application_id: "shibuya".into(),
+            runner_id: "runner-a".into(),
+            pid: std::process::id(),
+        });
+        let batch = GraphMuse::new(config).unwrap().collect(&[]).unwrap();
+        let edges: std::collections::BTreeSet<(String, RelationKind, String)> = batch
+            .relations
+            .iter()
+            .map(|relation| {
+                (
+                    role(&relation.subject),
+                    relation.kind.clone(),
+                    role(&relation.object),
+                )
+            })
+            .collect();
+        let contains: std::collections::BTreeSet<(String, String)> = edges
+            .iter()
+            .filter(|(_, kind, _)| *kind == RelationKind::Contains)
+            .map(|(subject, _, object)| (subject.clone(), object.clone()))
+            .collect();
+        let expected_contains: std::collections::BTreeSet<(String, String)> = [
+            ("organization", "environment"),
+            ("organization", "cluster"),
+            ("cluster", "namespace"),
+            ("cluster", "node"),
+            ("namespace", "pod"),
+            ("pod", "container"),
+        ]
+        .into_iter()
+        .map(|(subject, object)| (subject.to_string(), object.to_string()))
+        .collect();
+        assert_eq!(contains, expected_contains);
+        for (subject, object) in [("pod", "node")] {
+            assert!(
+                edges.contains(&(subject.into(), RelationKind::ScheduledOn, object.into())),
+                "{subject} scheduled_on {object}"
+            );
+        }
+        for (subject, object) in [("runner", "process"), ("process", "container")] {
+            assert!(
+                edges.contains(&(subject.into(), RelationKind::ExecutesOn, object.into())),
+                "{subject} executes_on {object}"
+            );
+        }
+        // No pair is related both ways, whatever the kind.
+        for relation in &batch.relations {
+            assert!(!batch
+                .relations
+                .iter()
+                .any(|other| other.kind == relation.kind
+                    && other.subject == relation.object
+                    && other.object == relation.subject));
+        }
+        // Only the kinds pinned here (and TraceParent, pinned by the span test) are emitted.
+        assert!(edges.iter().all(|(_, kind, _)| matches!(
+            kind,
+            RelationKind::Contains | RelationKind::ScheduledOn | RelationKind::ExecutesOn
+        )));
+    }
+
 
     #[test]
     fn database_adapters_are_allow_list_only_and_secret_free() {
