@@ -1,13 +1,13 @@
 {
   "id": "k8s.cluster",
-  "revision": 2,
+  "revision": 3,
   "title": "Kubernetes cluster",
   "description": "Nodes, pods and containers that are unhealthy now, restarts and OOMKills, memory and CPU against limits and allocatable, workloads and usage, observed by the Kubernetes Muse in every namespace.",
   "muse_kind": "k8s",
   "applies_to": {
     "muse_roots": {
       "identity_kinds": [
-        "cluster"
+        "kubernetes"
       ]
     }
   },

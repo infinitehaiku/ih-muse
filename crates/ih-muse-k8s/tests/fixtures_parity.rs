@@ -111,6 +111,16 @@ fn assert_matches_python(batch: &GraphBatch, expected_file: &str) {
             .is_some_and(|name| METRICS.contains(&name))
     });
     legacy.events.clear();
+    // The cluster now names the Muse's own dashboard, not the built-in.
+    for entity in &mut legacy.entities {
+        if let Some(hint) = entity.attributes.get_mut("ih.dashboard.profile") {
+            assert_eq!(
+                *hint,
+                AttributeValue::String(ih_muse_k8s::dashboards::CLUSTER_DASHBOARD_ID.into())
+            );
+            *hint = AttributeValue::String(ih_muse_k8s::graph::PYTHON_DASHBOARD_PROFILE.into());
+        }
+    }
     let actual = serde_json::to_value(&legacy).unwrap();
     let expected: Value = serde_json::from_str(&fixture(expected_file)).unwrap();
     if let Some(difference) = diff("batch", &actual, &expected) {

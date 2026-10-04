@@ -54,7 +54,7 @@ pub const WARNING: &str = "k8s.warning";
 const BENIGN_WAITING: [&str; 2] = ["ContainerCreating", "PodInitializing"];
 /// Node conditions reported; `Ready` is healthy when `True`, the others
 /// when `False`.
-const NODE_CONDITIONS: [&str; 5] = [
+pub(crate) const NODE_CONDITIONS: [&str; 5] = [
     "Ready",
     "MemoryPressure",
     "DiskPressure",
@@ -545,15 +545,14 @@ impl Detector {
             }
         }
 
-        // The image or its digest changed in place (a new pod is a rollout).
+        // The image digest changed in place (a new pod is a rollout). The
+        // status `image` alone is not compared: the runtime rewrites it once
+        // the image is pulled (a tag becomes `sha256:...`).
         if let Some(previous) = &previous {
-            let image_changed = !container.image.is_empty()
-                && !previous.image.is_empty()
-                && container.image != previous.image;
             let digest_changed = !container.image_id.is_empty()
                 && !previous.image_id.is_empty()
                 && container.image_id != previous.image_id;
-            if image_changed || digest_changed {
+            if digest_changed {
                 let mut attributes: BTreeMap<String, String> = base()
                     .into_iter()
                     .map(|(name, value)| (name.to_string(), value))
@@ -726,8 +725,13 @@ impl Detector {
                     ("k8s.rollout.revision", revision.clone()),
                 ]),
                 summary: format!(
-                    "{kind} {label} revision {} rolled out ({desired}/{desired} ready)",
-                    short_revision(&revision)
+                    "{kind} {label} revision {} rolled out ({desired} desired, {} available)",
+                    short_revision(&revision),
+                    if kind == "deployment" {
+                        status.available_replicas
+                    } else {
+                        status.ready_replicas
+                    }
                 ),
             });
             seen.rolling = None;

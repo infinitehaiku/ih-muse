@@ -118,8 +118,14 @@ pub const LEVEL_ATTRIBUTE: &str = "k8s.level";
 pub const SCOPE_NAME: &str = "ih.k8s.metrics";
 /// Version of [`SCOPE_NAME`]: the metric set, not the Muse.
 pub const SCOPE_VERSION: &str = "2.0.0";
-/// Built-in Poet profile the cluster root names (kept for older Poets).
-pub const DASHBOARD_PROFILE: &str = "orchestrator.kubernetes";
+/// The dashboard the cluster root names (`ih.dashboard.profile`): this
+/// Muse's own definition. A Poet without it recognises the cluster by its
+/// identity and answers with its built-in `orchestrator.kubernetes`. Naming
+/// the built-in here made every Poet answer with it and never with the
+/// definition the Muse sends (found on k-lab, 2026-10-04).
+pub const DASHBOARD_PROFILE: &str = crate::dashboards::CLUSTER_DASHBOARD_ID;
+/// What the Python Muse named (its recorded parity fixtures carry it).
+pub const PYTHON_DASHBOARD_PROFILE: &str = "orchestrator.kubernetes";
 
 const FOREVER: TimeRange = TimeRange {
     from_unix_nano: 0,
@@ -594,7 +600,13 @@ pub fn collect_graph_with(
             None,
         );
         // Phase A: conditions, allocatable as numbers, % of allocatable.
-        for condition in &node.status.conditions {
+        // The standard conditions only: k3s adds its own (`EtcdIsVoter`
+        // is True on every etcd member), which would read as pressure.
+        for condition in
+            node.status.conditions.iter().filter(|condition| {
+                crate::events::NODE_CONDITIONS.contains(&condition.kind.as_str())
+            })
+        {
             for status in ["true", "false", "unknown"] {
                 let current = condition.status.eq_ignore_ascii_case(status);
                 b.record(

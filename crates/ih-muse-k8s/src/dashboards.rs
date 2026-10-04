@@ -16,9 +16,9 @@ use crate::graph::{
     CONTAINER_OOM_KILLS_METRIC, CONTAINER_RESTARTS_METRIC, CONTAINER_WAITING_METRIC,
     CPU_USAGE_METRIC, DEPLOYMENT_AVAILABLE_METRIC, DEPLOYMENT_DESIRED_METRIC, LEVEL_ATTRIBUTE,
     MEMORY_USAGE_METRIC, NODE_CONDITION_METRIC, NODE_CPU_UTILIZATION_METRIC,
-    NODE_MEMORY_REQUEST_UTILIZATION_METRIC, NODE_MEMORY_UTILIZATION_METRIC,
-    POD_NOT_READY_METRIC, POD_RUNNING_METRIC, POD_UNSCHEDULABLE_METRIC,
-    STATEFULSET_READY_METRIC, WAITING_REASON_ATTRIBUTE,
+    NODE_MEMORY_REQUEST_UTILIZATION_METRIC, NODE_MEMORY_UTILIZATION_METRIC, POD_NOT_READY_METRIC,
+    POD_RUNNING_METRIC, POD_UNSCHEDULABLE_METRIC, STATEFULSET_READY_METRIC,
+    WAITING_REASON_ATTRIBUTE,
 };
 use crate::identity::MUSE_KIND;
 
@@ -30,7 +30,7 @@ pub fn dashboard_definitions() -> Vec<DashboardDefinition> {
     vec![cluster_dashboard()]
 }
 
-/// The cluster, revision 2 (k8s and Redis metrics research, 2026-10-04):
+/// The cluster, revision 3 (k8s and Redis metrics research, 2026-10-04):
 /// a health row of 0/1 flags summed (nodes not ready or under pressure,
 /// pods not ready, containers crash-looping or waiting by reason, pending
 /// pods), then stability (restarts, OOMKills), saturation as % of limits
@@ -40,14 +40,19 @@ pub fn dashboard_definitions() -> Vec<DashboardDefinition> {
 pub fn cluster_dashboard() -> DashboardDefinition {
     DashboardDefinition {
         id: CLUSTER_DASHBOARD_ID.into(),
-        revision: 2,
+        // 2 named the identity kind `cluster`, which never matched (k-lab
+        // branch Poet only); 3 is the first that applies.
+        revision: 3,
         title: "Kubernetes cluster".into(),
         description: "Nodes, pods and containers that are unhealthy now, restarts and OOMKills, memory and CPU against limits and allocatable, workloads and usage, observed by the Kubernetes Muse in every namespace.".into(),
         muse_kind: MUSE_KIND.into(),
         muse_versions: Some(concat!(">=", env!("CARGO_PKG_VERSION")).into()),
+        // Poet names a cluster root's identity kind `kubernetes` (as for
+        // every Kubernetes element); `cluster` never matched, so Poets
+        // answered with their built-in profile (k-lab, 2026-10-04).
         applies_to: DashboardAppliesTo::MuseRoots {
             entity_kinds: Vec::new(),
-            identity_kinds: vec!["cluster".into()],
+            identity_kinds: vec!["kubernetes".into()],
         },
         panels: vec![
             panel("pods_not_ready", "Pods not ready", POD_NOT_READY_METRIC, PanelAggregation::Sum)

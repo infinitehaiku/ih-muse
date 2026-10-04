@@ -296,6 +296,37 @@ fn node_condition_changes_are_events_and_a_healthy_node_is_quiet() {
     assert_eq!(ready.severity, Severity::Error);
     assert_eq!(ready.attributes["k8s.node.condition.previous"], "True");
     assert_eq!(ready.time_unix_nano, NOW - 300 * S);
+    // Only the standard conditions become the condition metric (k3s adds
+    // `EtcdIsVoter`, True on every etcd member).
+    let mut voter = node("True", "False", "2026-09-01T00:00:00Z");
+    voter
+        .status
+        .conditions
+        .push(serde_json::from_value(json!({"type": "EtcdIsVoter", "status": "True"})).unwrap());
+    let config = GraphConfig {
+        organization: "o".into(),
+        cluster_uid: "c".into(),
+        cluster_name: None,
+        namespace: "n".into(),
+        all_namespaces: true,
+        expected_interval_ns: 5 * S,
+        source_id: "s".into(),
+        source_revision: "r".into(),
+    };
+    let batch = collect_graph_with(
+        &Snapshot {
+            nodes: vec![voter],
+            ..Snapshot::default()
+        },
+        &config,
+        NOW,
+        None,
+        &[],
+    );
+    assert!(batch.observations.iter().all(|observation| observation
+        .attributes
+        .get("k8s.node.condition.type")
+        != Some(&ih_muse_proto::AttributeValue::String("EtcdIsVoter".into()))));
     // A fresh Muse that finds the node sick reports the same ids.
     assert_eq!(
         ids(&Detector::new().detect(&sick, NOW + 9 * S)),
