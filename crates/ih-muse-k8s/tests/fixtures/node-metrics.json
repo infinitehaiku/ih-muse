@@ -1,0 +1,3 @@
+{"kind":"NodeMetricsList","apiVersion":"metrics.k8s.io/v1beta1","metadata":{},"items":[
+ {"metadata":{"name":"pi00","creationTimestamp":"2026-10-04T09:59:58Z","labels":{"kubernetes.io/arch":"arm64"}},"timestamp":"2026-10-04T09:59:50Z","window":"10.063s","usage":{"cpu":"236528738n","memory":"1275996Ki"}}
+]}

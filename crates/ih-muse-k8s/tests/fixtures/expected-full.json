@@ -1,0 +1,4531 @@
+{
+ "schema_version": 1,
+ "contract_revision": "ih.graph.v1",
+ "entities": [
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "cluster",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.cluster.name": {
+     "type": "string",
+     "value": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
+    },
+    "ih.dashboard.profile": {
+     "type": "string",
+     "value": "orchestrator.kubernetes"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.namespace.name": {
+     "type": "string",
+     "value": "infinite-haiku-p2"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.node.name": {
+     "type": "string",
+     "value": "pi00"
+    },
+    "k8s.node.cpu.allocatable": {
+     "type": "string",
+     "value": "4"
+    },
+    "k8s.node.memory.allocatable": {
+     "type": "string",
+     "value": "7997912Ki"
+    },
+    "k8s.node.arch": {
+     "type": "string",
+     "value": "arm64"
+    },
+    "k8s.node.os": {
+     "type": "string",
+     "value": "linux"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.node.name": {
+     "type": "string",
+     "value": "pi01"
+    },
+    "k8s.node.cpu.allocatable": {
+     "type": "string",
+     "value": "3500m"
+    },
+    "k8s.node.memory.allocatable": {
+     "type": "string",
+     "value": "3.5Gi"
+    },
+    "k8s.node.arch": {
+     "type": "string",
+     "value": "arm64"
+    },
+    "k8s.node.os": {
+     "type": "string",
+     "value": "linux"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.pod.name": {
+     "type": "string",
+     "value": "ih-redis-6d9f7c5b8-x2k4q"
+    },
+    "k8s.pod.ip": {
+     "type": "string",
+     "value": "10.42.0.17"
+    },
+    "k8s.pod.phase": {
+     "type": "string",
+     "value": "Running"
+    },
+    "k8s.namespace.name": {
+     "type": "string",
+     "value": "infinite-haiku-p2"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "container.name": {
+     "type": "string",
+     "value": "redis"
+    },
+    "container.id": {
+     "type": "string",
+     "value": "5f1e2d3c4b5a"
+    },
+    "container.ready": {
+     "type": "bool",
+     "value": true
+    },
+    "container.restart_count": {
+     "type": "i64",
+     "value": 2
+    },
+    "container.state": {
+     "type": "string",
+     "value": "running"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.pod.name": {
+     "type": "string",
+     "value": "ih-shibuya-7c8d9e-abcde"
+    },
+    "k8s.pod.ip": {
+     "type": "string",
+     "value": "10.42.1.20"
+    },
+    "k8s.pod.phase": {
+     "type": "string",
+     "value": "Running"
+    },
+    "k8s.namespace.name": {
+     "type": "string",
+     "value": "infinite-haiku-p2"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "container.name": {
+     "type": "string",
+     "value": "shibuya"
+    },
+    "container.id": {
+     "type": "string",
+     "value": "aaaa1111"
+    },
+    "container.ready": {
+     "type": "bool",
+     "value": true
+    },
+    "container.restart_count": {
+     "type": "i64",
+     "value": 0
+    },
+    "container.state": {
+     "type": "string",
+     "value": "running"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "container.name": {
+     "type": "string",
+     "value": "sidecar"
+    },
+    "container.id": {
+     "type": "string",
+     "value": "bbbb2222"
+    },
+    "container.ready": {
+     "type": "bool",
+     "value": false
+    },
+    "container.restart_count": {
+     "type": "i64",
+     "value": 5
+    },
+    "container.state": {
+     "type": "string",
+     "value": "waiting"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.pod.name": {
+     "type": "string",
+     "value": "ih-kabuki-5b6c7d-pend1"
+    },
+    "k8s.pod.ip": {
+     "type": "string",
+     "value": ""
+    },
+    "k8s.pod.phase": {
+     "type": "string",
+     "value": "Pending"
+    },
+    "k8s.namespace.name": {
+     "type": "string",
+     "value": "infinite-haiku-p2"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.pod.name": {
+     "type": "string",
+     "value": "ih-migrate-job-zz9"
+    },
+    "k8s.pod.ip": {
+     "type": "string",
+     "value": "10.42.1.30"
+    },
+    "k8s.pod.phase": {
+     "type": "string",
+     "value": "Succeeded"
+    },
+    "k8s.namespace.name": {
+     "type": "string",
+     "value": "infinite-haiku-p2"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "container.name": {
+     "type": "string",
+     "value": "migrate"
+    },
+    "container.id": {
+     "type": "string",
+     "value": "d0000000-0000-4000-8000-00000000000d-migrate"
+    },
+    "container.ready": {
+     "type": "bool",
+     "value": false
+    },
+    "container.restart_count": {
+     "type": "i64",
+     "value": 0
+    },
+    "container.state": {
+     "type": "string",
+     "value": "terminated"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "k8s.pod.name": {
+     "type": "string",
+     "value": "ih-poet-0"
+    },
+    "k8s.pod.ip": {
+     "type": "string",
+     "value": "10.42.9.5"
+    },
+    "k8s.pod.phase": {
+     "type": "string",
+     "value": "Running"
+    },
+    "k8s.namespace.name": {
+     "type": "string",
+     "value": "infinite-haiku-p2"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "container.name": {
+     "type": "string",
+     "value": "poet"
+    },
+    "container.id": {
+     "type": "string",
+     "value": "cccc3333"
+    },
+    "container.ready": {
+     "type": "bool",
+     "value": true
+    },
+    "container.restart_count": {
+     "type": "i64",
+     "value": 1
+    },
+    "container.state": {
+     "type": "string",
+     "value": "running"
+    }
+   }
+  },
+  {
+   "key": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "lifetime": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "attributes": {
+    "container.name": {
+     "type": "string",
+     "value": "helper"
+    },
+    "container.id": {
+     "type": "string",
+     "value": "e0000000-0000-4000-8000-00000000000e-helper"
+    },
+    "container.ready": {
+     "type": "bool",
+     "value": true
+    },
+    "container.restart_count": {
+     "type": "i64",
+     "value": 0
+    },
+    "container.state": {
+     "type": "string",
+     "value": "unknown"
+    }
+   }
+  }
+ ],
+ "relations": [
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "cluster",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "cluster",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "cluster",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "kind": "scheduled_on",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "kind": "scheduled_on",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "kind": "scheduled_on",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "namespace",
+     "resource_uid": "9a8b7c6d-1111-4222-8333-444455556666"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  },
+  {
+   "subject": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "object": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "kind": "contains",
+   "valid_time": {
+    "from_unix_nano": 0,
+    "to_unix_nano": 18446744073709551615
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   },
+   "attributes": {}
+  }
+ ],
+ "observations": [
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "node"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.23652873800000002
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "node"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 1306619904.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "node"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "node"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.phase.running",
+    "description": "Pod is in the Running phase",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 1
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.not_ready",
+    "description": "Pod that should serve is not ready",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.container.restarts",
+    "description": "Container restarts since the pod started",
+    "unit": {
+     "ucum": "{restart}",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "sum",
+     "monotonic": true,
+     "temporality": "cumulative"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": 1790841600000000000,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "sum",
+     "value": {
+      "type": "i64",
+      "value": 2
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.004123456
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 41943040.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.004123456
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 41943040.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.phase.running",
+    "description": "Pod is in the Running phase",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 1
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.not_ready",
+    "description": "Pod that should serve is not ready",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 1
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.container.restarts",
+    "description": "Container restarts since the pod started",
+    "unit": {
+     "ucum": "{restart}",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "sum",
+     "monotonic": true,
+     "temporality": "cumulative"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": 1791104401000000000,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "sum",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.012
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 52428800.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.container.restarts",
+    "description": "Container restarts since the pod started",
+    "unit": {
+     "ucum": "{restart}",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "sum",
+     "monotonic": true,
+     "temporality": "cumulative"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": 1791104401000000000,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "sum",
+     "value": {
+      "type": "i64",
+      "value": 5
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.012
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 52428800.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.phase.running",
+    "description": "Pod is in the Running phase",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.not_ready",
+    "description": "Pod that should serve is not ready",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 1
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.phase.running",
+    "description": "Pod is in the Running phase",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.not_ready",
+    "description": "Pod that should serve is not ready",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.container.restarts",
+    "description": "Container restarts since the pod started",
+    "unit": {
+     "ucum": "{restart}",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "sum",
+     "monotonic": true,
+     "temporality": "cumulative"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": 1791108000000000000,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "sum",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.phase.running",
+    "description": "Pod is in the Running phase",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 1
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.pod.not_ready",
+    "description": "Pod that should serve is not ready",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.container.restarts",
+    "description": "Container restarts since the pod started",
+    "unit": {
+     "ucum": "{restart}",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "sum",
+     "monotonic": true,
+     "temporality": "cumulative"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": 1790942402000000000,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "sum",
+     "value": {
+      "type": "i64",
+      "value": 1
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "missing",
+    "reason": "source_unavailable"
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.container.restarts",
+    "description": "Container restarts since the pod started",
+    "unit": {
+     "ucum": "{restart}",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "sum",
+     "monotonic": true,
+     "temporality": "cumulative"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": 1790942402000000000,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "sum",
+     "value": {
+      "type": "i64",
+      "value": 0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.0015
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "container"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 2097152.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.cpu.usage",
+    "description": "Kubernetes CPU usage",
+    "unit": {
+     "ucum": "1",
+     "display": "number"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 0.0015
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "scope": {
+    "name": "ih.k8s.metrics",
+    "version": "2.0.0",
+    "attributes": {}
+   },
+   "descriptor": {
+    "name": "k8s.memory.usage",
+    "description": "Kubernetes memory usage",
+    "unit": {
+     "ucum": "By",
+     "display": "bytes"
+    },
+    "value_domain": {
+     "kind": "unbounded"
+    },
+    "instrument": {
+     "kind": "gauge"
+    },
+    "spatial_aggregation": {
+     "kind": "sum"
+    }
+   },
+   "attributes": {
+    "k8s.level": {
+     "type": "string",
+     "value": "pod"
+    }
+   },
+   "start_time_unix_nano": null,
+   "time_unix_nano": 1791108000000000000,
+   "value": {
+    "status": "measured",
+    "value": {
+     "kind": "gauge",
+     "value": {
+      "type": "f64",
+      "value": 2097152.0
+     }
+    }
+   },
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  }
+ ],
+ "events": [],
+ "derivations": [],
+ "availability": [
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000000"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "node",
+     "resource_uid": "4b1d0c7e-0000-4000-8000-000000000001"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "metric_name": "k8s.pod.phase.running",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "metric_name": "k8s.pod.not_ready",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "metric_name": "k8s.container.restarts",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "a0000000-0000-4000-8000-00000000000a",
+     "container_name": "redis",
+     "container_id": "5f1e2d3c4b5a"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "a0000000-0000-4000-8000-00000000000a"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "metric_name": "k8s.pod.phase.running",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "metric_name": "k8s.pod.not_ready",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "metric_name": "k8s.container.restarts",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "shibuya",
+     "container_id": "aaaa1111"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "metric_name": "k8s.container.restarts",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "b0000000-0000-4000-8000-00000000000b",
+     "container_name": "sidecar",
+     "container_id": "bbbb2222"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "b0000000-0000-4000-8000-00000000000b"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "metric_name": "k8s.pod.phase.running",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "metric_name": "k8s.pod.not_ready",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "c0000000-0000-4000-8000-00000000000c"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "metric_name": "k8s.pod.phase.running",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "metric_name": "k8s.pod.not_ready",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "metric_name": "k8s.container.restarts",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "d0000000-0000-4000-8000-00000000000d",
+     "container_name": "migrate",
+     "container_id": "d0000000-0000-4000-8000-00000000000d-migrate"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "d0000000-0000-4000-8000-00000000000d"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "metric_name": "k8s.pod.phase.running",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "metric_name": "k8s.pod.not_ready",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "metric_name": "k8s.container.restarts",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "poet",
+     "container_id": "cccc3333"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "metric_name": "k8s.container.restarts",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "container",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "pod_uid": "e0000000-0000-4000-8000-00000000000e",
+     "container_name": "helper",
+     "container_id": "e0000000-0000-4000-8000-00000000000e-helper"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "metric_name": "k8s.cpu.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  },
+  {
+   "entity": {
+    "organization": "ih-local",
+    "identity": {
+     "kind": "kubernetes",
+     "cluster_uid": "5f51b1b5-8445-47c0-a9c7-222bb2c92398",
+     "resource_kind": "pod",
+     "resource_uid": "e0000000-0000-4000-8000-00000000000e"
+    }
+   },
+   "metric_name": "k8s.memory.usage",
+   "available_time": {
+    "from_unix_nano": 1791107995000000000,
+    "to_unix_nano": 1791108000000000001
+   },
+   "resolution_unix_nano": 5000000000,
+   "coverage_fraction": 1.0,
+   "retained_from_unix_nano": 1791107995000000000,
+   "pressure_policy": null,
+   "provenance": {
+    "source_id": "ih-k8s-muse",
+    "source_revision": "v2",
+    "observed_at_unix_nano": 1791108000000000000,
+    "join_status": "resolved"
+   }
+  }
+ ]
+}

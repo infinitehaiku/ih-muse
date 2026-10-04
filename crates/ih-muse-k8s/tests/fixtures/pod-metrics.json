@@ -1,0 +1,5 @@
+{"kind":"PodMetricsList","apiVersion":"metrics.k8s.io/v1beta1","metadata":{},"items":[
+ {"metadata":{"name":"ih-redis-6d9f7c5b8-x2k4q","namespace":"infinite-haiku-p2","creationTimestamp":"2026-10-04T09:59:58Z"},"timestamp":"2026-10-04T09:59:45Z","window":"15s","containers":[{"name":"redis","usage":{"cpu":"4123456n","memory":"40Mi"}}]},
+ {"metadata":{"name":"ih-shibuya-7c8d9e-abcde","namespace":"infinite-haiku-p2"},"timestamp":"2026-10-04T09:59:45Z","window":"15s","containers":[{"name":"shibuya","usage":{"cpu":"12m","memory":"52428800"}},{"name":"sidecar","usage":{"cpu":"0","memory":"1Mi"}}]},
+ {"metadata":{"name":"ih-poet-0","namespace":"infinite-haiku-p2"},"containers":[{"name":"helper","usage":{"cpu":"1500u","memory":"2Mi"}}]}
+]}
