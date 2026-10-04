@@ -1,8 +1,8 @@
 {
   "id": "k8s.cluster",
-  "revision": 1,
+  "revision": 2,
   "title": "Kubernetes cluster",
-  "description": "Running pods, pods not ready, container restarts and the CPU and memory of containers and nodes, observed by the Kubernetes Muse.",
+  "description": "Nodes, pods and containers that are unhealthy now, restarts and OOMKills, memory and CPU against limits and allocatable, workloads and usage, observed by the Kubernetes Muse in every namespace.",
   "muse_kind": "k8s",
   "applies_to": {
     "muse_roots": {
@@ -13,21 +13,93 @@
   },
   "panels": [
     {
-      "id": "pods_running",
-      "title": "Running pods",
-      "metric": "k8s.pod.phase.running",
-      "aggregation": "sum",
-      "signal": "traffic"
-    },
-    {
       "id": "pods_not_ready",
       "title": "Pods not ready",
       "metric": "k8s.pod.not_ready",
       "aggregation": "sum",
+      "filters": [],
       "signal": "errors",
       "thresholds": {
-        "warning": 1,
-        "critical": 3
+        "warning": 1.0,
+        "critical": 3.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "nodes_not_ready",
+      "title": "Nodes not ready",
+      "metric": "k8s.node.condition.status",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "eq",
+          "value": "Ready"
+        },
+        {
+          "key": "k8s.node.condition.status",
+          "op": "eq",
+          "value": "false"
+        }
+      ],
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1.0,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "nodes_pressure",
+      "title": "Nodes under memory, disk or PID pressure",
+      "metric": "k8s.node.condition.status",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "ne",
+          "value": "Ready"
+        },
+        {
+          "key": "k8s.node.condition.status",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1.0,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "waiting",
+      "title": "Crash-looping or waiting containers",
+      "metric": "k8s.container.waiting",
+      "aggregation": "sum",
+      "filters": [],
+      "group_by": {
+        "attribute": "k8s.container.status.reason"
+      },
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1.0,
+        "critical": 3.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "pods_pending",
+      "title": "Pending pods (unschedulable)",
+      "metric": "k8s.pod.unschedulable",
+      "aggregation": "sum",
+      "filters": [],
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1.0,
+        "critical": 3.0,
+        "higher_is_worse": true
       }
     },
     {
@@ -35,16 +107,132 @@
       "title": "Container restarts",
       "metric": "k8s.container.restarts",
       "aggregation": "rate",
-      "signal": "errors",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "signal": "errors"
+    },
+    {
+      "id": "oom_kills",
+      "title": "OOMKills",
+      "metric": "k8s.container.oom_kills",
+      "aggregation": "rate",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "signal": "errors"
+    },
+    {
+      "id": "memory_limit",
+      "title": "Memory % of limit",
+      "metric": "k8s.container.memory.limit.utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "signal": "saturation",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 0.9,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "cpu_limit",
+      "title": "CPU % of limit",
+      "metric": "k8s.container.cpu.limit.utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 0.9,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "node_memory_utilization",
+      "title": "Node memory % of allocatable",
+      "metric": "k8s.node.memory.utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 0.9,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "node_cpu_utilization",
+      "title": "Node CPU % of allocatable",
+      "metric": "k8s.node.cpu.utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 0.9,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "node_memory_requests",
+      "title": "Node memory requested % of allocatable",
+      "metric": "k8s.node.memory.request_utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8,
+      "thresholds": {
+        "warning": 0.9,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "deployments_desired",
+      "title": "Deployment pods desired",
+      "metric": "k8s.deployment.pod.desired",
+      "aggregation": "last",
+      "filters": [],
       "group_by": "entity",
       "top_n": 8
+    },
+    {
+      "id": "deployments_available",
+      "title": "Deployment pods available",
+      "metric": "k8s.deployment.pod.available",
+      "aggregation": "last",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "statefulsets_ready",
+      "title": "StatefulSet pods ready",
+      "metric": "k8s.statefulset.pod.ready",
+      "aggregation": "last",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "pods_running",
+      "title": "Running pods",
+      "metric": "k8s.pod.phase.running",
+      "aggregation": "sum",
+      "filters": [],
+      "signal": "traffic"
     },
     {
       "id": "cpu",
       "title": "Container CPU (cores)",
       "metric": "k8s.cpu.usage",
       "aggregation": "avg",
-      "signal": "saturation",
       "filters": [
         {
           "key": "k8s.level",
@@ -88,9 +276,50 @@
   ],
   "blocks": [
     {
-      "label": "Cluster: what uses it",
-      "text": "The 8 containers that use the most memory and the 8 busiest nodes.",
+      "label": "Health now",
+      "text": "Counts of nodes, pods and containers that are not healthy, in every namespace.",
       "panels": [
+        "pods_not_ready",
+        "nodes_not_ready",
+        "nodes_pressure",
+        "waiting",
+        "pods_pending"
+      ]
+    },
+    {
+      "label": "Stability",
+      "text": "Restarts and OOMKills per second, the 8 worst containers.",
+      "panels": [
+        "restarts",
+        "oom_kills"
+      ]
+    },
+    {
+      "label": "Saturation",
+      "text": "Usage against limits and allocatable: 100 % of a memory limit is an OOMKill.",
+      "panels": [
+        "memory_limit",
+        "cpu_limit",
+        "node_memory_utilization",
+        "node_cpu_utilization",
+        "node_memory_requests"
+      ]
+    },
+    {
+      "label": "Workloads",
+      "text": "Desired against available or ready pods.",
+      "panels": [
+        "deployments_desired",
+        "deployments_available",
+        "statefulsets_ready"
+      ]
+    },
+    {
+      "label": "Usage",
+      "text": "Running pods, and the cores and bytes the busiest containers and nodes use.",
+      "panels": [
+        "pods_running",
+        "cpu",
         "memory",
         "node_cpu"
       ]

@@ -228,7 +228,24 @@ fn every_dashboard_panel_metric_and_level_is_emitted() {
             .unwrap(),
         );
     }
-    let batch = collect_graph(&snapshot, &python_config(), NOW);
+    // Conditions and limits, which the recorded fixtures leave out.
+    snapshot.nodes[0].status.conditions = serde_json::from_value(serde_json::json!([
+        {"type": "Ready", "status": "True"}, {"type": "MemoryPressure", "status": "False"}
+    ]))
+    .unwrap();
+    snapshot.pods[0].spec.containers[0].resources = serde_json::from_value(serde_json::json!({
+        "requests": {"cpu": "100m", "memory": "64Mi"}, "limits": {"cpu": "1", "memory": "256Mi"}
+    }))
+    .unwrap();
+    let mut detector = ih_muse_k8s::events::Detector::new();
+    let events = detector.detect(&snapshot, NOW);
+    let batch = ih_muse_k8s::graph::collect_graph_with(
+        &snapshot,
+        &python_config(),
+        NOW,
+        Some(&detector),
+        &events,
+    );
     let mut levels: BTreeMap<&str, BTreeSet<String>> = BTreeMap::new();
     for observation in &batch.observations {
         let level = match observation.attributes.get(LEVEL_ATTRIBUTE) {
