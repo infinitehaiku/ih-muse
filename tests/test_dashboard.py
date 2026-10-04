@@ -78,7 +78,7 @@ def test_definitions_ride_batches_until_a_poet_acknowledges_one_that_carried_the
     # A batch without them, or with other definitions, proves nothing.
     delivery.acknowledge(batch())
     other = copy.deepcopy(second)
-    other["dashboards"][0]["revision"] = 2
+    other["dashboards"][0]["revision"] = definition["revision"] + 1
     delivery.acknowledge(other)
     assert not delivery.is_delivered
 

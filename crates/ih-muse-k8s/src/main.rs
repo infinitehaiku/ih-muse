@@ -34,6 +34,10 @@ struct Args {
     /// Namespace whose pods are observed (the pod's own, via the downward API).
     #[arg(long, env = "POD_NAMESPACE")]
     namespace: String,
+    /// Observe every namespace (pods, workloads, Warning events), not only
+    /// `--namespace`; needs the cluster-wide read grants (README, RBAC).
+    #[arg(long, env = "IH_K8S_ALL_NAMESPACES", default_value_t = false)]
+    all_namespaces: bool,
     /// Identity of the cluster root; defaults to the cluster name, else the API host.
     #[arg(long, env = "CLUSTER_UID")]
     cluster_uid: Option<String>,
@@ -110,12 +114,17 @@ async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         &args.namespace,
         u64::try_from(interval.as_nanos()).unwrap_or(u64::MAX),
     )?
-    .with_cluster_name(args.cluster_name.as_deref());
+    .with_cluster_name(args.cluster_name.as_deref())
+    .with_all_namespaces(args.all_namespaces);
     println!(
-        "Kubernetes Muse {} {} watching namespace {} of cluster {cluster_uid} via {}; sending to {} (failover in that order) every {}s",
+        "Kubernetes Muse {} {} watching {} of cluster {cluster_uid} via {}; sending to {} (failover in that order) every {}s",
         identity.source_id(),
         identity.source_revision(),
-        args.namespace,
+        if args.all_namespaces {
+            "every namespace".to_string()
+        } else {
+            format!("namespace {}", args.namespace)
+        },
         api.config().base_url,
         args.poet_url.join(", "),
         interval.as_secs()
@@ -134,10 +143,16 @@ async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         match muse.collect(&api, |message| eprintln!("{message}")).await {
             Ok(snapshot) => {
                 let request = muse.intake(&snapshot, now);
-                let (entities, observations) = (
+                let (entities, observations, events) = (
                     request.batch.entities.len(),
                     request.batch.observations.len(),
+                    request.batch.events.len(),
                 );
+                for event in &request.batch.events {
+                    if let Some(ih_muse_proto::AttributeValue::String(summary)) = &event.body {
+                        println!("event {}: {summary}", event.event_id);
+                    }
+                }
                 let dropped = muse.enqueue(request);
                 if dropped > 0 {
                     eprintln!(
@@ -145,7 +160,7 @@ async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                         muse.dropped()
                     );
                 }
-                println!("collected at {now}: {entities} entities, {observations} observations");
+                println!("collected at {now}: {entities} entities, {observations} observations, {events} events");
             }
             // Retried next interval; what is queued still goes out below.
             Err(error) => eprintln!("collection error: {error}"),

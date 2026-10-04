@@ -1,6 +1,8 @@
 //! The Kubernetes Muse: reads the Kubernetes API in a pod and sends the
-//! cluster, its nodes, one namespace's pods and their containers, with usage
-//! from metrics-server, to Poet as `ih.graph.v1` batches.
+//! cluster, its nodes, the pods of one namespace or of every namespace,
+//! their containers and workloads, with usage from metrics-server, to Poet
+//! as `ih.graph.v1` batches, with the problems and changes it detects
+//! between collections as events (`events`).
 //!
 //! A Rust port of `ih-infra/scripts/k8s_muse.py` built on ih-muse, in the
 //! shape of the macOS Muse: deterministic identities, graph intake with
@@ -9,6 +11,7 @@
 
 pub mod api;
 pub mod dashboards;
+pub mod events;
 pub mod graph;
 pub mod identity;
 pub mod model;
@@ -21,6 +24,7 @@ use ih_muse_proto::{
 };
 
 use crate::api::{ApiError, KubeApi};
+use crate::events::Detector;
 use crate::graph::{GraphConfig, Snapshot};
 use crate::identity::MuseIdentity;
 
@@ -35,6 +39,8 @@ pub struct K8sMuse {
     pending: VecDeque<GraphIntakeRequest>,
     dropped: u64,
     namespace_uid: Option<String>,
+    /// What the previous collection saw, to detect problems and changes.
+    detector: Detector,
 }
 
 impl K8sMuse {
@@ -53,6 +59,7 @@ impl K8sMuse {
                 cluster_uid: cluster_uid.into(),
                 cluster_name: None,
                 namespace: namespace.into(),
+                all_namespaces: false,
                 expected_interval_ns: interval_ns,
                 source_id: identity.source_id(),
                 source_revision: identity.source_revision(),
@@ -62,7 +69,16 @@ impl K8sMuse {
             pending: VecDeque::new(),
             dropped: 0,
             namespace_uid: None,
+            detector: Detector::new(),
         })
+    }
+
+    /// Observes every namespace (pods, workloads, warnings), not only its
+    /// own; needs the cluster-wide read grants (README, RBAC).
+    #[must_use]
+    pub fn with_all_namespaces(mut self, all: bool) -> Self {
+        self.graph.all_namespaces = all;
+        self
     }
 
     /// Names the cluster root (`k8s.cluster.name`) for people: `k-lab`
@@ -80,10 +96,14 @@ impl K8sMuse {
         &self.graph
     }
 
-    /// The intake request for one snapshot observed at `now`. It carries the
-    /// dashboard definitions until a Poet acknowledges a batch that did.
-    pub fn intake(&self, snapshot: &Snapshot, now: u64) -> GraphIntakeRequest {
-        let mut batch: GraphBatch = graph::collect_graph(snapshot, &self.graph, now);
+    /// The intake request for one snapshot observed at `now`, with the
+    /// problems and changes since the previous snapshot as events. It
+    /// carries the dashboard definitions until a Poet acknowledges a batch
+    /// that did.
+    pub fn intake(&mut self, snapshot: &Snapshot, now: u64) -> GraphIntakeRequest {
+        let events = self.detector.detect(snapshot, now);
+        let mut batch: GraphBatch =
+            graph::collect_graph_with(snapshot, &self.graph, now, Some(&self.detector), &events);
         self.delivery.attach(&mut batch);
         GraphIntakeRequest {
             schema_version: GRAPH_INTAKE_SCHEMA_VERSION,
@@ -154,15 +174,19 @@ impl K8sMuse {
         Ok(sent)
     }
 
-    /// Reads one snapshot. Nodes and pods are required; metrics-server and
-    /// the namespace UID are optional (their absence becomes gaps, or a batch
-    /// without the namespace, and is reported through `warn`). The namespace
-    /// UID is read until it succeeds once.
+    /// Reads one snapshot. Nodes and pods are required; metrics-server,
+    /// namespaces, workloads, ReplicaSets, warnings and the namespace UID
+    /// are optional (their absence becomes gaps or fewer elements and
+    /// events, and is reported through `warn`). The namespace UID is read
+    /// until it succeeds once.
     pub async fn collect(
         &mut self,
         api: &KubeApi,
         warn: impl Fn(String),
     ) -> Result<Snapshot, ApiError> {
+        if self.graph.all_namespaces {
+            return self.collect_all(api, warn).await;
+        }
         let namespace = self.graph.namespace.clone();
         if self.namespace_uid.is_none() {
             match api.namespace_uid(&namespace).await {
@@ -182,12 +206,87 @@ impl K8sMuse {
             .await
             .map_err(|error| warn(format!("pod metrics unavailable: {error}")))
             .ok();
+        let scope = Some(namespace.as_str());
+        let optional = |what: &str, error: ApiError| warn(format!("{what} unavailable: {error}"));
         Ok(Snapshot {
             nodes,
             node_metrics,
             pods,
             pod_metrics,
             namespace_uid: self.namespace_uid.clone(),
+            namespaces: Vec::new(),
+            deployments: api
+                .deployments(scope)
+                .await
+                .map_err(|error| optional("deployments", error))
+                .unwrap_or_default(),
+            statefulsets: api
+                .statefulsets(scope)
+                .await
+                .map_err(|error| optional("statefulsets", error))
+                .unwrap_or_default(),
+            replicasets: api
+                .replicasets(scope)
+                .await
+                .map_err(|error| optional("replicasets", error))
+                .unwrap_or_default(),
+            warnings: api
+                .warning_events(scope)
+                .await
+                .map_err(|error| optional("warning events", error))
+                .ok(),
+        })
+    }
+
+    /// [`Self::collect`] over every namespace.
+    async fn collect_all(
+        &mut self,
+        api: &KubeApi,
+        warn: impl Fn(String),
+    ) -> Result<Snapshot, ApiError> {
+        let optional = |what: &str, error: ApiError| warn(format!("{what} unavailable: {error}"));
+        let nodes = api.nodes().await?;
+        let pods = api.all_pods().await?;
+        let namespaces = api
+            .namespaces()
+            .await
+            .map_err(|error| optional("namespaces", error))
+            .unwrap_or_default();
+        Ok(Snapshot {
+            nodes,
+            node_metrics: api
+                .node_metrics()
+                .await
+                .map_err(|error| optional("node metrics", error))
+                .ok(),
+            pods,
+            pod_metrics: api
+                .all_pod_metrics()
+                .await
+                .map_err(|error| optional("pod metrics", error))
+                .ok(),
+            namespace_uid: None,
+            namespaces,
+            deployments: api
+                .deployments(None)
+                .await
+                .map_err(|error| optional("deployments", error))
+                .unwrap_or_default(),
+            statefulsets: api
+                .statefulsets(None)
+                .await
+                .map_err(|error| optional("statefulsets", error))
+                .unwrap_or_default(),
+            replicasets: api
+                .replicasets(None)
+                .await
+                .map_err(|error| optional("replicasets", error))
+                .unwrap_or_default(),
+            warnings: api
+                .warning_events(None)
+                .await
+                .map_err(|error| optional("warning events", error))
+                .ok(),
         })
     }
 }

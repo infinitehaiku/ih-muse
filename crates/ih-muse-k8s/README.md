@@ -24,6 +24,37 @@ Metrics (scope `ih.k8s.metrics` 2.0.0):
 A container that is not running, or any usage when metrics-server does not
 answer, is sent as *missing* (`source_unavailable`), never as 0.
 
+Phase A metrics (OpenTelemetry semantic-convention names; ratios in `1`):
+`k8s.node.condition.status` (attributes `k8s.node.condition.type` and
+`.status`, 1 for the current status), `k8s.node.cpu|memory.allocatable`,
+`k8s.node.cpu|memory.utilization` (usage / allocatable),
+`k8s.node.cpu|memory.request_utilization`,
+`k8s.container.cpu|memory.request|limit`,
+`k8s.container.cpu|memory.limit.utilization` (only with a limit),
+`k8s.container.waiting` (attribute `k8s.container.status.reason`),
+`k8s.container.oom_kills` (counted since the Muse first saw the container),
+`k8s.pod.unschedulable`, `k8s.deployment.pod.desired|available`,
+`k8s.statefulset.pod.desired|ready`. Workloads are entities too:
+`Namespace -> Deployment/StatefulSet` (contains).
+
+## Events
+
+`src/events.rs` compares each collection with the previous one and sends
+the problems and changes as `Domain` events with stable ids (restarts with
+reason, exit code and signal, waiting reasons, image changes, unschedulable
+pods, node conditions, rollouts with what changed, scaling, Kubernetes
+Warning events). The kinds, ids and attributes, and how Poet serves them as
+markers: `infinite-haiku` `docs/components/events.md`.
+
+## Every namespace
+
+`--all-namespaces` (`IH_K8S_ALL_NAMESPACES=true`) observes pods,
+namespaces, Deployments, StatefulSets, ReplicaSets and Warning events in
+every namespace (a ClusterRole with get, list and watch on pods, nodes,
+namespaces, events, deployments, statefulsets and replicasets, plus
+metrics-server's pods and nodes). Without it, the Muse reads its own
+namespace as before.
+
 It is a port of `ih-infra/scripts/k8s_muse.py`: the same identities, names,
 units, attributes and availability, checked by
 `tests/fixtures_parity.rs` against batches that script builds from the same
