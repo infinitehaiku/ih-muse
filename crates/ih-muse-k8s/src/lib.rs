@@ -38,7 +38,8 @@ pub struct K8sMuse {
 }
 
 impl K8sMuse {
-    /// `cluster_uid` keys the cluster root (the Python Muse's `--cluster-uid`).
+    /// `cluster_uid` keys the cluster root (the Python Muse's `--cluster-uid`)
+    /// and names it until [`Self::with_cluster_name`] gives a name.
     pub fn new(
         identity: MuseIdentity,
         organization: &str,
@@ -50,6 +51,7 @@ impl K8sMuse {
             graph: GraphConfig {
                 organization: organization.into(),
                 cluster_uid: cluster_uid.into(),
+                cluster_name: None,
                 namespace: namespace.into(),
                 expected_interval_ns: interval_ns,
                 source_id: identity.source_id(),
@@ -61,6 +63,17 @@ impl K8sMuse {
             dropped: 0,
             namespace_uid: None,
         })
+    }
+
+    /// Names the cluster root (`k8s.cluster.name`) for people: `k-lab`
+    /// instead of its UID. A blank name keeps the UID.
+    #[must_use]
+    pub fn with_cluster_name(mut self, name: Option<&str>) -> Self {
+        self.graph.cluster_name = name
+            .map(str::trim)
+            .filter(|name| !name.is_empty())
+            .map(str::to_owned);
+        self
     }
 
     pub fn graph_config(&self) -> &GraphConfig {

@@ -19,6 +19,10 @@
      "type": "string",
      "value": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
     },
+    "k8s.cluster.uid": {
+     "type": "string",
+     "value": "5f51b1b5-8445-47c0-a9c7-222bb2c92398"
+    },
     "ih.dashboard.profile": {
      "type": "string",
      "value": "orchestrator.kubernetes"

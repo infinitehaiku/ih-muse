@@ -63,8 +63,11 @@ const FOREVER: TimeRange = TimeRange {
 #[derive(Clone, Debug, PartialEq)]
 pub struct GraphConfig {
     pub organization: String,
-    /// The cluster root's identity and its `k8s.cluster.name`.
+    /// The cluster root's identity (`k8s.cluster.uid`).
     pub cluster_uid: String,
+    /// The cluster's name people read (`k-lab`, its `k8s.cluster.name`);
+    /// `None` names it by its UID.
+    pub cluster_name: Option<String>,
     /// The namespace whose pods are listed.
     pub namespace: String,
     /// Collection cadence; bounds the availability windows.
@@ -285,7 +288,18 @@ pub fn collect_graph(snapshot: &Snapshot, config: &GraphConfig, now: u64) -> Gra
     b.entity(
         &cluster,
         vec![
-            ("k8s.cluster.name", string(&config.cluster_uid)),
+            (
+                "k8s.cluster.name",
+                string(
+                    config
+                        .cluster_name
+                        .as_deref()
+                        .map(str::trim)
+                        .filter(|name| !name.is_empty())
+                        .unwrap_or(&config.cluster_uid),
+                ),
+            ),
+            ("k8s.cluster.uid", string(&config.cluster_uid)),
             ("ih.dashboard.profile", string(DASHBOARD_PROFILE)),
         ],
     );
