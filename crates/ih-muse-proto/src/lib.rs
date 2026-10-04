@@ -2,6 +2,7 @@
 
 mod cluster_state;
 pub mod dashboard;
+pub mod deployment;
 mod element;
 mod element_kind;
 mod graph;
