@@ -10,7 +10,10 @@ use std::time::Duration;
 
 use serde::de::DeserializeOwned;
 
-use crate::model::{List, Namespace, Node, NodeMetrics, Pod, PodMetrics};
+use crate::model::{
+    Deployment, KubeEvent, List, Namespace, Node, NodeMetrics, Pod, PodMetrics, ReplicaSet,
+    StatefulSet,
+};
 
 /// Where a pod's service account credentials are mounted.
 pub const SERVICE_ACCOUNT_DIR: &str = "/var/run/secrets/kubernetes.io/serviceaccount";
@@ -212,6 +215,69 @@ impl KubeApi {
             .items)
     }
 
+    /// Every namespace's pods (needs `list pods` cluster-wide).
+    pub async fn all_pods(&self) -> Result<Vec<Pod>, ApiError> {
+        Ok(self.get::<List<Pod>>("/api/v1/pods").await?.items)
+    }
+
+    /// Every namespace, with its name and UID.
+    pub async fn namespaces(&self) -> Result<Vec<Namespace>, ApiError> {
+        Ok(self
+            .get::<List<Namespace>>("/api/v1/namespaces")
+            .await?
+            .items)
+    }
+
+    /// Every namespace's pod usage from metrics-server.
+    pub async fn all_pod_metrics(&self) -> Result<Vec<PodMetrics>, ApiError> {
+        Ok(self
+            .get::<List<PodMetrics>>("/apis/metrics.k8s.io/v1beta1/pods")
+            .await?
+            .items)
+    }
+
+    /// Deployments of `namespace`, or of every namespace when `None`.
+    pub async fn deployments(&self, namespace: Option<&str>) -> Result<Vec<Deployment>, ApiError> {
+        Ok(self
+            .get::<List<Deployment>>(&apps_path(namespace, "deployments"))
+            .await?
+            .items)
+    }
+
+    /// StatefulSets of `namespace`, or of every namespace when `None`.
+    pub async fn statefulsets(
+        &self,
+        namespace: Option<&str>,
+    ) -> Result<Vec<StatefulSet>, ApiError> {
+        Ok(self
+            .get::<List<StatefulSet>>(&apps_path(namespace, "statefulsets"))
+            .await?
+            .items)
+    }
+
+    /// ReplicaSets (each Deployment revision's template).
+    pub async fn replicasets(&self, namespace: Option<&str>) -> Result<Vec<ReplicaSet>, ApiError> {
+        Ok(self
+            .get::<List<ReplicaSet>>(&apps_path(namespace, "replicasets"))
+            .await?
+            .items)
+    }
+
+    /// Kubernetes `Warning` events still kept by the API (about an hour).
+    pub async fn warning_events(
+        &self,
+        namespace: Option<&str>,
+    ) -> Result<Vec<KubeEvent>, ApiError> {
+        let base = match namespace {
+            Some(namespace) => format!("/api/v1/namespaces/{namespace}/events"),
+            None => "/api/v1/events".to_string(),
+        };
+        Ok(self
+            .get::<List<KubeEvent>>(&format!("{base}?fieldSelector=type%3DWarning"))
+            .await?
+            .items)
+    }
+
     pub async fn namespace_uid(&self, namespace: &str) -> Result<String, ApiError> {
         let path = format!("/api/v1/namespaces/{namespace}");
         let uid = self.get::<Namespace>(&path).await?.metadata.uid;
@@ -238,6 +304,14 @@ impl KubeApi {
             ))
             .await?
             .items)
+    }
+}
+
+/// `/apis/apps/v1/[namespaces/{ns}/]{resource}`.
+fn apps_path(namespace: Option<&str>, resource: &str) -> String {
+    match namespace {
+        Some(namespace) => format!("/apis/apps/v1/namespaces/{namespace}/{resource}"),
+        None => format!("/apis/apps/v1/{resource}"),
     }
 }
 

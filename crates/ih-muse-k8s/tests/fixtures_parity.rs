@@ -3,7 +3,9 @@
 //!
 //! `fixtures/expected-*.json` are the batches the reference Python Muse
 //! (`ih-infra/scripts/k8s_muse.py`, `collect_k8s_graph`) builds from the same
-//! fixtures; `fixtures/gen_expected.py` regenerates them.
+//! fixtures; `fixtures/gen_expected.py` regenerates them. The comparison
+//! covers what the Python Muse sends (its five metrics); the phase A metrics
+//! and the events came after it and are tested in `src/events/tests.rs`.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -12,7 +14,9 @@ use std::sync::Arc;
 
 use ih_muse_k8s::api::{ApiConfig, KubeApi};
 use ih_muse_k8s::dashboards::dashboard_definitions;
-use ih_muse_k8s::graph::{collect_graph, GraphConfig, Snapshot, LEVEL_ATTRIBUTE, METRICS};
+use ih_muse_k8s::graph::{
+    collect_graph, GraphConfig, Snapshot, LEVEL_ATTRIBUTE, METRICS, PHASE_A_METRICS,
+};
 use ih_muse_k8s::identity::MuseIdentity;
 use ih_muse_k8s::model::{List, Namespace, Node, NodeMetrics, Pod, PodMetrics};
 use ih_muse_k8s::K8sMuse;
@@ -44,6 +48,9 @@ fn snapshot(metrics: bool, namespace: bool) -> Snapshot {
         pods: parse::<List<Pod>>("pods.json").items,
         pod_metrics: metrics.then(|| parse::<List<PodMetrics>>("pod-metrics.json").items),
         namespace_uid: namespace.then(|| parse::<Namespace>("namespace.json").metadata.uid),
+        // The mock API answers the workload and event lists empty.
+        warnings: Some(Vec::new()),
+        ..Snapshot::default()
     }
 }
 
@@ -54,6 +61,7 @@ fn python_config() -> GraphConfig {
         cluster_uid: CLUSTER.into(),
         cluster_name: None,
         namespace: NAMESPACE.into(),
+        all_namespaces: false,
         expected_interval_ns: 5_000_000_000,
         source_id: "ih-k8s-muse".into(),
         source_revision: "v2".into(),
@@ -91,7 +99,19 @@ fn diff(path: &str, actual: &Value, expected: &Value) -> Option<String> {
 
 fn assert_matches_python(batch: &GraphBatch, expected_file: &str) {
     batch.validate().expect("the batch is a valid graph");
-    let actual = serde_json::to_value(batch).unwrap();
+    // Only what the Python Muse sends: its five metrics, no events.
+    let mut legacy = batch.clone();
+    legacy
+        .observations
+        .retain(|observation| METRICS.contains(&observation.descriptor.name.as_str()));
+    legacy.availability.retain(|availability| {
+        availability
+            .metric_name
+            .as_deref()
+            .is_some_and(|name| METRICS.contains(&name))
+    });
+    legacy.events.clear();
+    let actual = serde_json::to_value(&legacy).unwrap();
     let expected: Value = serde_json::from_str(&fixture(expected_file)).unwrap();
     if let Some(difference) = diff("batch", &actual, &expected) {
         panic!("differs from {expected_file} at {difference}");
@@ -178,7 +198,9 @@ fn without_metrics_server_or_namespace_uid_the_graph_matches_python_too() {
     assert_matches_python(&batch, "expected-no-metrics.json");
     assert!(
         batch.observations.iter().all(|observation| {
-            observation.descriptor.name.ends_with(".restarts")
+            // Requests, limits and states do not come from metrics-server.
+            !METRICS.contains(&observation.descriptor.name.as_str())
+                || observation.descriptor.name.ends_with(".restarts")
                 || observation.descriptor.name.starts_with("k8s.pod.")
                 || matches!(
                     observation.value,
@@ -191,7 +213,22 @@ fn without_metrics_server_or_namespace_uid_the_graph_matches_python_too() {
 
 #[test]
 fn every_dashboard_panel_metric_and_level_is_emitted() {
-    let batch = collect_graph(&snapshot(true, true), &python_config(), NOW);
+    let mut snapshot = snapshot(true, true);
+    for (kind, list) in [
+        ("Deployment", &mut snapshot.deployments),
+        ("StatefulSet", &mut snapshot.statefulsets),
+    ] {
+        list.push(
+            serde_json::from_value(serde_json::json!({
+                "kind": kind,
+                "metadata": {"name": "w", "namespace": NAMESPACE, "uid": format!("{kind}-uid")},
+                "spec": {"replicas": 1},
+                "status": {"availableReplicas": 1, "readyReplicas": 1}
+            }))
+            .unwrap(),
+        );
+    }
+    let batch = collect_graph(&snapshot, &python_config(), NOW);
     let mut levels: BTreeMap<&str, BTreeSet<String>> = BTreeMap::new();
     for observation in &batch.observations {
         let level = match observation.attributes.get(LEVEL_ATTRIBUTE) {
@@ -203,9 +240,13 @@ fn every_dashboard_panel_metric_and_level_is_emitted() {
             .or_default()
             .insert(level);
     }
-    assert_eq!(
-        levels.keys().copied().collect::<BTreeSet<_>>(),
-        METRICS.into_iter().collect()
+    let emitted: BTreeSet<&str> = levels.keys().copied().collect();
+    let known: BTreeSet<&str> = METRICS.into_iter().chain(PHASE_A_METRICS).collect();
+    assert!(METRICS.iter().all(|metric| emitted.contains(metric)));
+    assert!(
+        emitted.is_subset(&known),
+        "unlisted metrics: {:?}",
+        emitted.difference(&known).collect::<Vec<_>>()
     );
     for definition in dashboard_definitions() {
         for panel in &definition.panels {
@@ -273,8 +314,14 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
     use ih_muse_core::MuseError;
     let mut muse = muse();
     let snapshot = snapshot(true, true);
-    muse.enqueue(muse.intake(&snapshot, NOW));
-    muse.enqueue(muse.intake(&snapshot, NOW + 1));
+    {
+        let request = muse.intake(&snapshot, NOW);
+        muse.enqueue(request);
+    }
+    {
+        let request = muse.intake(&snapshot, NOW + 1);
+        muse.enqueue(request);
+    }
     let down = muse
         .send_pending(|_| async { Err(MuseError::Unavailable("down".into())) })
         .await;
@@ -299,7 +346,10 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
         "acknowledged once accepted"
     );
     for _ in 0..(ih_muse_k8s::MAX_PENDING_BATCHES + 3) {
-        muse.enqueue(muse.intake(&snapshot, NOW));
+        {
+            let request = muse.intake(&snapshot, NOW);
+            muse.enqueue(request);
+        }
     }
     assert_eq!(muse.pending(), ih_muse_k8s::MAX_PENDING_BATCHES);
     assert_eq!(muse.dropped(), 4, "one rejected and three over the bound");
@@ -341,11 +391,16 @@ async fn api_server(
                     Some("pod-metrics.json")
                 }
                 "/api/v1/namespaces/infinite-haiku-p2" => Some("namespace.json"),
+                path if path.starts_with("/apis/apps/v1/") || path.contains("/events") => Some(""),
                 _ => None,
             };
             let reply = match file {
                 Some(file) => {
-                    let body = fixture(file);
+                    let body = if file.is_empty() {
+                        r#"{"items":[]}"#.to_string()
+                    } else {
+                        fixture(file)
+                    };
                     format!("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len())
                 }
                 None => "HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n".into(),
