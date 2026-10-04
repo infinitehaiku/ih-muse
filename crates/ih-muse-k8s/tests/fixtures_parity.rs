@@ -52,6 +52,7 @@ fn python_config() -> GraphConfig {
     GraphConfig {
         organization: "ih-local".into(),
         cluster_uid: CLUSTER.into(),
+        cluster_name: None,
         namespace: NAMESPACE.into(),
         expected_interval_ns: 5_000_000_000,
         source_id: "ih-k8s-muse".into(),
@@ -128,6 +129,46 @@ fn the_graph_matches_what_the_python_muse_emits() {
     assert_matches_python(
         &collect_graph(&snapshot(true, true), &python_config(), NOW),
         "expected-full.json",
+    );
+}
+
+#[test]
+fn a_named_cluster_is_named_for_people_and_keeps_its_uid() {
+    let config = GraphConfig {
+        cluster_name: Some("k-lab".into()),
+        ..python_config()
+    };
+    let batch = collect_graph(&snapshot(true, true), &config, NOW);
+    let cluster = batch
+        .entities
+        .iter()
+        .find(|entity| {
+            matches!(
+                entity.key.identity,
+                ih_muse_proto::EntityIdentity::Cluster { .. }
+            )
+        })
+        .unwrap();
+    let text = |name: &str| match cluster.attributes.get(name) {
+        Some(AttributeValue::String(value)) => value.as_str(),
+        _ => "",
+    };
+    assert_eq!(text("k8s.cluster.name"), "k-lab");
+    assert_eq!(text("k8s.cluster.uid"), CLUSTER);
+    assert_eq!(
+        muse()
+            .with_cluster_name(Some("k-lab"))
+            .graph_config()
+            .cluster_name
+            .as_deref(),
+        Some("k-lab")
+    );
+    assert_eq!(
+        muse()
+            .with_cluster_name(Some(" "))
+            .graph_config()
+            .cluster_name,
+        None
     );
 }
 

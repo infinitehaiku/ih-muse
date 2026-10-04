@@ -32,6 +32,8 @@ const MAX_DATABASE_REPLY_BYTES: usize = 1024 * 1024;
 pub struct KubernetesContext {
     pub trusted: bool,
     pub cluster_uid: Option<String>,
+    /// The cluster's name people read (`k-lab`), never its identity.
+    pub cluster_name: Option<String>,
     pub namespace_uid: Option<String>,
     pub namespace_name: Option<String>,
     pub pod_uid: Option<String>,
@@ -55,6 +57,7 @@ impl KubernetesContext {
                 Some("true")
             ),
             cluster_uid: value("IH_KUBERNETES_CLUSTER_UID"),
+            cluster_name: value("IH_KUBERNETES_CLUSTER_NAME"),
             namespace_uid: value("IH_KUBERNETES_NAMESPACE_UID"),
             namespace_name: value("POD_NAMESPACE"),
             pod_uid: value("POD_UID"),
@@ -979,12 +982,16 @@ impl GraphMuse {
                     start_time_unix_nano: start,
                 },
             );
-            batch.entities.push(entity(
-                process.clone(),
-                start,
-                u64::MAX,
-                attrs([("process.pid", pid.to_string())]),
-            ));
+            let mut attributes = attrs([("process.pid", pid.to_string())]);
+            if let Some(name) = process_name(pid) {
+                attributes.insert(
+                    "process.executable.name".into(),
+                    AttributeValue::String(name),
+                );
+            }
+            batch
+                .entities
+                .push(entity(process.clone(), start, u64::MAX, attributes));
             let status = if facts.is_some() {
                 JoinStatus::Resolved
             } else {
@@ -1063,9 +1070,16 @@ impl GraphMuse {
                 cluster_uid: cluster_uid.clone(),
             },
         );
+        // The same name the Kubernetes Muse sends: Poet keeps the newest
+        // attributes of an entity, so a nameless copy would hide it.
+        let cluster_attributes = context
+            .cluster_name
+            .as_ref()
+            .map(|name| attrs([("k8s.cluster.name", name.clone())]))
+            .unwrap_or_default();
         batch
             .entities
-            .push(entity(cluster.clone(), 0, u64::MAX, BTreeMap::new()));
+            .push(entity(cluster.clone(), 0, u64::MAX, cluster_attributes));
         let org = key(
             organization.clone(),
             EntityIdentity::Organization {
@@ -1516,6 +1530,39 @@ fn read_memory() -> Option<(u64, u64)> {
     None
 }
 
+/// The process's short name as the system keeps it (Linux `comm`, at most
+/// 15 bytes; Darwin `proc_name`); `None` when it has exited or the
+/// platform does not say. A name, never an identity.
+#[cfg(target_os = "linux")]
+fn process_name(pid: u32) -> Option<String> {
+    let name = fs::read_to_string(format!("/proc/{pid}/comm")).ok()?;
+    let name = name.trim();
+    (!name.is_empty()).then(|| name.to_owned())
+}
+
+#[cfg(target_os = "macos")]
+#[allow(unsafe_code)]
+fn process_name(pid: u32) -> Option<String> {
+    let mut buffer = [0u8; 256];
+    // `proc_name` writes at most `buffersize` bytes and returns their count.
+    let written = unsafe {
+        libc::proc_name(
+            i32::try_from(pid).ok()?,
+            buffer.as_mut_ptr().cast(),
+            buffer.len() as u32,
+        )
+    };
+    let written = usize::try_from(written).ok().filter(|count| *count > 0)?;
+    let name = String::from_utf8_lossy(&buffer[..written.min(buffer.len())]);
+    let name = name.trim_end_matches('\0').trim();
+    (!name.is_empty()).then(|| name.to_owned())
+}
+
+#[cfg(not(any(target_os = "linux", target_os = "macos")))]
+fn process_name(_pid: u32) -> Option<String> {
+    None
+}
+
 #[cfg(target_os = "linux")]
 fn process_facts(pid: u32, _now: u64) -> Option<ProcessFacts> {
     let stat = fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
@@ -1771,6 +1818,41 @@ mod tests {
                 && relation.object == pod
                 && relation.kind == RelationKind::ExecutesOn
         }));
+    }
+
+    #[test]
+    fn the_cluster_and_processes_carry_the_names_people_read() {
+        let mut config = config();
+        config.kubernetes = KubernetesContext {
+            trusted: true,
+            cluster_uid: Some("5f51b1b5-8445-47c0-a9c7-222bb2c92398".into()),
+            cluster_name: Some("k-lab".into()),
+            pod_uid: Some("pod-uid".into()),
+            pod_name: Some("ih-poet-0".into()),
+            ..KubernetesContext::default()
+        };
+        let batch = GraphMuse::new(config).unwrap().collect(&[]).unwrap();
+        let text = |entity: &Entity, name: &str| match entity.attributes.get(name) {
+            Some(AttributeValue::String(value)) => Some(value.clone()),
+            _ => None,
+        };
+        let cluster = batch
+            .entities
+            .iter()
+            .find(|entity| matches!(entity.key.identity, EntityIdentity::Cluster { .. }))
+            .unwrap();
+        assert_eq!(text(cluster, "k8s.cluster.name").as_deref(), Some("k-lab"));
+        let process = batch
+            .entities
+            .iter()
+            .find(|entity| matches!(entity.key.identity, EntityIdentity::Process { pid, .. } if pid == std::process::id()))
+            .unwrap();
+        let name = text(process, "process.executable.name").expect("the process names itself");
+        assert!(!name.is_empty() && name.len() <= 255, "{name:?}");
+        assert_eq!(
+            text(process, "process.pid"),
+            Some(std::process::id().to_string())
+        );
     }
 
     /// A short role name for an entity, used to pin relation directions.

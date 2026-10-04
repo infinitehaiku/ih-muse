@@ -109,7 +109,8 @@ async fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         &cluster_uid,
         &args.namespace,
         u64::try_from(interval.as_nanos()).unwrap_or(u64::MAX),
-    )?;
+    )?
+    .with_cluster_name(args.cluster_name.as_deref());
     println!(
         "Kubernetes Muse {} {} watching namespace {} of cluster {cluster_uid} via {}; sending to {} (failover in that order) every {}s",
         identity.source_id(),
