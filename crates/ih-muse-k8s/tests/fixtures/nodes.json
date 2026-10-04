@@ -1,0 +1,11 @@
+{"kind":"NodeList","apiVersion":"v1","metadata":{"resourceVersion":"812345"},"items":[
+ {"metadata":{"name":"pi00","uid":"4b1d0c7e-0000-4000-8000-000000000000","resourceVersion":"812001","creationTimestamp":"2026-05-01T10:00:00Z","labels":{"kubernetes.io/arch":"arm64","node-role.kubernetes.io/control-plane":"true"}},
+  "spec":{"podCIDR":"10.42.0.0/24"},
+  "status":{"capacity":{"cpu":"4","memory":"7997912Ki","pods":"110"},"allocatable":{"cpu":"4","memory":"7997912Ki","pods":"110"},
+   "conditions":[{"type":"Ready","status":"True","reason":"KubeletReady"}],
+   "nodeInfo":{"architecture":"arm64","operatingSystem":"linux","kubeletVersion":"v1.31.4+k3s1","osImage":"Debian GNU/Linux 12 (bookworm)"}}},
+ {"metadata":{"name":"pi01","uid":"4b1d0c7e-0000-4000-8000-000000000001","resourceVersion":"812002","creationTimestamp":"2026-05-01T10:05:00Z"},
+  "spec":{"podCIDR":"10.42.1.0/24"},
+  "status":{"allocatable":{"cpu":"3500m","memory":"3.5Gi","pods":"110"},
+   "nodeInfo":{"architecture":"arm64","operatingSystem":"linux"}}}
+]}

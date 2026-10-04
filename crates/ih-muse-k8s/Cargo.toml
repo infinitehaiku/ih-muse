@@ -1,0 +1,32 @@
+[package]
+name = "ih-muse-k8s"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+description = "Kubernetes Muse: nodes, the namespace's pods and containers, and their usage, sent to Poet as graph batches"
+readme = "README.md"
+
+[[bin]]
+name = "ih-muse-k8s"
+path = "src/main.rs"
+
+[dependencies]
+ih-muse = { workspace = true }
+ih-muse-client = { workspace = true }
+ih-muse-core = { workspace = true }
+ih-muse-proto = { workspace = true }
+
+chrono = { workspace = true }
+clap = { version = "4.5.20", features = ["derive", "env"] }
+reqwest = { version = "=0.12.8", default-features = false, features = ["json", "rustls-tls"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+
+[lints]
+workspace = true

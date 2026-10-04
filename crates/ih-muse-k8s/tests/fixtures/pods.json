@@ -1,0 +1,29 @@
+{"kind":"PodList","apiVersion":"v1","metadata":{"resourceVersion":"812400"},"items":[
+ {"metadata":{"name":"ih-redis-6d9f7c5b8-x2k4q","namespace":"infinite-haiku-p2","uid":"a0000000-0000-4000-8000-00000000000a","creationTimestamp":"2026-10-01T07:59:50Z","labels":{"app":"ih-redis"}},
+  "spec":{"nodeName":"pi00","containers":[{"name":"redis","image":"redis:7"}]},
+  "status":{"phase":"Running","podIP":"10.42.0.17","startTime":"2026-10-01T08:00:00Z",
+   "conditions":[{"type":"Initialized","status":"True"},{"type":"Ready","status":"True"},{"type":"ContainersReady","status":"True"}],
+   "containerStatuses":[{"name":"redis","ready":true,"restartCount":2,"image":"redis:7","containerID":"containerd://5f1e2d3c4b5a","started":true,"state":{"running":{"startedAt":"2026-10-03T11:00:00Z"}},"lastState":{"terminated":{"exitCode":137,"reason":"OOMKilled"}}}]}},
+ {"metadata":{"name":"ih-shibuya-7c8d9e-abcde","namespace":"infinite-haiku-p2","uid":"b0000000-0000-4000-8000-00000000000b","creationTimestamp":"2026-10-04T09:00:00Z"},
+  "spec":{"nodeName":"pi01"},
+  "status":{"phase":"Running","podIP":"10.42.1.20","startTime":"2026-10-04T09:00:01Z",
+   "conditions":[{"type":"Ready","status":"False","reason":"ContainersNotReady"}],
+   "containerStatuses":[
+    {"name":"shibuya","ready":true,"restartCount":0,"containerID":"containerd://aaaa1111","state":{"running":{"startedAt":"2026-10-04T09:00:05Z"}}},
+    {"name":"sidecar","ready":false,"restartCount":5,"containerID":"containerd://bbbb2222","state":{"waiting":{"reason":"CrashLoopBackOff","message":"back-off 5m0s"}}}]}},
+ {"metadata":{"name":"ih-kabuki-5b6c7d-pend1","namespace":"infinite-haiku-p2","uid":"c0000000-0000-4000-8000-00000000000c","creationTimestamp":"2026-10-04T09:58:00Z"},
+  "spec":{},
+  "status":{"phase":"Pending","conditions":[{"type":"PodScheduled","status":"False","reason":"Unschedulable"}]}},
+ {"metadata":{"name":"ih-migrate-job-zz9","namespace":"infinite-haiku-p2","uid":"d0000000-0000-4000-8000-00000000000d","creationTimestamp":"2026-10-04T09:30:00Z"},
+  "spec":{"nodeName":"pi01"},
+  "status":{"phase":"Succeeded","podIP":"10.42.1.30","startTime":"2027-01-01T00:00:00Z",
+   "conditions":[{"type":"Ready","status":"False","reason":"PodCompleted"}],
+   "containerStatuses":[{"name":"migrate","ready":false,"restartCount":0,"containerID":"","state":{"terminated":{"exitCode":0,"reason":"Completed"}}}]}},
+ {"metadata":{"name":"ih-poet-0","namespace":"infinite-haiku-p2","uid":"e0000000-0000-4000-8000-00000000000e","creationTimestamp":"2026-10-02T12:00:00Z"},
+  "spec":{"nodeName":"pi09"},
+  "status":{"phase":"Running","podIP":"10.42.9.5","startTime":"2026-10-02T12:00:02Z",
+   "conditions":[{"type":"Ready","status":"True"}],
+   "containerStatuses":[
+    {"name":"poet","ready":true,"restartCount":1,"containerID":"cri-o://cccc3333","state":{"running":{"startedAt":"2026-10-02T12:00:10Z"}}},
+    {"name":"helper","ready":true,"restartCount":0,"state":{}}]}}
+]}

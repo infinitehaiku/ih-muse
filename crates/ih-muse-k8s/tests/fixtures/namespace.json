@@ -1,0 +1,1 @@
+{"kind":"Namespace","apiVersion":"v1","metadata":{"name":"infinite-haiku-p2","uid":"9a8b7c6d-1111-4222-8333-444455556666","resourceVersion":"100","creationTimestamp":"2026-05-02T08:00:00Z","labels":{"kubernetes.io/metadata.name":"infinite-haiku-p2"}},"spec":{"finalizers":["kubernetes"]},"status":{"phase":"Active"}}

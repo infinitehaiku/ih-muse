@@ -51,6 +51,16 @@ impl GraphPoetClient {
         Self::build(vec![endpoint.into()], token.into(), Some(ca_pem))
     }
 
+    /// Build a client for every Poet of a cluster that serves HTTPS with one
+    /// owner-provided CA (an in-cluster Muse reaching Poet's private TLS port).
+    pub fn cluster_private_tls(
+        endpoints: Vec<String>,
+        token: impl Into<String>,
+        ca_pem: &[u8],
+    ) -> MuseResult<Self> {
+        Self::build(endpoints, token.into(), Some(ca_pem))
+    }
+
     /// The Poet the next batch goes to first.
     pub fn preferred_endpoint(&self) -> &str {
         &self.endpoints[self.preferred.load(Ordering::Relaxed) % self.endpoints.len()]
@@ -178,6 +188,12 @@ mod tests {
         )
         .is_err());
         assert!(GraphPoetClient::cluster(Vec::new(), "token").is_err());
+        assert!(GraphPoetClient::cluster_private_tls(
+            vec!["https://poet-0.example".into(), "http://127.0.0.1:18080".into()],
+            "token",
+            b"not-used"
+        )
+        .is_err());
     }
 
     /// A tiny HTTP server that answers every request with `status`.
