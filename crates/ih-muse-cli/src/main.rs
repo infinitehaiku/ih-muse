@@ -6,7 +6,7 @@ mod commands;
 mod common;
 
 use commands::{
-    get_metric_order::GetMetricOrderArgs, get_metrics::GetMetricsArgs,
+    dashboard::DashboardArgs, get_metric_order::GetMetricOrderArgs, get_metrics::GetMetricsArgs,
     get_node_elem_ranges::GetNodeElemRangesArgs, get_node_state::GetNodeStateArgs,
     get_resolution::GetFinestResolutionArgs, is_ready::IsReadyArgs, record::RecordArgs,
     register_element::RegisterElementArgs, register_element_kind::RegisterElementKindArgs,
@@ -46,11 +46,17 @@ enum Commands {
     Record(RecordArgs),
     /// Replay a recorded session
     Replay(ReplayArgs),
+    /// Check dashboard definition files or print their JSON Schema (offline)
+    Dashboard(DashboardArgs),
 }
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+    let cli = match cli.command {
+        Commands::Dashboard(args) => std::process::exit(commands::dashboard::execute(args)),
+        command => Cli { command },
+    };
 
     let result = match cli.command {
         Commands::IsReady(args) => commands::is_ready::execute(args).await,
@@ -65,6 +71,7 @@ async fn main() {
         Commands::GetMetrics(args) => commands::get_metrics::execute(args).await,
         Commands::Record(args) => commands::record::execute(args).await,
         Commands::Replay(args) => commands::replay::execute(args).await,
+        Commands::Dashboard(_) => unreachable!("handled before the async commands"),
     };
 
     if let Err(e) = result {

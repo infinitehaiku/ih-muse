@@ -1,0 +1,151 @@
+{
+  "id": "macos.host",
+  "revision": 1,
+  "title": "macOS host",
+  "description": "CPU, memory, disk, network and the busiest processes of a Mac observed by the macOS Muse.",
+  "muse_kind": "macos",
+  "applies_to": {
+    "muse_roots": {
+      "entity_kinds": [
+        "macos_host"
+      ]
+    }
+  },
+  "panels": [
+    {
+      "id": "cpu",
+      "title": "CPU usage",
+      "metric": "host.cpu.usage_percent",
+      "aggregation": "avg",
+      "signal": "saturation",
+      "thresholds": {
+        "warning": 80,
+        "critical": 95
+      }
+    },
+    {
+      "id": "memory",
+      "title": "Memory usage",
+      "metric": "host.memory.usage_percent",
+      "aggregation": "avg",
+      "signal": "saturation",
+      "thresholds": {
+        "warning": 85,
+        "critical": 95
+      }
+    },
+    {
+      "id": "network_rx",
+      "title": "Network received",
+      "metric": "host.network.received_bytes_delta",
+      "aggregation": "rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "network_tx",
+      "title": "Network sent",
+      "metric": "host.network.transmitted_bytes_delta",
+      "aggregation": "rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "load",
+      "title": "Load average (1 min)",
+      "metric": "host.load.one",
+      "aggregation": "avg"
+    },
+    {
+      "id": "disk",
+      "title": "Disk usage",
+      "metric": "host.disk.usage_percent",
+      "aggregation": "max",
+      "thresholds": {
+        "warning": 85,
+        "critical": 95
+      }
+    },
+    {
+      "id": "swap",
+      "title": "Swap usage",
+      "metric": "host.memory.swap_usage_percent",
+      "aggregation": "avg"
+    },
+    {
+      "id": "top_cpu",
+      "title": "Top processes by CPU",
+      "metric": "process.cpu.usage_percent",
+      "aggregation": "avg",
+      "filters": [
+        {
+          "key": "entity.kind",
+          "op": "eq",
+          "value": "macos_process"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "top_memory",
+      "title": "Top processes by memory",
+      "metric": "process.memory.rss_bytes",
+      "aggregation": "avg",
+      "filters": [
+        {
+          "key": "entity.kind",
+          "op": "eq",
+          "value": "macos_process"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "top_apps_cpu",
+      "title": "Top applications by CPU",
+      "metric": "process.cpu.usage_percent",
+      "aggregation": "avg",
+      "filters": [
+        {
+          "key": "entity.kind",
+          "op": "eq",
+          "value": "macos_application"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 8
+    },
+    {
+      "id": "battery",
+      "title": "Battery charge",
+      "metric": "host.battery.charge_percent",
+      "aggregation": "last",
+      "thresholds": {
+        "warning": 20,
+        "critical": 10,
+        "higher_is_worse": false
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Host: over time",
+      "panels": [
+        "load",
+        "disk",
+        "swap",
+        "battery"
+      ]
+    },
+    {
+      "label": "Host: what uses the machine",
+      "text": "The busiest processes and applications, top 8 each.",
+      "panels": [
+        "top_cpu",
+        "top_memory",
+        "top_apps_cpu"
+      ]
+    }
+  ],
+  "columns": 3
+}

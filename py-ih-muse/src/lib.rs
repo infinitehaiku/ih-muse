@@ -15,6 +15,7 @@ use ih_muse_python::proto::{
 };
 // use ih_muse_python::element_kind_registration::PyElementKindRegistration;
 // use ih_muse_python::metric_definition::PyMetricDefinition;
+use ih_muse_python::dashboard::{validate_dashboard_definitions, PyDashboardDelivery};
 use ih_muse_python::exceptions;
 use ih_muse_python::muse::PyMuse;
 
@@ -35,6 +36,8 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<PyMetricDefinition>()?;
     m.add_class::<PyMetricPayload>()?;
     m.add_class::<PyMetricQuery>()?;
+    m.add_class::<PyDashboardDelivery>()?;
+    m.add_function(wrap_pyfunction!(validate_dashboard_definitions, m)?)?;
 
     #[pyfunction]
     fn get_version() -> &'static str {
@@ -96,6 +99,12 @@ fn ih_muse(py: Python, m: &Bound<PyModule>) -> PyResult<()> {
     m.add(
         "DurationConversionError",
         py.get_type_bound::<exceptions::DurationConversionError>(),
+    )
+    .unwrap();
+
+    m.add(
+        "DashboardDefinitionError",
+        py.get_type_bound::<exceptions::DashboardDefinitionError>(),
     )
     .unwrap();
 

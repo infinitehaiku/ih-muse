@@ -1,6 +1,7 @@
 // crates/ih-muse-proto/src/lib.rs
 
 mod cluster_state;
+pub mod dashboard;
 mod element;
 mod element_kind;
 mod graph;
@@ -14,6 +15,9 @@ pub mod types;
 mod utils;
 
 pub use cluster_state::{NodeInfo, NodeState, NodeStatus};
+pub use dashboard::{
+    DashboardAppliesTo, DashboardBlock, DashboardDefinition, DashboardDefinitionError,
+};
 pub use element::{generate_local_element_id, ElementRegistration, NewElementsResponse};
 pub use element_kind::ElementKindRegistration;
 pub use graph::{

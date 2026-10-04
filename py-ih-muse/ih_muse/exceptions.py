@@ -4,6 +4,7 @@ try:
     from ih_muse.ih_muse import (
         ClientError,
         ConfigurationError,
+        DashboardDefinitionError,
         DurationConversionError,
         InvalidElementKindCodeError,
         InvalidFileExtensionError,
@@ -57,6 +58,9 @@ except ImportError:
     class DurationConversionError(MuseError):  # type: ignore[no-redef, misc]
         """TODO DOCS."""
 
+    class DashboardDefinitionError(MuseError):  # type: ignore[no-redef, misc]
+        """A dashboard definition does not parse or breaks a rule."""
+
     class PanicException(MuseError):  # type: ignore[no-redef, misc]
         """Exception raised on panics in the underlying Rust library."""
 
@@ -64,6 +68,7 @@ except ImportError:
 __all__ = [
     "ClientError",
     "ConfigurationError",
+    "DashboardDefinitionError",
     "InvalidElementKindCodeError",
     "InvalidFileExtensionError",
     "InvalidMetricCodeError",

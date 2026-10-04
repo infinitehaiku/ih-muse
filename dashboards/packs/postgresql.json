@@ -1,0 +1,93 @@
+{
+  "id": "otel.postgresql",
+  "revision": 1,
+  "title": "PostgreSQL",
+  "description": "Transactions, rollbacks, operations and connections from the OpenTelemetry Collector postgresql receiver.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "scope_names": [
+        "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/postgresqlreceiver",
+        "otelcol/postgresqlreceiver"
+      ],
+      "metric_prefixes": [
+        "postgresql."
+      ],
+      "min_metrics": 2
+    }
+  },
+  "panels": [
+    {
+      "id": "commits",
+      "title": "Commits",
+      "metric": "postgresql.commits",
+      "aggregation": "rate",
+      "signal": "traffic"
+    },
+    {
+      "id": "rollbacks",
+      "title": "Rollbacks",
+      "metric": "postgresql.rollbacks",
+      "aggregation": "rate",
+      "signal": "errors"
+    },
+    {
+      "id": "backends",
+      "title": "Connections in use",
+      "metric": "postgresql.backends",
+      "aggregation": "last",
+      "signal": "saturation"
+    },
+    {
+      "id": "connection_max",
+      "title": "Connection limit",
+      "metric": "postgresql.connection.max",
+      "aggregation": "last"
+    },
+    {
+      "id": "operations",
+      "title": "Row operations",
+      "metric": "postgresql.operations",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "operation"
+      },
+      "top_n": 5
+    },
+    {
+      "id": "blocks_read",
+      "title": "Blocks read",
+      "metric": "postgresql.blocks_read",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "source"
+      },
+      "top_n": 6
+    },
+    {
+      "id": "db_size",
+      "title": "Database size",
+      "metric": "postgresql.db_size",
+      "aggregation": "last"
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Connections and size",
+      "text": "How close the server is to its connection limit, and how big the databases are.",
+      "panels": [
+        "connection_max",
+        "db_size"
+      ]
+    },
+    {
+      "label": "Work",
+      "text": "Rows changed by operation, and blocks read from disk or cache.",
+      "panels": [
+        "operations",
+        "blocks_read"
+      ]
+    }
+  ],
+  "columns": 2
+}

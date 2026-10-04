@@ -1,4 +1,7 @@
 pub use crate::cluster_state::{NodeInfo, NodeState, NodeStatus};
+pub use crate::dashboard::{
+    DashboardAppliesTo, DashboardBlock, DashboardDefinition, DashboardDefinitionError,
+};
 pub use crate::element::{generate_local_element_id, ElementRegistration, NewElementsResponse};
 pub use crate::element_kind::ElementKindRegistration;
 pub use crate::graph::{

@@ -23,3 +23,12 @@ cargo run -- send-metric --element-id 1 --metric-code "CPU" --value 5.5
 cargo run -- get-metrics
 
 ```
+
+Dashboard definitions (offline, no Poet needed):
+
+```sh
+# Parse and validate; prints OK or the errors per file, exits 1 on any failure.
+cargo run -p ih-muse-cli -- dashboard check examples/dashboards/macos-host.json
+# Print the JSON Schema (committed as schemas/dashboard-definition.schema.json).
+cargo run -p ih-muse-cli -- dashboard schema
+```

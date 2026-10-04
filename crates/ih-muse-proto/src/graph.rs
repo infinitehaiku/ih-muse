@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::dashboard::{DashboardDefinition, DashboardDefinitionError, MAX_BATCH_DASHBOARDS};
 use crate::{
     AttributeValue, InstrumentationScope, LogRecord, MetricDescriptor, MetricObservation,
     MetricPoint, Number, RelationshipKind as TelemetryRelationshipKind, ResourceKey, SpanRecord,
@@ -295,6 +296,13 @@ pub struct GraphBatch {
     pub events: Vec<Event>,
     pub derivations: Vec<Derivation>,
     pub availability: Vec<Availability>,
+    /// Default dashboards the sending Muse defines. A Muse sends its
+    /// definitions in its first batch after start and again whenever one
+    /// changes; receivers deduplicate by `(id, revision)`. Absent from the
+    /// JSON when empty, so senders and receivers that predate the field are
+    /// unaffected.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dashboards: Vec<DashboardDefinition>,
 }
 
 /// One idempotent, owner-scoped delivery of a canonical graph batch.
@@ -440,6 +448,18 @@ pub enum GraphValidationError {
     InvalidProvenance,
     #[error("metric contains a non-finite number")]
     InvalidMetric,
+    #[error(
+        "at most {} dashboard definitions per batch",
+        crate::dashboard::MAX_BATCH_DASHBOARDS
+    )]
+    TooManyDashboards,
+    #[error("dashboard definition {0} appears twice in the batch")]
+    DuplicateDashboard(String),
+    #[error("dashboard definition {id}: {source}")]
+    InvalidDashboard {
+        id: String,
+        source: DashboardDefinitionError,
+    },
 }
 
 /// Failure while converting a validated source contract into canonical graph records.
@@ -761,6 +781,29 @@ impl GraphBatch {
             }
             validate_provenance(&availability.provenance)?;
         }
+        self.validate_dashboards()
+    }
+
+    /// Each definition is valid and named once; the receiver keys them by
+    /// `(id, revision)`.
+    fn validate_dashboards(&self) -> Result<(), GraphValidationError> {
+        if self.dashboards.len() > MAX_BATCH_DASHBOARDS {
+            return Err(GraphValidationError::TooManyDashboards);
+        }
+        let mut ids = BTreeSet::new();
+        for dashboard in &self.dashboards {
+            dashboard
+                .validate()
+                .map_err(|source| GraphValidationError::InvalidDashboard {
+                    id: dashboard.id.clone(),
+                    source,
+                })?;
+            if !ids.insert(dashboard.id.as_str()) {
+                return Err(GraphValidationError::DuplicateDashboard(
+                    dashboard.id.clone(),
+                ));
+            }
+        }
         Ok(())
     }
 
@@ -945,6 +988,7 @@ impl GraphBatch {
             events,
             derivations: Vec::new(),
             availability: Vec::new(),
+            dashboards: Vec::new(),
         };
         batch.validate()?;
         Ok(batch)
