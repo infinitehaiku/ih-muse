@@ -405,43 +405,47 @@ impl DeploymentScope {
         }
     }
 
-    /// A deployment event: `name` (one of the `*_EVENT` constants) on
-    /// `entity` at `at`, with the stable `id`, a one-line `summary` and
-    /// `attributes` (empty values are dropped).
-    pub fn event(
-        &self,
-        entity: &EntityKey,
-        id: String,
-        name: &str,
-        severity: Severity,
-        at_unix_nano: u64,
-        summary: String,
-        attributes: BTreeMap<String, String>,
-    ) -> Event {
-        let at = at_unix_nano.max(1);
-        let mut values: BTreeMap<String, AttributeValue> = attributes
+    /// The graph event of `spec` (empty attribute values are dropped).
+    pub fn event(&self, spec: DeploymentEvent) -> Event {
+        let at = spec.at_unix_nano.max(1);
+        let mut values: BTreeMap<String, AttributeValue> = spec
+            .attributes
             .into_iter()
             .filter(|(_, value)| !value.is_empty())
             .map(|(key, value)| (key, AttributeValue::String(value)))
             .collect();
-        values.insert(EVENT_NAME.into(), string(name));
-        values.insert(SEVERITY.into(), string(severity.as_str()));
+        values.insert(EVENT_NAME.into(), string(spec.name));
+        values.insert(SEVERITY.into(), string(spec.severity.as_str()));
         values.insert(SYSTEM_NAME.into(), string(&self.system));
         values.insert(SYSTEM_INSTANCE.into(), string(&self.instance));
         Event {
-            entity: entity.clone(),
+            entity: spec.entity,
             kind: EventKind::Domain,
-            event_id: id,
+            event_id: spec.id,
             time: TimeRange {
                 from_unix_nano: at,
                 to_unix_nano: at + 1,
             },
             scope: self.scope(),
             attributes: values,
-            body: Some(AttributeValue::String(summary)),
+            body: Some(AttributeValue::String(spec.summary)),
             provenance: self.provenance(at),
         }
     }
+}
+
+/// One deployment event before it becomes a graph [`Event`]: `name` (one of
+/// the `*_EVENT` constants) on `entity` at `at_unix_nano`, with its stable
+/// `id` ([`DeploymentScope::event_id`]) and a one-line `summary`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DeploymentEvent {
+    pub entity: EntityKey,
+    pub id: String,
+    pub name: &'static str,
+    pub severity: Severity,
+    pub at_unix_nano: u64,
+    pub summary: String,
+    pub attributes: BTreeMap<String, String>,
 }
 
 /// The key the Kubernetes Muse gives a Kubernetes object: `resource_kind`
@@ -518,18 +522,18 @@ mod tests {
         let scope = scope();
         let env = scope.environment_key("main");
         let build = || {
-            scope.event(
-                &env,
-                scope.event_id("main/r1", "rolled"),
-                ROLLED_EVENT,
-                Severity::Info,
-                42,
-                "main: rolled web".into(),
-                BTreeMap::from([
+            scope.event(DeploymentEvent {
+                entity: env.clone(),
+                id: scope.event_id("main/r1", "rolled"),
+                name: ROLLED_EVENT,
+                severity: Severity::Info,
+                at_unix_nano: 42,
+                summary: "main: rolled web".into(),
+                attributes: BTreeMap::from([
                     (ROLLED.into(), "web".into()),
                     ("empty".into(), String::new()),
                 ]),
-            )
+            })
         };
         let event = build();
         assert_eq!(event, build());
