@@ -290,7 +290,11 @@ pub enum DashboardAppliesTo {
 }
 
 /// A titled group of panels in a definition, drawn in order after the
-/// implicit "Measurements" row (the panels that carry a golden signal).
+/// implicit "Measurements" row (one tile per golden signal, fed by the
+/// panels that carry it). Each panel's chart is drawn once: in the block
+/// that lists it, else under Measurements, so a panel in no block needs a
+/// golden signal, and a block may list a golden-signal panel (its value
+/// still feeds the tile). See `docs/contract/index.md`.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DashboardBlock {

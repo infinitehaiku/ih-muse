@@ -18,6 +18,15 @@ Dashboards have no count limits:
   shows any number of series (`top_n`, at least 1; 5 when left out);
 - a Muse may define any number of dashboards.
 
+Layout: Kabuki draws a definition as a Measurements row (one tile per golden
+signal, fed by the panels that carry that signal), then the `blocks` in order.
+Each panel's chart is drawn once: in the one block that lists it, else under
+Measurements. So a panel in no block needs a golden signal, and a block may
+list a golden-signal panel (its chart sits in the block, its value still feeds
+the tile; the Kubernetes cluster's "Health now" does this). A definition
+without blocks leaves the layout to the renderer. A panel listed in two blocks
+is refused.
+
 Only input sizes are bounded, so that one faulty Muse cannot flood Poet: the
 byte length of ids, titles, descriptions, block texts and metric names (see the
 schema), the entries of each recognition list (32), and the request size of
