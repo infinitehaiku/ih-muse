@@ -80,3 +80,36 @@ Example log record attributes from a macOS Muse:
   "ih.element.key": "disk:/Volumes/Data"
 }
 ```
+
+## The stable key of a source
+
+Poet lists what is observed, not the processes that report it: a source is
+the stable thing (a Deployment, a StatefulSet member, a service in its place,
+a host, a cluster), and each pod, process or service instance that reported
+for it is one of its instances, with its own data and lifetime (Poet's
+`docs/components/poet.md`, "Sources and instances").
+
+A root whose key names a stable thing (`Cluster`, `Host`,
+`StandaloneEnvironment`, `Other` with a stable id) is its own source. A root
+keyed by an instance (`Service` with its instance id, `Process` with its pid
+and start, `Container`, a pod, `Runner`, `Worker`) is folded into its stable
+source:
+
+- If the root carries `ih.element.key`, that is its stable key: every root
+  of the same identity kind with the same key (and the same environment and
+  host for a process, the same application for a runner or worker) is one
+  source. The graph Muse declares `process:<executable>@<container>` and
+  `runner:<application>@<container>`.
+- Else, a root with a service name (`service.name`, or the `Service` key's
+  name) is one source per `service.namespace`, `service.name`,
+  `deployment.environment.name` and placement: the cluster
+  (`k8s.cluster.uid`, else `k8s.cluster.name`), `k8s.namespace.name`, and
+  the workload (`k8s.statefulset.name` with the member's `k8s.pod.name`;
+  `k8s.deployment.name`; `k8s.daemonset.name`; a Deployment derived from
+  `k8s.replicaset.name` or a Deployment pod name; else the pod name), or
+  outside Kubernetes the host (`host.id`, else `host.name`).
+- Else the root is its own source.
+
+`service.instance.id`, pod uids and process starts never name a source.
+A Muse that restarts with a new instance id therefore needs nothing more
+than a stable service name and placement, or an `ih.element.key`.
