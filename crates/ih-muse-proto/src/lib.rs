@@ -4,6 +4,7 @@ mod cluster_state;
 pub mod dashboard;
 pub mod deployment;
 mod element;
+pub mod event_mapping;
 mod element_kind;
 mod graph;
 mod metric;
