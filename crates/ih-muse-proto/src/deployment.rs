@@ -251,6 +251,20 @@ pub const SINCE_SUCCESS_METRIC: &str = "deployment.since_last_success";
 /// 1 while the deployment system works, 0 while it is down.
 pub const SYSTEM_UP_METRIC: &str = "deployment.system.up";
 
+/// Finished releases: a delta counter of 1 on the environment at each
+/// release's end, with [`PIPELINE_RESULT`], so a dashboard counts deploys by
+/// result (moved here from the Piceli Muse).
+pub const RELEASES_METRIC: &str = "deployment.releases";
+
+/// Where a marker came from when it was not sent by a deployment Muse:
+/// `otlp` for the markers Poet derives from a system's own OpenTelemetry
+/// ([`crate::event_mapping`]). A reader that sees both for one environment
+/// keeps the OTLP ones from their first release on (a switch from a
+/// polling Muse to the system's own OTLP lists each release once).
+pub const FEED: &str = "deployment.feed";
+/// [`FEED`] of markers derived from OTLP.
+pub const FEED_OTLP: &str = "otlp";
+
 /// Instrumentation scope of the vocabulary's events and metrics.
 pub const SCOPE_NAME: &str = "ih.deployment";
 /// Version of the vocabulary.
