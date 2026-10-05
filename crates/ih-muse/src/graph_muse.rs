@@ -579,9 +579,11 @@ impl GraphMuse {
                 runner_id: context.runner_id.clone(),
             },
         );
-        batch
-            .entities
-            .push(entity(runner.clone(), now, u64::MAX, BTreeMap::new()));
+        // A runner id is new in every process: the stable key says which
+        // runner this is (its application, in its container), so Poet lists
+        // every run as one source with its instances.
+        let declared = attrs([(ELEMENT_KEY, self.stable_key("runner", &context.application_id))]);
+        batch.entities.push(entity(runner.clone(), now, u64::MAX, declared));
         batch.relations.push(relation(
             runner,
             process,
@@ -984,6 +986,9 @@ impl GraphMuse {
             );
             let mut attributes = attrs([("process.pid", pid.to_string())]);
             if let Some(name) = process_name(pid) {
+                // A pid and start are new in every run: the executable (in
+                // its container) is the stable thing observed.
+                attributes.insert(ELEMENT_KEY.into(), AttributeValue::String(self.stable_key("process", &name)));
                 attributes.insert(
                     "process.executable.name".into(),
                     AttributeValue::String(name),
@@ -1439,6 +1444,23 @@ fn node_cpu_observation(
     }
 }
 
+/// The Muse's own stable key of an element (the Muse contract,
+/// `docs/contract/index.md`): on a root keyed by a process or runner, Poet's
+/// source rule lists every run of it as one source.
+const ELEMENT_KEY: &str = "ih.element.key";
+
+impl GraphMuse {
+    /// `<kind>:<name>`, scoped to the container it runs in when known
+    /// (`process:redis-server@redis`): stable across restarts, distinct for
+    /// two containers of one host.
+    fn stable_key(&self, kind: &str, name: &str) -> String {
+        match self.config.kubernetes.container_name.as_deref().filter(|container| !container.is_empty()) {
+            Some(container) => format!("{kind}:{name}@{container}"),
+            None => format!("{kind}:{name}"),
+        }
+    }
+}
+
 fn attrs<const N: usize>(items: [(&str, String); N]) -> BTreeMap<String, AttributeValue> {
     items
         .into_iter()
@@ -1849,6 +1871,8 @@ mod tests {
             .unwrap();
         let name = text(process, "process.executable.name").expect("the process names itself");
         assert!(!name.is_empty() && name.len() <= 255, "{name:?}");
+        // Its stable key: the executable, not the pid (a restart keeps it).
+        assert_eq!(text(process, ELEMENT_KEY), Some(format!("process:{name}")));
         assert_eq!(
             text(process, "process.pid"),
             Some(std::process::id().to_string())
@@ -1896,6 +1920,16 @@ mod tests {
             pid: std::process::id(),
         });
         let batch = GraphMuse::new(config).unwrap().collect(&[]).unwrap();
+        // The runner's id is per process; its declared key is stable.
+        let runner = batch
+            .entities
+            .iter()
+            .find(|entity| matches!(entity.key.identity, EntityIdentity::Runner { .. }))
+            .unwrap();
+        assert_eq!(
+            runner.attributes.get(ELEMENT_KEY),
+            Some(&AttributeValue::String("runner:shibuya@worker".into()))
+        );
         let edges: std::collections::BTreeSet<(String, RelationKind, String)> = batch
             .relations
             .iter()
