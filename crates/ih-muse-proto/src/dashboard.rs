@@ -250,10 +250,9 @@ pub enum DashboardError {
     Invalid(String),
 }
 
-/// Most panels one definition may hold (one renderer request answers them all).
-pub const MAX_DEFINITION_PANELS: usize = 24;
-/// Most blocks one definition may hold.
-pub const MAX_DEFINITION_BLOCKS: usize = 12;
+// A definition holds any number of panels and blocks (owner decision
+// 2026-10-05: dashboards are limitless). Only byte lengths of strings are
+// capped here; the transport's request-size limit bounds the whole batch.
 /// Most bytes of a block's text.
 pub const MAX_BLOCK_TEXT_BYTES: usize = 4096;
 /// Most bytes of a definition's description.
@@ -345,7 +344,7 @@ pub enum DashboardDefinitionError {
     MuseVersions,
     #[error("applies_to must list 1..={MAX_APPLIES_TO_ENTRIES} non-empty matchers per list (each at most 255 bytes, min_metrics >= 1)")]
     AppliesTo,
-    #[error("a definition needs 1..={MAX_DEFINITION_PANELS} panels")]
+    #[error("a definition needs at least one panel")]
     PanelCount,
     #[error("panel {index}: {source}")]
     Panel {
@@ -354,13 +353,11 @@ pub enum DashboardDefinitionError {
     },
     #[error("duplicate panel id {0}")]
     DuplicatePanel(String),
-    #[error("at most {MAX_DEFINITION_BLOCKS} blocks")]
-    BlockCount,
     #[error("block {index}: label must be 1..=80 bytes")]
     BlockLabel { index: usize },
     #[error("block {index}: text must be at most {MAX_BLOCK_TEXT_BYTES} bytes")]
     BlockText { index: usize },
-    #[error("block {index}: needs 1..={MAX_DEFINITION_PANELS} panels")]
+    #[error("block {index}: needs at least one panel")]
     BlockPanels { index: usize },
     #[error("block {index}: unknown panel id {panel}")]
     UnknownBlockPanel { index: usize, panel: String },
@@ -413,7 +410,7 @@ impl DashboardDefinition {
             return Err(E::MuseVersions);
         }
         self.validate_applies_to()?;
-        if self.panels.is_empty() || self.panels.len() > MAX_DEFINITION_PANELS {
+        if self.panels.is_empty() {
             return Err(E::PanelCount);
         }
         let mut panels = BTreeSet::new();
@@ -424,9 +421,6 @@ impl DashboardDefinition {
             if !panels.insert(panel.id.as_str()) {
                 return Err(E::DuplicatePanel(panel.id.clone()));
             }
-        }
-        if self.blocks.len() > MAX_DEFINITION_BLOCKS {
-            return Err(E::BlockCount);
         }
         let mut placed = BTreeSet::new();
         for (index, block) in self.blocks.iter().enumerate() {
@@ -440,7 +434,7 @@ impl DashboardDefinition {
             {
                 return Err(E::BlockText { index });
             }
-            if block.panels.is_empty() || block.panels.len() > MAX_DEFINITION_PANELS {
+            if block.panels.is_empty() {
                 return Err(E::BlockPanels { index });
             }
             for panel in &block.panels {
@@ -559,8 +553,8 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
             "muse_kind": {"type": "string", "description": "The Muse kind that owns the definition.", "minLength": 1, "maxLength": MAX_MUSE_KIND_BYTES, "pattern": "^[a-z0-9_-]+$"},
             "muse_versions": {"type": "string", "description": "Semver requirement on the Muse version the definition suits.", "minLength": 1, "maxLength": 64},
             "applies_to": {"$ref": "#/$defs/DashboardAppliesTo"},
-            "panels": {"type": "array", "minItems": 1, "maxItems": MAX_DEFINITION_PANELS, "items": {"$ref": "#/$defs/PanelSpec"}},
-            "blocks": {"type": "array", "maxItems": MAX_DEFINITION_BLOCKS, "items": {"$ref": "#/$defs/DashboardBlock"}},
+            "panels": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/PanelSpec"}},
+            "blocks": {"type": "array", "items": {"$ref": "#/$defs/DashboardBlock"}},
             "columns": {"type": "integer", "description": "Panels per row.", "minimum": 2, "maximum": 4}
         },
         "$defs": {
@@ -602,7 +596,7 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
                 "properties": {
                     "label": {"type": "string", "minLength": 1, "maxLength": 80},
                     "text": {"type": "string", "description": "Plain text or Markdown.", "maxLength": MAX_BLOCK_TEXT_BYTES},
-                    "panels": {"type": "array", "minItems": 1, "maxItems": MAX_DEFINITION_PANELS, "items": {"type": "string"}}
+                    "panels": {"type": "array", "minItems": 1, "items": {"type": "string"}}
                 }
             },
             "PanelSpec": {

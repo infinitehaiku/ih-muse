@@ -424,7 +424,6 @@ fn invalid_definitions_name_their_rule() {
                 panel: "load".into(),
             },
         ),
-        (|d| d.blocks = vec![d.blocks[0].clone(); 13], E::BlockCount),
         (|d| d.columns = Some(1), E::Columns),
     ];
     for (change, expected) in cases {
@@ -437,6 +436,33 @@ fn invalid_definitions_name_their_rule() {
     no_blocks
         .validate()
         .expect("blocks and columns are optional");
+}
+
+/// Dashboards are limitless (owner decision 2026-10-05): a definition with
+/// 60 panels in 20 blocks validates, passes the schema and rides a batch.
+#[test]
+fn a_definition_holds_any_number_of_panels_and_blocks() {
+    let mut definition = example();
+    let template = definition.panels[0].clone();
+    definition.panels = (0..60)
+        .map(|index| PanelSpec {
+            id: format!("p{index}"),
+            title: format!("Panel {index}"),
+            signal: None,
+            ..template.clone()
+        })
+        .collect();
+    definition.blocks = (0..20)
+        .map(|block| DashboardBlock {
+            label: format!("Block {block}"),
+            text: None,
+            panels: (0..3).map(|i| format!("p{}", block * 3 + i)).collect(),
+        })
+        .collect();
+    definition.validate().expect("60 panels in 20 blocks");
+    let value = serde_json::to_value(&definition).unwrap();
+    assert_eq!(schema_errors(&value), Vec::<String>::new());
+    batch(vec![definition]).validate().expect("a batch carries it");
 }
 
 #[test]

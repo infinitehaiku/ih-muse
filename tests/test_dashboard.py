@@ -36,7 +36,7 @@ def test_every_shipped_example_validates_as_dict_and_as_text() -> None:
         (lambda d: d.update(colour="red"), "colour"),
         (lambda d: d.update(id="macos.cluster"), "id must be"),
         (lambda d: d["blocks"][0]["panels"].append("gpu"), "unknown panel id gpu"),
-        (lambda d: d["panels"].clear(), "1..=24 panels"),
+        (lambda d: d["panels"].clear(), "at least one panel"),
         (lambda d: d.update(revision="one"), "expected u32"),
     ],
 )
