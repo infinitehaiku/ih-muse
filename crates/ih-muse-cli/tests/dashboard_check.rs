@@ -112,7 +112,8 @@ fn schema_command_prints_the_committed_schema() {
 
 /// Every pack in `dashboards/packs` passes the checker, is an `otel` pack
 /// recognized from the source's data, and the folder holds the seven packs
-/// converted from Poet's built-in OpenTelemetry profiles.
+/// converted from Poet's built-in OpenTelemetry profiles and the Piceli pack
+/// Poet bundles (with its event mapping in `event-mappings/`).
 #[test]
 fn every_pack_passes_the_checker() {
     let folder = workspace_file("dashboards/packs");
@@ -150,10 +151,58 @@ fn every_pack_passes_the_checker() {
             "otel.collector",
             "otel.jvm",
             "otel.mongodb",
+            "otel.piceli",
             "otel.postgresql",
             "otel.rabbitmq",
             "otel.redis",
             "otel.rustvello"
         ]
     );
+}
+
+/// Every event mapping in `dashboards/packs/event-mappings` parses,
+/// validates, travels as a definition entity and maps only to the shared
+/// deployment vocabulary.
+#[test]
+fn every_pack_event_mapping_validates() {
+    use ih_muse_proto::event_mapping::EventMapping;
+    let folder = workspace_file("dashboards/packs/event-mappings");
+    let mut files: Vec<PathBuf> = std::fs::read_dir(&folder)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
+        .collect();
+    files.sort();
+    let mut ids = Vec::new();
+    for path in &files {
+        let mapping: EventMapping = serde_json::from_str(&std::fs::read_to_string(path).unwrap())
+            .unwrap_or_else(|error| panic!("{}: {error}", path.display()));
+        mapping
+            .validate()
+            .unwrap_or_else(|error| panic!("{}: {error:?}", path.display()));
+        for rule in &mapping.events {
+            assert!(
+                ih_muse_proto::deployment::is_deployment_event(&rule.event),
+                "{}: {} maps to {}",
+                path.display(),
+                rule.name,
+                rule.event
+            );
+        }
+        let entity = mapping
+            .to_entity(
+                "org",
+                ih_muse_proto::TimeRange {
+                    from_unix_nano: 1,
+                    to_unix_nano: 2,
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            EventMapping::from_entity(&entity),
+            Some(Ok(mapping.clone()))
+        );
+        ids.push(mapping.id);
+    }
+    assert_eq!(ids, ["piceli.deployments"]);
 }

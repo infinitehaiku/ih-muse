@@ -1,0 +1,67 @@
+{
+  "id": "piceli.deployments",
+  "revision": 1,
+  "resource": [
+    {"key": "service.name", "value": "piceli-controller"},
+    {"key": "service.namespace", "value": "piceli"}
+  ],
+  "system": "piceli",
+  "instance_attribute": "k8s.cluster.name",
+  "event_id_attribute": "piceli.event.id",
+  "release_when": [
+    {"key": "piceli.run.kind", "value": "deploy"}
+  ],
+  "result_attribute": "piceli.deploy.result",
+  "results": [
+    {"value": "success", "state": "deployed", "severity": "info"},
+    {"value": "failure", "state": "failed", "severity": "error"},
+    {"value": "rolled-back", "state": "failed", "severity": "error"},
+    {"value": "interrupted", "state": "interrupted", "severity": "warning"},
+    {"value": "superseded", "state": "superseded", "severity": "info"}
+  ],
+  "attributes": [
+    {"from": "piceli.trigger", "to": "deployment.trigger"},
+    {"from": "piceli.approval.via", "to": "deployment.approval.via"},
+    {"from": "piceli.release.id", "to": "deployment.name"},
+    {"from": "piceli.plan.hash", "to": "deployment.plan.hash"},
+    {"from": "piceli.image.digests", "to": "deployment.image.digests"},
+    {"from": "piceli.k8s.deployments", "to": "deployment.k8s.deployments"},
+    {"from": "piceli.k8s.statefulsets", "to": "deployment.k8s.statefulsets"}
+  ],
+  "sources": {"names": "piceli.sources", "revisions": "piceli.source.revisions"},
+  "stages": [
+    {"task": "apply", "at": "start", "event": "deployment.apply.started", "what": "apply-started", "severity": "info"},
+    {"task": "checks", "result": "success", "at": "end", "event": "deployment.checks.passed", "what": "checks", "severity": "info"}
+  ],
+  "events": [
+    {"name": "piceli.controller.started", "event": "deployment.system.up", "severity": "info", "on": "system"},
+    {"name": "piceli.deploy.approval.required", "event": "deployment.approval.required", "severity": "warning"},
+    {"name": "piceli.deploy.approved", "event": "deployment.approved", "severity": "info"},
+    {"name": "piceli.deploy.rolled", "event": "deployment.rolled", "severity": "info",
+     "attributes": [{"from": "piceli.components", "to": "deployment.components.rolled"}]},
+    {"name": "piceli.deploy.pruned", "event": "deployment.pruned", "severity": "info",
+     "attributes": [{"from": "piceli.pruned", "to": "deployment.pruned"}]},
+    {"name": "piceli.deploy.checks.failed", "event": "deployment.checks.failed", "severity": "error",
+     "attributes": [
+       {"from": "piceli.checks.detail", "to": "deployment.checks.failed.detail", "join": "\n"},
+       {"from": "error.type", "to": "deployment.reason"}
+     ]},
+    {"name": "piceli.deploy.rollback", "event": "deployment.rollback", "severity": "error",
+     "attributes": [
+       {"from": "piceli.rollback.to", "to": "deployment.rollback.release"},
+       {"from": "piceli.rollback.state", "to": "deployment.rollback.state"}
+     ]},
+    {"name": "piceli.build.failed", "event": "deployment.build.failed", "severity": "error",
+     "attributes": [
+       {"from": "piceli.build.images", "to": "deployment.components.built"},
+       {"from": "piceli.build.log_tail", "to": "deployment.log.tail", "join": "\n"},
+       {"from": "error.type", "to": "deployment.reason"}
+     ]},
+    {"name": "piceli.environment.stopped", "event": "deployment.environment.stopped", "severity": "info", "on": "environment",
+     "attributes": [
+       {"from": "piceli.stop.reason", "to": "deployment.stop.reason"},
+       {"from": "piceli.stop.via", "to": "deployment.stop.by"}
+     ]},
+    {"name": "piceli.environment.started", "event": "deployment.environment.started", "severity": "info", "on": "environment"}
+  ]
+}

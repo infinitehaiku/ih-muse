@@ -1,0 +1,224 @@
+{
+  "id": "otel.piceli",
+  "revision": 1,
+  "title": "Deployments",
+  "description": "What Piceli deployed, from its own OpenTelemetry: deploys by result, deploy and build time, errors, checks, approval and queue waits, time since each environment's last successful deploy and the controller's heartbeat, with releases, rollbacks, failed checks and approvals as markers.",
+  "muse_kind": "otel",
+  "applies_to": {
+    "recognition": {
+      "entity_kinds": [],
+      "identity_kinds": [],
+      "root_attributes": [
+        {
+          "key": "service.name",
+          "value": "piceli-controller"
+        }
+      ],
+      "metric_prefixes": [
+        "piceli."
+      ],
+      "min_metrics": 1
+    }
+  },
+  "panels": [
+    {
+      "id": "deploys",
+      "title": "Deploys by result",
+      "metric": "cicd.pipeline.run.duration",
+      "aggregation": "count",
+      "filters": [
+        {
+          "key": "cicd.pipeline.run.state",
+          "op": "eq",
+          "value": "executing"
+        }
+      ],
+      "group_by": {
+        "attribute": "cicd.pipeline.result"
+      },
+      "signal": "traffic"
+    },
+    {
+      "id": "duration",
+      "title": "Deploy duration (p95)",
+      "metric": "cicd.pipeline.run.duration",
+      "aggregation": "p95",
+      "filters": [
+        {
+          "key": "cicd.pipeline.run.state",
+          "op": "eq",
+          "value": "executing"
+        }
+      ],
+      "group_by": {
+        "attribute": "deployment.environment.name"
+      },
+      "signal": "latency"
+    },
+    {
+      "id": "errors",
+      "title": "Deploy errors",
+      "metric": "cicd.pipeline.run.errors",
+      "aggregation": "rate",
+      "filters": [],
+      "group_by": {
+        "attribute": "error.type"
+      },
+      "signal": "errors",
+      "thresholds": {
+        "warning": 0.0001,
+        "critical": 0.001,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "active",
+      "title": "Runs in progress",
+      "metric": "cicd.pipeline.run.active",
+      "aggregation": "last",
+      "filters": [],
+      "group_by": {
+        "attribute": "cicd.pipeline.run.state"
+      },
+      "signal": "saturation"
+    },
+    {
+      "id": "build_duration",
+      "title": "Build duration (p95)",
+      "metric": "piceli.build.duration",
+      "aggregation": "p95",
+      "filters": [],
+      "group_by": {
+        "attribute": "piceli.image"
+      }
+    },
+    {
+      "id": "checks",
+      "title": "Checks by result",
+      "metric": "piceli.check.runs",
+      "aggregation": "rate",
+      "filters": [],
+      "group_by": {
+        "attribute": "piceli.check.result"
+      }
+    },
+    {
+      "id": "checks_failed",
+      "title": "Failed checks",
+      "metric": "piceli.check.runs",
+      "aggregation": "rate",
+      "filters": [
+        {
+          "key": "piceli.check.result",
+          "op": "eq",
+          "value": "failed"
+        }
+      ],
+      "group_by": {
+        "attribute": "piceli.check.name"
+      },
+      "thresholds": {
+        "warning": 0.0001,
+        "critical": 0.001,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "approval_wait",
+      "title": "Approval wait (p95)",
+      "metric": "piceli.deploy.approval.wait",
+      "aggregation": "p95",
+      "filters": [],
+      "group_by": {
+        "attribute": "deployment.environment.name"
+      }
+    },
+    {
+      "id": "queue_wait",
+      "title": "Queue wait (p95)",
+      "metric": "piceli.deploy.queue.wait",
+      "aggregation": "p95",
+      "filters": [],
+      "group_by": {
+        "attribute": "deployment.environment.name"
+      }
+    },
+    {
+      "id": "queue_size",
+      "title": "Environments due",
+      "metric": "piceli.deploy.queue.size",
+      "aggregation": "last",
+      "filters": []
+    },
+    {
+      "id": "since_success",
+      "title": "Time since the last successful deploy",
+      "metric": "piceli.deploy.last_success.age",
+      "aggregation": "last",
+      "filters": [],
+      "group_by": {
+        "attribute": "deployment.environment.name"
+      }
+    },
+    {
+      "id": "heartbeats",
+      "title": "Controller heartbeats",
+      "metric": "piceli.controller.heartbeats",
+      "aggregation": "rate",
+      "filters": [],
+      "signal": "errors",
+      "thresholds": {
+        "warning": 0.03,
+        "critical": 0.01,
+        "higher_is_worse": false
+      }
+    },
+    {
+      "id": "heartbeat",
+      "title": "Last heartbeat (Unix time)",
+      "metric": "piceli.controller.heartbeat",
+      "aggregation": "last",
+      "filters": []
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Deploys",
+      "text": "Finished deploys per bucket by result, how long they took per environment, and the errors by type.",
+      "panels": [
+        "deploys",
+        "duration",
+        "errors",
+        "active"
+      ]
+    },
+    {
+      "label": "Builds and checks",
+      "text": "Image build time, and the checks each deploy ran; failed checks roll a deploy back.",
+      "panels": [
+        "build_duration",
+        "checks",
+        "checks_failed"
+      ]
+    },
+    {
+      "label": "Waiting",
+      "text": "How long deploys waited for an approval and in the queue, and how many environments are due.",
+      "panels": [
+        "approval_wait",
+        "queue_wait",
+        "queue_size"
+      ]
+    },
+    {
+      "label": "Freshness",
+      "text": "How long ago each environment last deployed successfully, and whether the controller's heartbeat ticks (it stops when the controller does).",
+      "panels": [
+        "since_success",
+        "heartbeats",
+        "heartbeat"
+      ]
+    }
+  ],
+  "columns": 3
+}

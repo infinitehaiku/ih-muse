@@ -25,9 +25,30 @@ Each file here is one `DashboardDefinition` (see
 | `otel-collector.json` | `otel.collector` | The Collector's own telemetry |
 | `redis.json` | `otel.redis` | Redis INFO read beside the server |
 | `rustvello.json` | `otel.rustvello` | Rustvello runner OTLP export |
+| `piceli.json` | `otel.piceli` | Piceli's GitOps controller (0.16 and later), its own OTLP |
 
-The panels are the same as Poet's built-in profiles of the same purpose. An
-installed pack takes the place of that built-in profile.
+The first seven packs have the same panels as Poet's built-in profiles of
+the same purpose. An installed pack takes the place of that built-in profile.
+
+## Bundled packs and event mappings
+
+Poet bundles the Piceli pack: it compiles in `piceli.json` and
+`event-mappings/piceli.json` and uses them for every tenant, so a cluster
+whose Piceli controller sends OTLP to Poet gets the Deployments dashboard
+and the deployment markers with nothing installed and no Muse running. A
+stored definition or mapping with the same id and an equal or higher
+revision takes the bundled one's place.
+
+An event mapping (`ih_muse_proto::event_mapping`) names a system's own
+OpenTelemetry in the shared deployment vocabulary: which resource is the
+system's controller, which of its events and attributes are which
+`deployment.*` names, and which root spans are releases. It is data: Poet's
+CI/CD conventions do the rest. CI checks every file in `event-mappings/`
+(`crates/ih-muse-cli/tests/dashboard_check.rs`).
+
+| File | Id | System |
+| --- | --- | --- |
+| `event-mappings/piceli.json` | `piceli.deployments` | Piceli's controller (`service.name=piceli-controller`) |
 
 ## Check a pack
 
