@@ -12,6 +12,7 @@ pub mod prelude;
 mod producer;
 mod telemetry;
 mod timestamp_resolution;
+pub mod trace;
 pub mod types;
 mod utils;
 
