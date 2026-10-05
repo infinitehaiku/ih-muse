@@ -82,17 +82,24 @@ impl PyDashboardDelivery {
         self.inner.is_delivered()
     }
 
-    /// Sets `batch["dashboards"]` (a graph batch as a dict) unless a Poet
-    /// already acknowledged a batch that carried them.
+    /// Sets `batch["dashboards"]` (a graph batch as a dict) to the next
+    /// chunk (at most 32 definitions) no Poet has acknowledged yet; a set
+    /// of more than 32 goes out over several batches.
     pub fn attach(&self, py: Python<'_>, batch: &Bound<'_, PyDict>) -> PyResult<()> {
-        if !self.inner.is_delivered() {
-            batch.set_item("dashboards", to_python(py, self.inner.definitions())?)?;
+        if let Some(chunk) = self.inner.next_chunk() {
+            batch.set_item("dashboards", to_python(py, chunk)?)?;
         }
         Ok(())
     }
 
-    /// Call after a Poet acknowledged `batch`; marks the definitions
-    /// delivered only if that batch carried them.
+    /// Chunks (batches of definitions) no Poet has acknowledged yet.
+    #[getter]
+    pub fn pending_chunks(&self) -> usize {
+        self.inner.pending_chunks()
+    }
+
+    /// Call after a Poet acknowledged `batch`; marks the chunk that batch
+    /// carried delivered.
     pub fn acknowledge(&mut self, batch: &Bound<'_, PyDict>) -> PyResult<()> {
         let Some(carried) = batch.get_item("dashboards")? else {
             return Ok(());

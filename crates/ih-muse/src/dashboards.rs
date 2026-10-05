@@ -27,9 +27,6 @@ pub enum DashboardSetError {
     /// Two definitions share an id.
     #[error("duplicate dashboard id {0}")]
     Duplicate(String),
-    /// More definitions than one batch may carry.
-    #[error("at most {MAX_BATCH_DASHBOARDS} dashboard definitions per Muse")]
-    TooMany,
 }
 
 /// Parses one definition object or an array of them from JSON text, then
@@ -65,11 +62,9 @@ pub fn parse_dashboard_definitions(
     Ok(definitions)
 }
 
-/// Checks each definition and the set rules a batch enforces.
+/// Checks each definition and that ids are unique. A set may hold any
+/// number of definitions; [`DashboardDelivery`] splits it into batches.
 pub fn check_definitions(definitions: &[DashboardDefinition]) -> Result<(), DashboardSetError> {
-    if definitions.len() > MAX_BATCH_DASHBOARDS {
-        return Err(DashboardSetError::TooMany);
-    }
     let mut ids = BTreeSet::new();
     for definition in definitions {
         definition
@@ -85,21 +80,24 @@ pub fn check_definitions(definitions: &[DashboardDefinition]) -> Result<(), Dash
     Ok(())
 }
 
-/// A Muse's validated definitions and whether a Poet has acknowledged a
-/// batch that carried them.
+/// A Muse's validated definitions, split into chunks of at most
+/// [`MAX_BATCH_DASHBOARDS`] (one per batch), and which chunks a Poet has
+/// acknowledged.
 #[derive(Clone, Debug, Default)]
 pub struct DashboardDelivery {
     definitions: Vec<DashboardDefinition>,
-    delivered: bool,
+    /// One flag per chunk: a Poet acknowledged a batch that carried it.
+    delivered: Vec<bool>,
 }
 
 impl DashboardDelivery {
     /// Validates the definitions. An empty set is valid and never attaches.
     pub fn new(definitions: Vec<DashboardDefinition>) -> Result<Self, DashboardSetError> {
         check_definitions(&definitions)?;
+        let chunks = definitions.len().div_ceil(MAX_BATCH_DASHBOARDS);
         Ok(Self {
             definitions,
-            delivered: false,
+            delivered: vec![false; chunks],
         })
     }
 
@@ -107,20 +105,42 @@ impl DashboardDelivery {
         &self.definitions
     }
 
-    /// True once a Poet acknowledged a batch that carried the definitions.
-    pub fn is_delivered(&self) -> bool {
-        self.delivered || self.definitions.is_empty()
+    /// The definitions as batches carry them, in order.
+    pub fn chunks(&self) -> impl Iterator<Item = &[DashboardDefinition]> {
+        self.definitions.chunks(MAX_BATCH_DASHBOARDS)
     }
 
-    /// Puts the definitions on `batch` unless they were already delivered.
+    /// True once a Poet acknowledged a batch for every chunk.
+    pub fn is_delivered(&self) -> bool {
+        self.delivered.iter().all(|delivered| *delivered)
+    }
+
+    /// The chunks no Poet has acknowledged yet.
+    pub fn pending_chunks(&self) -> usize {
+        self.delivered
+            .iter()
+            .filter(|delivered| !**delivered)
+            .count()
+    }
+
+    /// The chunk the next batch carries: the first one not acknowledged
+    /// yet, or `None` once all are delivered.
+    pub fn next_chunk(&self) -> Option<&[DashboardDefinition]> {
+        self.chunks()
+            .zip(&self.delivered)
+            .find(|(_, delivered)| !**delivered)
+            .map(|(chunk, _)| chunk)
+    }
+
+    /// Puts the next undelivered chunk on `batch`, if any.
     pub fn attach(&self, batch: &mut GraphBatch) {
-        if !self.is_delivered() {
-            batch.dashboards = self.definitions.clone();
+        if let Some(chunk) = self.next_chunk() {
+            batch.dashboards = chunk.to_vec();
         }
     }
 
-    /// Call after a Poet acknowledged `batch`; it marks the definitions
-    /// delivered only if that batch carried them.
+    /// Call after a Poet acknowledged `batch`; it marks the chunk that
+    /// batch carried delivered (a batch that carried none proves nothing).
     pub fn acknowledge(&mut self, batch: &GraphBatch) {
         self.acknowledge_carried(&batch.dashboards);
     }
@@ -129,15 +149,26 @@ impl DashboardDelivery {
     /// example as JSON through the Python binding): `carried` is the
     /// acknowledged batch's `dashboards` field.
     pub fn acknowledge_carried(&mut self, carried: &[DashboardDefinition]) {
-        if !self.definitions.is_empty() && carried == self.definitions.as_slice() {
-            self.delivered = true;
+        if carried.is_empty() {
+            return;
+        }
+        let Self {
+            definitions,
+            delivered,
+        } = self;
+        for (chunk, delivered) in definitions.chunks(MAX_BATCH_DASHBOARDS).zip(delivered) {
+            if chunk == carried {
+                *delivered = true;
+            }
         }
     }
 
-    /// Sends the definitions again from the next batch, for example after
-    /// the Muse replaced them or a Poet cluster lost its stored copy.
+    /// Sends every chunk again from the next batch, for example after the
+    /// Muse replaced its definitions or a Poet cluster lost its stored copy.
     pub fn resend(&mut self) {
-        self.delivered = false;
+        self.delivered
+            .iter_mut()
+            .for_each(|delivered| *delivered = false);
     }
 }
 
@@ -206,18 +237,72 @@ mod tests {
             parse_dashboard_definitions(&format!("[{K8S},{K8S}]")).unwrap_err(),
             DashboardSetError::Duplicate("k8s.cluster".into())
         );
+    }
 
+    /// `n` distinct definitions built from the Kubernetes example.
+    fn many(n: usize) -> Vec<DashboardDefinition> {
         let one = parse_dashboard_definitions(K8S).unwrap().remove(0);
-        let many = (0..=MAX_BATCH_DASHBOARDS)
-            .map(|n| DashboardDefinition {
-                id: format!("k8s.cluster{n}"),
+        (0..n)
+            .map(|index| DashboardDefinition {
+                id: format!("k8s.cluster{index}"),
                 ..one.clone()
             })
-            .collect();
+            .collect()
+    }
+
+    #[test]
+    fn a_muse_with_more_than_one_batch_of_dashboards_sends_them_in_several_batches() {
+        let definitions = many(2 * MAX_BATCH_DASHBOARDS + 5);
+        let mut delivery = DashboardDelivery::new(definitions.clone()).unwrap();
+        assert_eq!(delivery.pending_chunks(), 3);
+
+        // Unacknowledged: every batch carries the first chunk.
+        let mut first = batch();
+        delivery.attach(&mut first);
+        assert_eq!(first.dashboards, definitions[..MAX_BATCH_DASHBOARDS]);
+        first.validate().expect("a chunk fits one batch");
+        let mut again = batch();
+        delivery.attach(&mut again);
+        assert_eq!(again.dashboards, first.dashboards);
+
+        // Acknowledged: the next batch carries the second chunk, and so on.
+        delivery.acknowledge(&first);
+        let mut second = batch();
+        delivery.attach(&mut second);
         assert_eq!(
-            DashboardDelivery::new(many).unwrap_err(),
-            DashboardSetError::TooMany
+            second.dashboards,
+            definitions[MAX_BATCH_DASHBOARDS..2 * MAX_BATCH_DASHBOARDS]
         );
+        delivery.acknowledge(&again); // the first chunk again: no change
+        assert_eq!(delivery.pending_chunks(), 2);
+        delivery.acknowledge(&second);
+        let mut third = batch();
+        delivery.attach(&mut third);
+        assert_eq!(third.dashboards, definitions[2 * MAX_BATCH_DASHBOARDS..]);
+        third.validate().unwrap();
+        assert!(!delivery.is_delivered());
+        delivery.acknowledge(&third);
+        assert!(delivery.is_delivered());
+
+        // Every definition rode exactly one acknowledged batch, in order.
+        let sent = [first.dashboards, second.dashboards, third.dashboards].concat();
+        assert_eq!(sent, definitions);
+
+        let mut later = batch();
+        delivery.attach(&mut later);
+        assert!(later.dashboards.is_empty());
+
+        delivery.resend();
+        let mut resent = batch();
+        delivery.attach(&mut resent);
+        assert_eq!(resent.dashboards, definitions[..MAX_BATCH_DASHBOARDS]);
+    }
+
+    #[test]
+    fn exactly_one_batch_of_dashboards_is_one_chunk() {
+        let delivery = DashboardDelivery::new(many(MAX_BATCH_DASHBOARDS)).unwrap();
+        assert_eq!(delivery.pending_chunks(), 1);
+        assert_eq!(delivery.chunks().count(), 1);
     }
 
     #[test]

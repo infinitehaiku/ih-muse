@@ -48,6 +48,12 @@ implements a bounded authenticated OTLP/HTTP-Protobuf profile described in the
 Infinite Haiku v3 contract reference. Muse client transport still uses the
 legacy path until its coordinated migration.
 
+Dashboard definitions (no panel, filter, series or dashboard count limits;
+batches of at most 32 definitions, split by `DashboardDelivery`) and the
+`ih.element.key` attribute, which lets a Muse name the exact element of a log
+line or span among its own elements, are described in
+[the Muse contract](docs/contract/index.md).
+
 ## Installation
 
 IH-Muse can be installed in Python and configured to work in conjunction with the Muse system. Rust users can include IH-Muse as a dependency in their Cargo project.

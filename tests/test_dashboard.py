@@ -36,7 +36,7 @@ def test_every_shipped_example_validates_as_dict_and_as_text() -> None:
         (lambda d: d.update(colour="red"), "colour"),
         (lambda d: d.update(id="macos.cluster"), "id must be"),
         (lambda d: d["blocks"][0]["panels"].append("gpu"), "unknown panel id gpu"),
-        (lambda d: d["panels"].clear(), "1..=24 panels"),
+        (lambda d: d["panels"].clear(), "at least one panel"),
         (lambda d: d.update(revision="one"), "expected u32"),
     ],
 )
@@ -99,3 +99,25 @@ def test_an_invalid_delivery_is_refused() -> None:
     definition["columns"] = 1
     with pytest.raises(DashboardDefinitionError, match="columns"):
         ih_muse.DashboardDelivery(definition)
+
+
+def test_more_than_32_definitions_go_out_over_several_batches() -> None:
+    base = example("k8s-cluster.json")
+    definitions = []
+    for index in range(40):
+        definition = copy.deepcopy(base)
+        definition["id"] = f"k8s.cluster{index}"
+        definitions.append(definition)
+    delivery = ih_muse.DashboardDelivery(definitions)
+    assert delivery.pending_chunks == 2
+
+    first = batch()
+    delivery.attach(first)
+    assert [d["id"] for d in first["dashboards"]] == [f"k8s.cluster{i}" for i in range(32)]
+    delivery.acknowledge(first)
+    second = batch()
+    delivery.attach(second)
+    assert [d["id"] for d in second["dashboards"]] == [f"k8s.cluster{i}" for i in range(32, 40)]
+    assert not delivery.is_delivered
+    delivery.acknowledge(second)
+    assert delivery.is_delivered
