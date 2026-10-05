@@ -173,7 +173,6 @@
           "items": {
             "$ref": "#/$defs/PanelFilter"
           },
-          "maxItems": 8,
           "type": "array"
         },
         "group_by": {
@@ -209,7 +208,7 @@
           "type": "string"
         },
         "top_n": {
-          "maximum": 20,
+          "description": "Series shown when grouped (any number).",
           "minimum": 1,
           "type": "integer"
         }

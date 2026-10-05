@@ -27,6 +27,7 @@ installation
 getting_started
 configuration/index
 recording/index
+contract/index
 cli/index
 api/index
 contributing/index

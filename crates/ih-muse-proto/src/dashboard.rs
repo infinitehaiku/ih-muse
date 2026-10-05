@@ -184,11 +184,16 @@ impl PanelSpec {
         if self.metric.is_empty() || self.metric.len() > 255 {
             return Err(DashboardError::Invalid("panel metric".into()));
         }
-        if self.filters.len() > 8 || self.filters.iter().any(|filter| filter.key.is_empty()) {
+        // Any number of filters and series (owner decision 2026-10-05:
+        // dashboards are limitless); only empty keys and a zero top_n are
+        // refused.
+        if self.filters.iter().any(|filter| filter.key.is_empty()) {
             return Err(DashboardError::Invalid("panel filters".into()));
         }
-        if self.top_n.is_some_and(|top_n| top_n == 0 || top_n > 20) {
-            return Err(DashboardError::Invalid("panel top_n must be 1..=20".into()));
+        if self.top_n == Some(0) {
+            return Err(DashboardError::Invalid(
+                "panel top_n must be at least 1".into(),
+            ));
         }
         if let Some(thresholds) = &self.thresholds {
             let ordered = if thresholds.higher_is_worse {
@@ -606,9 +611,9 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
                     "title": {"type": "string", "minLength": 1, "maxLength": 120},
                     "metric": {"type": "string", "description": "Exact metric name as stored (OTel or Muse metric code).", "minLength": 1, "maxLength": 255},
                     "aggregation": enumerate(aggregations),
-                    "filters": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/PanelFilter"}},
+                    "filters": {"type": "array", "items": {"$ref": "#/$defs/PanelFilter"}},
                     "group_by": {"$ref": "#/$defs/PanelGroupBy"},
-                    "top_n": {"type": "integer", "minimum": 1, "maximum": 20},
+                    "top_n": {"type": "integer", "description": "Series shown when grouped (any number).", "minimum": 1},
                     "signal": enumerate(signals),
                     "thresholds": {"$ref": "#/$defs/PanelThresholds"}
                 }

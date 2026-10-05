@@ -99,3 +99,25 @@ def test_an_invalid_delivery_is_refused() -> None:
     definition["columns"] = 1
     with pytest.raises(DashboardDefinitionError, match="columns"):
         ih_muse.DashboardDelivery(definition)
+
+
+def test_more_than_32_definitions_go_out_over_several_batches() -> None:
+    base = example("k8s-cluster.json")
+    definitions = []
+    for index in range(40):
+        definition = copy.deepcopy(base)
+        definition["id"] = f"k8s.cluster{index}"
+        definitions.append(definition)
+    delivery = ih_muse.DashboardDelivery(definitions)
+    assert delivery.pending_chunks == 2
+
+    first = batch()
+    delivery.attach(first)
+    assert [d["id"] for d in first["dashboards"]] == [f"k8s.cluster{i}" for i in range(32)]
+    delivery.acknowledge(first)
+    second = batch()
+    delivery.attach(second)
+    assert [d["id"] for d in second["dashboards"]] == [f"k8s.cluster{i}" for i in range(32, 40)]
+    assert not delivery.is_delivered
+    delivery.acknowledge(second)
+    assert delivery.is_delivered
