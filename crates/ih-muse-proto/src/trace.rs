@@ -430,3 +430,34 @@ mod tests {
         assert_eq!(DeliveryTrace::from_headers(Some("bad"), None), None);
     }
 }
+
+/// The per-hop cost of tracing (run with `--release -- --ignored`):
+/// parsing the incoming context, deciding, making a child and formatting
+/// it, which every traced request pays once per hop.
+#[cfg(test)]
+mod cost {
+    use super::*;
+
+    #[test]
+    #[ignore = "a measurement, run on demand"]
+    fn per_hop_cost() {
+        let sampler = Sampler::default();
+        let value = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+        let rounds = 1_000_000u32;
+        let started = std::time::Instant::now();
+        let mut kept = 0u32;
+        for round in 0..rounds {
+            let parent = TraceContext::parse(std::hint::black_box(value)).unwrap();
+            let child = parent.child();
+            kept += u32::from(sampler.keep(child.sampled, round % 97 == 0, u64::from(round)).is_some());
+            std::hint::black_box(child.traceparent());
+        }
+        let per = started.elapsed().as_nanos() as f64 / f64::from(rounds);
+        let started = std::time::Instant::now();
+        for _ in 0..rounds {
+            std::hint::black_box(TraceContext::root(&sampler));
+        }
+        let root = started.elapsed().as_nanos() as f64 / f64::from(rounds);
+        println!("parse+child+keep+format: {per:.0} ns per hop; new root: {root:.0} ns ({kept} kept)");
+    }
+}
