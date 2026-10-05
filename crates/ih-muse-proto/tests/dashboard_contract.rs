@@ -325,8 +325,7 @@ fn the_macos_example_is_valid_and_matches_the_owner_mock() {
 
 /// Every example under `examples/dashboards` is valid, passes the JSON
 /// Schema (raw file and serialized form), and places each panel exactly
-/// once: in the implicit Measurements row (it has a golden signal) or in a
-/// block.
+/// once ([`placement_problems`]).
 #[test]
 fn every_shipped_example_is_valid_and_places_each_panel_once() {
     let dir = workspace_file("examples/dashboards");
@@ -345,17 +344,62 @@ fn every_shipped_example_is_valid_and_places_each_panel_once() {
         let definition: DashboardDefinition = serde_json::from_value(raw).unwrap();
         definition.validate().unwrap();
         assert!(schema_errors(&serde_json::to_value(&definition).unwrap()).is_empty());
-        for panel in &definition.panels {
-            let placed = definition
-                .blocks
-                .iter()
-                .any(|block| block.panels.contains(&panel.id));
-            assert_eq!(placed, panel.signal.is_none(), "{path:?}: {}", panel.id);
-        }
+        assert_eq!(placement_problems(&definition), Vec::<String>::new(), "{path:?}");
         ids.push(definition.id);
     }
     ids.sort();
     assert_eq!(ids, ["k8s.cluster", "macos.host"]);
+}
+
+/// Panels a definition draws nowhere or in the wrong place. A panel's chart
+/// is drawn once: in the one block that lists it, else in the implicit
+/// Measurements row, which only holds panels with a golden signal (a
+/// definition without blocks lets the renderer lay everything out). A
+/// golden signal also feeds the signal's Measurements tile wherever the
+/// panel's chart is, so a block may list a signal panel (the Kubernetes
+/// cluster's "Health now" lists its Errors panels). `validate()` already
+/// refuses a panel in two blocks.
+fn placement_problems(definition: &DashboardDefinition) -> Vec<String> {
+    if definition.blocks.is_empty() {
+        return Vec::new();
+    }
+    definition
+        .panels
+        .iter()
+        .filter(|panel| panel.signal.is_none())
+        .filter(|panel| {
+            !definition
+                .blocks
+                .iter()
+                .any(|block| block.panels.contains(&panel.id))
+        })
+        .map(|panel| format!("{} has no golden signal and is in no block", panel.id))
+        .collect()
+}
+
+#[test]
+fn a_signal_panel_may_sit_in_a_block_but_a_plain_panel_needs_one() {
+    let mut definition = example();
+    assert_eq!(placement_problems(&definition), Vec::<String>::new());
+    // A golden-signal panel listed in a block: still placed once (its chart in
+    // the block, its value in the Measurements tile).
+    let signal = definition
+        .panels
+        .iter()
+        .find(|panel| panel.signal.is_some())
+        .unwrap()
+        .id
+        .clone();
+    definition.blocks[0].panels.push(signal);
+    definition.validate().unwrap();
+    assert_eq!(placement_problems(&definition), Vec::<String>::new());
+    // A panel without a signal taken out of every block is drawn nowhere it
+    // belongs.
+    let plain = definition.blocks[1].panels.remove(0);
+    assert_eq!(
+        placement_problems(&definition),
+        [format!("{plain} has no golden signal and is in no block")]
+    );
 }
 
 #[test]
