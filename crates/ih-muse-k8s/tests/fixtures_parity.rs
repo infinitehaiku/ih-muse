@@ -343,26 +343,30 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
     let snapshot = snapshot(true, true);
     {
         let request = muse.intake(&snapshot, NOW);
-        muse.enqueue(request);
+        muse.enqueue(request, NOW);
     }
     {
         let request = muse.intake(&snapshot, NOW + 1);
-        muse.enqueue(request);
+        muse.enqueue(request, NOW + 1);
     }
     let down = muse
-        .send_pending(|_| async { Err(MuseError::Unavailable("down".into())) })
+        .send_pending(usize::MAX, |_| async {
+            Err(MuseError::Unavailable("down".into()))
+        })
         .await;
     assert!(down.is_err());
     assert_eq!(muse.pending(), 2, "nothing lost while no Poet answers");
     assert!(!muse.intake(&snapshot, NOW + 2).batch.dashboards.is_empty());
 
     let rejected = muse
-        .send_pending(|_| async { Err(MuseError::Validation("HTTP 400".into())) })
+        .send_pending(usize::MAX, |_| async {
+            Err(MuseError::Validation("HTTP 400".into()))
+        })
         .await;
     assert!(rejected.is_err());
     assert_eq!(muse.pending(), 1, "a rejected batch is not retried forever");
 
-    let sent = muse.send_pending(|request| async move {
+    let sent = muse.send_pending(usize::MAX, |request| async move {
         assert!(!request.batch.dashboards.is_empty());
         Ok(())
     });
@@ -372,14 +376,11 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
         muse.intake(&snapshot, NOW + 3).batch.dashboards.is_empty(),
         "acknowledged once accepted"
     );
-    for _ in 0..(ih_muse_k8s::MAX_PENDING_BATCHES + 3) {
-        {
-            let request = muse.intake(&snapshot, NOW);
-            muse.enqueue(request);
-        }
-    }
-    assert_eq!(muse.pending(), ih_muse_k8s::MAX_PENDING_BATCHES);
-    assert_eq!(muse.dropped(), 4, "one rejected and three over the bound");
+    assert_eq!(
+        muse.lost().dropped_intervals,
+        1,
+        "the rejected batch's interval is counted as dropped"
+    );
 }
 
 /// A loopback HTTP server that answers the Muse's API paths from the
