@@ -10,34 +10,39 @@
 //! (`k8s.cluster`) attached until a Poet acknowledges it.
 
 pub mod api;
+pub mod backlog;
 pub mod dashboards;
 pub mod events;
 pub mod graph;
 pub mod identity;
 pub mod model;
 
-use std::collections::VecDeque;
+use std::collections::BTreeMap;
 
 use ih_muse::dashboards::{DashboardDelivery, DashboardSetError};
 use ih_muse_proto::{
-    GraphBatch, GraphIntakeRequest, GRAPH_INTAKE_CONTRACT_REVISION, GRAPH_INTAKE_SCHEMA_VERSION,
+    AttributeValue, EntityIdentity, EntityKey, Event, EventKind, GraphBatch, GraphIntakeRequest,
+    InstrumentationScope, JoinStatus, OrganizationId, Provenance, TimeRange,
+    GRAPH_INTAKE_CONTRACT_REVISION, GRAPH_INTAKE_SCHEMA_VERSION,
 };
 
 use crate::api::{ApiError, KubeApi};
+use crate::backlog::{Backlog, BacklogConfig, Loss};
 use crate::events::Detector;
 use crate::graph::{GraphConfig, Snapshot};
 use crate::identity::MuseIdentity;
 
-/// Batches kept while no Poet answers: 10 minutes at the 5 s cadence.
-pub const MAX_PENDING_BATCHES: usize = 120;
+/// `event.name` of the event that reports what the backlog thinned or
+/// dropped while no Poet answered.
+pub const BACKLOG_EVENT_NAME: &str = "k8s.muse.backlog.reduced";
 
 /// The Muse between collections: who it is, what it sends, what is unsent.
 pub struct K8sMuse {
     identity: MuseIdentity,
     graph: GraphConfig,
     delivery: DashboardDelivery,
-    pending: VecDeque<GraphIntakeRequest>,
-    dropped: u64,
+    /// Unacknowledged batches, bounded by bytes.
+    backlog: Backlog,
     namespace_uid: Option<String>,
     /// What the previous collection saw, to detect problems and changes.
     detector: Detector,
@@ -66,11 +71,17 @@ impl K8sMuse {
             },
             identity,
             delivery: DashboardDelivery::new(dashboards::dashboard_definitions())?,
-            pending: VecDeque::new(),
-            dropped: 0,
+            backlog: Backlog::new(BacklogConfig::default(), interval_ns),
             namespace_uid: None,
             detector: Detector::new(),
         })
+    }
+
+    /// Bounds the unsent batches kept while no Poet answers.
+    #[must_use]
+    pub fn with_backlog(mut self, config: BacklogConfig) -> Self {
+        self.backlog = Backlog::new(config, self.graph.expected_interval_ns);
+        self
     }
 
     /// Observes every namespace (pods, workloads, warnings), not only its
@@ -120,32 +131,36 @@ impl K8sMuse {
         self.delivery.acknowledge(&request.batch);
     }
 
-    /// Queues a request; returns how many oldest ones were dropped to stay
-    /// within [`MAX_PENDING_BATCHES`].
-    pub fn enqueue(&mut self, request: GraphIntakeRequest) -> usize {
-        self.pending.push_back(request);
-        let mut dropped = 0;
-        while self.pending.len() > MAX_PENDING_BATCHES {
-            self.pending.pop_front();
-            dropped += 1;
-        }
-        self.dropped += dropped as u64;
-        dropped
+    /// Queues a request collected at `now`. Returns what queueing it
+    /// thinned or dropped to stay within the backlog's byte bound.
+    pub fn enqueue(&mut self, request: GraphIntakeRequest, now: u64) -> Loss {
+        self.backlog.push(&request, now)
     }
 
+    /// Batches queued.
     pub fn pending(&self) -> usize {
-        self.pending.len()
+        self.backlog.len()
     }
 
-    pub fn dropped(&self) -> u64 {
-        self.dropped
+    /// Compressed bytes queued.
+    pub fn pending_bytes(&self) -> usize {
+        self.backlog.bytes()
     }
 
-    /// Sends queued requests oldest first through `send`, stopping at the
-    /// first unavailable Poet (that request stays queued). A request a Poet
-    /// rejects (4xx) is dropped: any Poet would reject it again.
+    /// Everything thinned, dropped or rejected since start.
+    pub fn lost(&self) -> &Loss {
+        self.backlog.total()
+    }
+
+    /// Sends up to `max` queued requests oldest first through `send`,
+    /// stopping at the first unavailable Poet (that request stays queued).
+    /// Pass the replay pace as `max` so a backlog does not flood Poet. What
+    /// the backlog thinned or dropped and no Poet has acknowledged yet rides
+    /// along as an event in the request sent. A request a Poet rejects (4xx)
+    /// is dropped and counted: any Poet would reject it again.
     pub async fn send_pending<F, Fut>(
         &mut self,
+        max: usize,
         mut send: F,
     ) -> Result<usize, ih_muse_core::MuseError>
     where
@@ -153,16 +168,26 @@ impl K8sMuse {
         Fut: std::future::Future<Output = Result<(), ih_muse_core::MuseError>>,
     {
         let mut sent = 0;
-        while let Some(request) = self.pending.front().cloned() {
-            match send(request.clone()).await {
+        while sent < max {
+            let Some(mut request) = self.backlog.front() else {
+                break;
+            };
+            let report = self.backlog.take_unreported();
+            if let Some(loss) = &report {
+                request.batch.events.push(self.loss_event(loss));
+            }
+            let result = send(request.clone()).await;
+            if let (Err(_), Some(loss)) = (&result, &report) {
+                self.backlog.restore_unreported(loss);
+            }
+            match result {
                 Ok(()) => {
                     self.acknowledge(&request);
-                    self.pending.pop_front();
+                    self.backlog.pop_acknowledged();
                     sent += 1;
                 }
                 Err(ih_muse_core::MuseError::Validation(message)) => {
-                    self.pending.pop_front();
-                    self.dropped += 1;
+                    self.backlog.pop_rejected();
                     return Err(ih_muse_core::MuseError::Validation(format!(
                         "dropped rejected batch {}: {message}",
                         request.delivery_id
@@ -172,6 +197,103 @@ impl K8sMuse {
             }
         }
         Ok(sent)
+    }
+
+    /// The event on the cluster that tells Poet, over the affected window,
+    /// how many collection intervals were thinned or dropped and how many
+    /// events were lost, with the totals since start.
+    fn loss_event(&self, loss: &Loss) -> Event {
+        let total = self.backlog.total();
+        let summary = format!(
+            "No Poet answered and the unsent backlog reached its {} byte bound: \
+             {} collection interval(s) thinned (kept at a coarser resolution) \
+             and {} dropped, with {} event(s)",
+            self.backlog.config().max_bytes,
+            loss.thinned_intervals,
+            loss.dropped_intervals,
+            loss.dropped_events
+        );
+        let attributes = BTreeMap::from([
+            (
+                "event.name".to_string(),
+                AttributeValue::String(BACKLOG_EVENT_NAME.into()),
+            ),
+            (
+                "ih.event.severity".into(),
+                AttributeValue::String("warning".into()),
+            ),
+            (
+                "k8s.cluster.name".into(),
+                AttributeValue::String(self.cluster_label().into()),
+            ),
+            (
+                "ih.muse.backlog.thinned_intervals".into(),
+                AttributeValue::U64(loss.thinned_intervals),
+            ),
+            (
+                "ih.muse.backlog.dropped_intervals".into(),
+                AttributeValue::U64(loss.dropped_intervals),
+            ),
+            (
+                "ih.muse.backlog.dropped_events".into(),
+                AttributeValue::U64(loss.dropped_events),
+            ),
+            (
+                "ih.muse.backlog.thinned_intervals_total".into(),
+                AttributeValue::U64(total.thinned_intervals),
+            ),
+            (
+                "ih.muse.backlog.dropped_intervals_total".into(),
+                AttributeValue::U64(total.dropped_intervals),
+            ),
+            (
+                "ih.muse.backlog.dropped_events_total".into(),
+                AttributeValue::U64(total.dropped_events),
+            ),
+            (
+                "ih.muse.backlog.max_bytes".into(),
+                AttributeValue::U64(self.backlog.config().max_bytes as u64),
+            ),
+        ]);
+        let organization = OrganizationId(self.graph.organization.clone());
+        Event {
+            entity: EntityKey {
+                organization,
+                identity: EntityIdentity::Cluster {
+                    cluster_uid: self.graph.cluster_uid.clone(),
+                },
+            },
+            kind: EventKind::Domain,
+            event_id: format!(
+                "k8s:{}:backlog:{}-{}",
+                self.graph.cluster_uid, loss.from_unix_nano, loss.to_unix_nano
+            ),
+            time: TimeRange {
+                from_unix_nano: loss.from_unix_nano.max(1),
+                to_unix_nano: loss.to_unix_nano.max(loss.from_unix_nano.max(1) + 1),
+            },
+            scope: InstrumentationScope {
+                name: graph::EVENT_SCOPE_NAME.into(),
+                version: Some(graph::EVENT_SCOPE_VERSION.into()),
+                schema_url: None,
+                attributes: BTreeMap::new(),
+            },
+            attributes,
+            body: Some(AttributeValue::String(summary)),
+            provenance: Provenance {
+                source_id: self.graph.source_id.clone(),
+                source_revision: self.graph.source_revision.clone(),
+                observed_at_unix_nano: loss.to_unix_nano,
+                join_status: JoinStatus::Resolved,
+            },
+        }
+    }
+
+    fn cluster_label(&self) -> &str {
+        self.graph
+            .cluster_name
+            .as_deref()
+            .unwrap_or(&self.graph.cluster_uid)
     }
 
     /// Reads one snapshot. Nodes and pods are required; metrics-server,

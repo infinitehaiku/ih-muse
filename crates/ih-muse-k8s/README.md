@@ -101,6 +101,28 @@ The Poet token file must not be world-readable.
 (tests use a loopback HTTP server). `--once` or `--samples N` stop after N
 batches.
 
+### While no Poet answers
+
+The Muse keeps collecting and queues what it could not send, compressed
+(an all-namespace k-lab batch is about 0.75 MB of JSON and 30 to 40 KB
+queued). `--backlog-max-bytes` (`IH_MUSE_BACKLOG_MAX_BYTES`, default
+16 MiB) bounds the queue: about 37 minutes of k-lab at 5 s before anything
+is reduced. Beyond it the oldest data is thinned first (every second, then
+every fourth, up to every 16th sample kept), then the oldest batches are
+dropped. Batches carrying events are never thinned. Nothing is reduced
+silently: a thinned batch's availability states the longer window it
+stands for, its coarser resolution and its lower coverage (pressure policy
+`ih.muse.backlog.thinned`); a dropped window has no availability, so Poet
+shows it as unavailable, not as zero; and the next batch a Poet accepts
+carries a `k8s.muse.backlog.reduced` warning event on the cluster with the
+window and the intervals thinned and dropped (and their totals since
+start).
+
+When a Poet answers again the queue is replayed oldest first at
+`--replay-batches-per-interval` (`IH_MUSE_REPLAY_BATCHES_PER_INTERVAL`,
+default 4) batches per interval, so a 10 minute backlog drains in about
+4 minutes without flooding Poet.
+
 ### RBAC
 
 Read-only, the same grants as the Python Muse:
