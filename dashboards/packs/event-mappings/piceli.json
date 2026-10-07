@@ -1,6 +1,6 @@
 {
   "id": "piceli.deployments",
-  "revision": 1,
+  "revision": 2,
   "resource": [
     {"key": "service.name", "value": "piceli-controller"},
     {"key": "service.namespace", "value": "piceli"}
@@ -35,6 +35,20 @@
   ],
   "events": [
     {"name": "piceli.controller.started", "event": "deployment.system.up", "severity": "info", "on": "system"},
+    {"name": "piceli.deploy.started", "event": "deployment.started", "severity": "info",
+     "attributes": [{"from": "piceli.run.attempt", "to": "deployment.attempt"}]},
+    {"name": "piceli.deploy.stage", "event": "deployment.stage",
+     "attributes": [
+       {"from": "piceli.stage", "to": "cicd.pipeline.task.name"},
+       {"from": "piceli.stage.result", "to": "cicd.pipeline.task.run.result"},
+       {"from": "error.type", "to": "deployment.reason"}
+     ]},
+    {"name": "piceli.deploy.retry", "event": "deployment.retry", "severity": "warning",
+     "attributes": [
+       {"from": "piceli.retry.at", "to": "deployment.retry.at"},
+       {"from": "piceli.run.attempt", "to": "deployment.attempt"},
+       {"from": "error.type", "to": "deployment.reason"}
+     ]},
     {"name": "piceli.deploy.approval.required", "event": "deployment.approval.required", "severity": "warning"},
     {"name": "piceli.deploy.approved", "event": "deployment.approved", "severity": "info"},
     {"name": "piceli.deploy.rolled", "event": "deployment.rolled", "severity": "info",
