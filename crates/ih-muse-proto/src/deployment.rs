@@ -143,6 +143,13 @@ pub const DURATION_SECONDS: &str = "deployment.duration.seconds";
 pub const TIME_DERIVED: &str = "deployment.time.derived";
 /// The pipeline stage of a stage event (OpenTelemetry `cicd.pipeline.task.name`).
 pub const STAGE: &str = "cicd.pipeline.task.name";
+/// How a stage ended: `success`, `failure`, `error` or `skip` (OpenTelemetry
+/// `cicd.pipeline.task.run.result`).
+pub const STAGE_RESULT: &str = "cicd.pipeline.task.run.result";
+/// The release run's attempt number (1 for the first try).
+pub const ATTEMPT: &str = "deployment.attempt";
+/// When a failed release step is tried again (RFC 3339, UTC).
+pub const RETRY_AT: &str = "deployment.retry.at";
 /// The release's run id (OpenTelemetry `cicd.pipeline.run.id`).
 pub const PIPELINE_RUN_ID: &str = "cicd.pipeline.run.id";
 /// `success`, `failure`, `error` or `cancellation` (OpenTelemetry `cicd.pipeline.result`).
@@ -187,6 +194,12 @@ pub const APPROVED_EVENT: &str = "deployment.approved";
 pub const APPLY_STARTED_EVENT: &str = "deployment.apply.started";
 /// A release rolled components ([`ROLLED`]); also sent on each workload.
 pub const ROLLED_EVENT: &str = "deployment.rolled";
+/// A release run began.
+pub const STARTED_EVENT: &str = "deployment.started";
+/// A stage of a release ended ([`STAGE`], [`STAGE_RESULT`]).
+pub const STAGE_EVENT: &str = "deployment.stage";
+/// A release step failed and is tried again at [`RETRY_AT`] ([`DEPLOYMENT_REASON`]).
+pub const RETRY_EVENT: &str = "deployment.retry";
 /// A release finished ([`DEPLOYMENT_STATUS`], [`DEPLOYMENT_STATE`]).
 pub const FINISHED_EVENT: &str = "deployment.finished";
 /// A release's checks passed.
@@ -208,7 +221,7 @@ pub const SYSTEM_DOWN_EVENT: &str = "deployment.system.down";
 pub const SYSTEM_UP_EVENT: &str = "deployment.system.up";
 
 /// Every event name of the vocabulary.
-pub const EVENT_NAMES: [&str; 16] = [
+pub const EVENT_NAMES: [&str; 19] = [
     BUILD_STARTED_EVENT,
     BUILD_FINISHED_EVENT,
     BUILD_FAILED_EVENT,
@@ -216,6 +229,9 @@ pub const EVENT_NAMES: [&str; 16] = [
     APPROVED_EVENT,
     APPLY_STARTED_EVENT,
     ROLLED_EVENT,
+    STARTED_EVENT,
+    STAGE_EVENT,
+    RETRY_EVENT,
     FINISHED_EVENT,
     CHECKS_PASSED_EVENT,
     CHECKS_FAILED_EVENT,
