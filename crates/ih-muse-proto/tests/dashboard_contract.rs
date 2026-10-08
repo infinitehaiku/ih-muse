@@ -3,7 +3,8 @@
 
 use ih_muse_proto::dashboard::{
     dashboard_definition_schema, AttributeRule, DashboardError, FilterOp, GoldenSignal,
-    PanelAggregation, PanelFilter, PanelGroupBy, PanelSpec, PanelThresholds, ProfileRecognition,
+    PanelAggregation, PanelColumn, PanelFilter, PanelGroupBy, PanelKind, PanelSize, PanelSpec,
+    PanelStream, PanelThresholds, ProfileRecognition, SectionColor,
 };
 use ih_muse_proto::{
     DashboardAppliesTo, DashboardBlock, DashboardDefinition, DashboardDefinitionError, GraphBatch,
@@ -42,6 +43,38 @@ fn full_definition() -> DashboardDefinition {
             critical: 2.0,
             higher_is_worse: true,
         }),
+        ..PanelSpec::default()
+    };
+    let mut table = panel("b", PanelGroupBy::Attribute("db".into()));
+    table.kind = PanelKind::Table;
+    table.size = Some(PanelSize { w: 6, h: 4 });
+    table.columns = vec![PanelColumn {
+        title: "Rows read".into(),
+        metric: "postgresql.rows".into(),
+        aggregation: PanelAggregation::Rate,
+        filters: vec![PanelFilter {
+            key: "state".into(),
+            op: FilterOp::Eq,
+            value: json!("read"),
+        }],
+    }];
+    let text = PanelSpec {
+        id: "t".into(),
+        title: "About".into(),
+        kind: PanelKind::Text,
+        text: Some("# PostgreSQL\nRead **slow** queries first.".into()),
+        ..PanelSpec::default()
+    };
+    let logs = PanelSpec {
+        id: "l".into(),
+        title: "Errors in the log".into(),
+        kind: PanelKind::Logs,
+        stream: Some(PanelStream {
+            search: Some("timeout".into()),
+            errors_only: true,
+            limit: Some(30),
+        }),
+        ..PanelSpec::default()
     };
     DashboardDefinition {
         id: "otel-postgresql.server".into(),
@@ -61,14 +94,15 @@ fn full_definition() -> DashboardDefinition {
             metric_prefixes: vec!["postgresql.".into()],
             min_metrics: 2,
         }),
-        panels: vec![
-            panel("a", PanelGroupBy::Entity),
-            panel("b", PanelGroupBy::Attribute("db".into())),
-        ],
+        panels: vec![panel("a", PanelGroupBy::Entity), table, text, logs],
         blocks: vec![DashboardBlock {
             label: "Queries".into(),
             text: Some("**Slow** first.".into()),
-            panels: vec!["a".into(), "b".into()],
+            panels: vec!["a".into(), "b".into(), "t".into(), "l".into()],
+            color: Some(SectionColor::Purple),
+            collapsed: true,
+            width: Some(6),
+            ..Default::default()
         }],
         columns: Some(4),
     }
@@ -501,6 +535,7 @@ fn a_definition_holds_any_number_of_panels_and_blocks() {
             label: format!("Block {block}"),
             text: None,
             panels: (0..3).map(|i| format!("p{}", block * 3 + i)).collect(),
+            ..Default::default()
         })
         .collect();
     definition.validate().expect("60 panels in 20 blocks");
@@ -603,4 +638,78 @@ fn graph_batch_carries_dashboards_without_changing_older_json() {
         batch(vec![example(); 33]).validate(),
         Err(GraphValidationError::TooManyDashboards)
     );
+}
+
+/// WP dashboard-widgets: every panel kind round trips through JSON, a kind
+/// without its fields takes its default size, and an older panel (no kind)
+/// reads as a time series and writes back byte for byte.
+#[test]
+fn every_panel_kind_round_trips_with_its_default_size() {
+    for kind in PanelKind::ALL {
+        let mut spec = PanelSpec {
+            id: "p".into(),
+            title: "P".into(),
+            kind,
+            metric: if kind.reads_metric() { "k8s.pod.phase".into() } else { String::new() },
+            aggregation: PanelAggregation::Sum,
+            group_by: kind.has_rows().then_some(PanelGroupBy::Attribute("k8s.namespace.name".into())),
+            text: (kind == PanelKind::Text).then(|| "Some **text**".into()),
+            ..PanelSpec::default()
+        };
+        spec.validate().unwrap_or_else(|error| panic!("{kind:?}: {error}"));
+        assert_eq!(spec.grid_size(), kind.default_size());
+        spec.size = Some(PanelSize { w: 12, h: 1 });
+        let text = serde_json::to_value(&spec).unwrap();
+        assert_eq!(serde_json::from_value::<PanelSpec>(text.clone()).unwrap(), spec, "{text}");
+        assert_eq!(spec.grid_size(), PanelSize { w: 12, h: 1 });
+    }
+    let older = json!({"id": "cpu", "title": "CPU", "metric": "cpu", "aggregation": "avg", "filters": []});
+    let spec: PanelSpec = serde_json::from_value(older.clone()).unwrap();
+    assert_eq!(spec.kind, PanelKind::TimeSeries);
+    assert_eq!(serde_json::to_value(&spec).unwrap(), older, "no new keys on an older panel");
+    let bare: PanelSpec = serde_json::from_value(json!({"id": "t", "title": "T", "kind": "text", "text": "hi"})).unwrap();
+    assert_eq!(bare.aggregation, PanelAggregation::Last);
+    bare.validate().unwrap();
+}
+
+/// What each kind needs, and what it must not carry, is refused with the
+/// rule's name.
+#[test]
+fn each_panel_kind_is_validated_for_what_it_needs() {
+    let base = PanelSpec {
+        id: "p".into(),
+        title: "P".into(),
+        metric: "m".into(),
+        group_by: Some(PanelGroupBy::Entity),
+        ..PanelSpec::default()
+    };
+    let refused = |change: &dyn Fn(&mut PanelSpec), rule: &str| {
+        let mut spec = base.clone();
+        change(&mut spec);
+        match spec.validate() {
+            Err(DashboardError::Invalid(message)) => assert!(message.contains(rule), "{message} lacks {rule}"),
+            Ok(()) => panic!("accepted a panel breaking {rule}: {spec:?}"),
+        }
+    };
+    refused(&|spec| spec.size = Some(PanelSize { w: 13, h: 2 }), "panel size");
+    refused(&|spec| spec.size = Some(PanelSize { w: 3, h: 0 }), "panel size");
+    refused(&|spec| spec.kind = PanelKind::Text, "panel metric");
+    refused(&|spec| { spec.kind = PanelKind::Text; spec.metric.clear(); }, "text panel needs");
+    refused(&|spec| spec.text = Some("x".into()), "panel text belongs");
+    refused(&|spec| { spec.kind = PanelKind::Donut; spec.group_by = None; }, "need group_by");
+    refused(&|spec| { spec.kind = PanelKind::Donut; spec.aggregation = PanelAggregation::Avg; }, "additive");
+    refused(&|spec| spec.columns = vec![PanelColumn { title: "c".into(), metric: "m2".into(), aggregation: PanelAggregation::Last, filters: Vec::new() }], "columns belong");
+    refused(&|spec| { spec.kind = PanelKind::Table; spec.columns = vec![PanelColumn { title: " ".into(), metric: "m2".into(), aggregation: PanelAggregation::Last, filters: Vec::new() }]; }, "column title");
+    refused(&|spec| spec.stream = Some(PanelStream::default()), "stream belongs");
+    refused(&|spec| { spec.kind = PanelKind::Logs; spec.metric.clear(); spec.stream = Some(PanelStream { limit: Some(0), ..PanelStream::default() }); }, "stream limit");
+    refused(&|spec| spec.metric.clear(), "panel metric");
+    let mut stat = base.clone();
+    stat.kind = PanelKind::Stat;
+    stat.group_by = None;
+    stat.validate().unwrap();
+    let mut definition = full_definition();
+    definition.blocks[0].width = Some(0);
+    assert_eq!(definition.validate(), Err(DashboardDefinitionError::BlockWidth { index: 0 }));
+    definition.blocks[0].width = Some(12);
+    definition.validate().unwrap();
 }

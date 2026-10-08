@@ -129,6 +129,7 @@ fn block(label: &str, text: &str, panels: &[&str]) -> DashboardBlock {
         label: label.into(),
         text: Some(text.into()),
         panels: panels.iter().map(|panel| panel.to_string()).collect(),
+        ..Default::default()
     }
 }
 
@@ -143,6 +144,7 @@ fn panel(id: &str, title: &str, metric: &str, aggregation: PanelAggregation) -> 
         top_n: None,
         signal: None,
         thresholds: None,
+        ..Default::default()
     }
 }
 

@@ -15,14 +15,15 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 
 /// How the values of one panel are combined per time bucket.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PanelAggregation {
     /// Mean of the values in the bucket (gauges, up-down counters).
     Avg,
     Max,
     Min,
-    /// Latest value in the bucket.
+    /// Latest value in the bucket (the default when a panel names none).
+    #[default]
     Last,
     /// Sum of values across series (e.g. bytes used by every pool).
     Sum,
@@ -57,6 +58,12 @@ impl PanelAggregation {
         Self::P95,
         Self::P99,
     ];
+
+    /// Whether values of this aggregation add up across groups (parts of
+    /// a whole: a donut's slices, a total).
+    pub fn additive(self) -> bool {
+        matches!(self, Self::Sum | Self::Last | Self::Count | Self::Rate | Self::CountRate)
+    }
 
     /// The quantile this aggregation reads from a distribution, if any.
     pub fn quantile(self) -> Option<f64> {
@@ -145,14 +152,161 @@ fn higher_is_worse() -> bool {
     true
 }
 
-/// One panel definition, shared by built-in profiles and custom boards.
+/// What a panel draws (WP dashboard-widgets). Metric kinds are computed by
+/// Poet from stored data; `text` carries its own content; `logs` and
+/// `traces` list Poet's log and trace searches over the dashboard's source
+/// and window.
+#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PanelKind {
+    /// Lines over time; thresholds drawn as lines.
+    #[default]
+    TimeSeries,
+    /// One big number coloured by its thresholds.
+    Stat,
+    /// A small counter: label, value and sparkline (Settings' chips).
+    Counter,
+    /// Parts of a whole, one slice per group, the total in the centre.
+    Donut,
+    /// Horizontal bars, one per group, highest first.
+    TopList,
+    /// Top-N rows (one per group) with one column per metric.
+    Table,
+    /// Markdown text.
+    Text,
+    /// Newest log lines of the dashboard's source.
+    Logs,
+    /// Newest traces of the dashboard's source.
+    Traces,
+}
+
+impl PanelKind {
+    /// Every kind, in declaration order (used by the JSON Schema).
+    pub const ALL: [Self; 9] = [
+        Self::TimeSeries,
+        Self::Stat,
+        Self::Counter,
+        Self::Donut,
+        Self::TopList,
+        Self::Table,
+        Self::Text,
+        Self::Logs,
+        Self::Traces,
+    ];
+
+    fn is_time_series(&self) -> bool {
+        *self == Self::TimeSeries
+    }
+
+    /// Whether Poet reads a metric for this kind.
+    pub fn reads_metric(self) -> bool {
+        !matches!(self, Self::Text | Self::Logs | Self::Traces)
+    }
+
+    /// Whether Poet answers this kind as rows (one per group).
+    pub fn has_rows(self) -> bool {
+        matches!(self, Self::Donut | Self::TopList | Self::Table)
+    }
+
+    /// The size a panel of this kind takes when it names none.
+    pub fn default_size(self) -> PanelSize {
+        let (w, h) = match self {
+            Self::TimeSeries | Self::Text => (4, 3),
+            Self::Stat => (2, 2),
+            Self::Counter => (3, 2),
+            Self::Donut | Self::TopList => (4, 4),
+            Self::Table | Self::Logs | Self::Traces => (6, 4),
+        };
+        PanelSize { w, h }
+    }
+}
+
+/// Columns of a dashboard grid; a panel's or section's width is a share
+/// of them.
+pub const GRID_COLUMNS: u8 = 12;
+/// Most grid rows one panel spans.
+pub const MAX_PANEL_ROWS: u8 = 12;
+/// Most rows a log or trace panel lists.
+pub const MAX_STREAM_LIMIT: u32 = 2_000;
+
+/// A panel's size in grid units: `w` of [`GRID_COLUMNS`] columns, `h` rows.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PanelSize {
+    pub w: u8,
+    pub h: u8,
+}
+
+/// One extra column of a `table` panel: another metric read with the
+/// panel's grouping and joined on the row label.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PanelColumn {
+    pub title: String,
+    pub metric: String,
+    pub aggregation: PanelAggregation,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filters: Vec<PanelFilter>,
+}
+
+/// What a `logs` or `traces` panel lists.
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PanelStream {
+    /// Logs: words every line contains; traces: text a span name contains.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub search: Option<String>,
+    /// Logs at ERROR or worse; traces with a failed span.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub errors_only: bool,
+    /// Rows shown, 1..=[`MAX_STREAM_LIMIT`] (20 when absent).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+}
+
+/// Header band colour of a dashboard section.
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SectionColor {
+    Blue,
+    Green,
+    Purple,
+    Orange,
+    Red,
+    Teal,
+    Gray,
+}
+
+impl SectionColor {
+    /// Every colour, in declaration order (used by the JSON Schema).
+    pub const ALL: [Self; 7] = [
+        Self::Blue,
+        Self::Green,
+        Self::Purple,
+        Self::Orange,
+        Self::Red,
+        Self::Teal,
+        Self::Gray,
+    ];
+}
+
+/// One panel definition, shared by built-in profiles and custom boards.
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct PanelSpec {
     pub id: String,
     pub title: String,
-    /// Exact metric name as stored (OTel or Muse metric code).
+    /// What the panel draws (time series when absent).
+    #[serde(default, skip_serializing_if = "PanelKind::is_time_series")]
+    pub kind: PanelKind,
+    /// Size in grid units; the kind's default when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub size: Option<PanelSize>,
+    /// Exact metric name as stored (OTel or Muse metric code); empty for
+    /// `text`, `logs` and `traces` panels.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
     pub metric: String,
+    #[serde(default)]
     pub aggregation: PanelAggregation,
     #[serde(default)]
     pub filters: Vec<PanelFilter>,
@@ -164,9 +318,23 @@ pub struct PanelSpec {
     pub signal: Option<GoldenSignal>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub thresholds: Option<PanelThresholds>,
+    /// Markdown of a `text` panel, at most [`MAX_BLOCK_TEXT_BYTES`] bytes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    /// Extra columns of a `table` panel.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub columns: Vec<PanelColumn>,
+    /// What a `logs` or `traces` panel lists.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stream: Option<PanelStream>,
 }
 
 impl PanelSpec {
+    /// The panel's size: its own, else its kind's default.
+    pub fn grid_size(&self) -> PanelSize {
+        self.size.unwrap_or_else(|| self.kind.default_size())
+    }
+
     pub fn validate(&self) -> Result<(), DashboardError> {
         let identifier = |value: &str| {
             !value.is_empty()
@@ -181,9 +349,14 @@ impl PanelSpec {
         if self.title.is_empty() || self.title.len() > 120 {
             return Err(DashboardError::Invalid("panel title".into()));
         }
-        if self.metric.is_empty() || self.metric.len() > 255 {
-            return Err(DashboardError::Invalid("panel metric".into()));
+        if self.metric.len() > 255 || self.metric.is_empty() == self.kind.reads_metric() {
+            return Err(DashboardError::Invalid(if self.kind.reads_metric() {
+                "panel metric".into()
+            } else {
+                "panel metric (text, logs and traces panels read none)".into()
+            }));
         }
+        self.validate_kind()?;
         // Any number of filters and series (owner decision 2026-10-05:
         // dashboards are limitless); only empty keys and a zero top_n are
         // refused.
@@ -203,6 +376,56 @@ impl PanelSpec {
             };
             if !thresholds.warning.is_finite() || !thresholds.critical.is_finite() || !ordered {
                 return Err(DashboardError::Invalid("panel thresholds".into()));
+            }
+        }
+        Ok(())
+    }
+
+    /// The rules of the WP dashboard-widgets fields: size, text, columns,
+    /// stream and what each kind needs.
+    fn validate_kind(&self) -> Result<(), DashboardError> {
+        let invalid = |what: &str| Err(DashboardError::Invalid(what.into()));
+        if let Some(size) = self.size {
+            if !(1..=GRID_COLUMNS).contains(&size.w) || !(1..=MAX_PANEL_ROWS).contains(&size.h) {
+                return invalid("panel size (w 1..=12, h 1..=12)");
+            }
+        }
+        match (self.kind, &self.text) {
+            (PanelKind::Text, Some(text)) if !text.trim().is_empty() && text.len() <= MAX_BLOCK_TEXT_BYTES => {}
+            (PanelKind::Text, _) => return invalid("text panel needs 1..=4096 bytes of text"),
+            (_, Some(_)) => return invalid("panel text belongs to text panels"),
+            _ => {}
+        }
+        if self.kind.has_rows() && self.group_by.is_none() {
+            return invalid("donut, top_list and table panels need group_by");
+        }
+        if self.kind == PanelKind::Donut && !self.aggregation.additive() {
+            return invalid("donut panels need an additive aggregation (sum, last, count, rate, count_rate)");
+        }
+        if !self.columns.is_empty() && self.kind != PanelKind::Table {
+            return invalid("panel columns belong to table panels");
+        }
+        for column in &self.columns {
+            if column.title.trim().is_empty() || column.title.len() > 120 {
+                return invalid("table column title");
+            }
+            if column.metric.is_empty() || column.metric.len() > 255 {
+                return invalid("table column metric");
+            }
+            if column.filters.iter().any(|filter| filter.key.is_empty()) {
+                return invalid("table column filters");
+            }
+        }
+        match (&self.stream, self.kind) {
+            (Some(_), PanelKind::Logs | PanelKind::Traces) | (None, _) => {}
+            (Some(_), _) => return invalid("panel stream belongs to logs and traces panels"),
+        }
+        if let Some(stream) = &self.stream {
+            if stream.limit.is_some_and(|limit| !(1..=MAX_STREAM_LIMIT).contains(&limit)) {
+                return invalid("stream limit (1..=2000)");
+            }
+            if stream.search.as_ref().is_some_and(|search| search.len() > 255) {
+                return invalid("stream search (at most 255 bytes)");
             }
         }
         Ok(())
@@ -295,7 +518,7 @@ pub enum DashboardAppliesTo {
 /// that lists it, else under Measurements, so a panel in no block needs a
 /// golden signal, and a block may list a golden-signal panel (its value
 /// still feeds the tile). See `docs/contract/index.md`.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct DashboardBlock {
     pub label: String,
@@ -305,6 +528,16 @@ pub struct DashboardBlock {
     pub text: Option<String>,
     /// Ids of panels of the same definition, in drawing order.
     pub panels: Vec<String>,
+    /// Header band colour; absent: a plain label.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub color: Option<SectionColor>,
+    /// Starts folded (the reader's toggle is kept per browser).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub collapsed: bool,
+    /// Share of the page's [`GRID_COLUMNS`] columns (absent: all of them);
+    /// sections flow side by side.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub width: Option<u8>,
 }
 
 /// One default dashboard a Muse's author defines in the Muse's code. Poet
@@ -374,6 +607,8 @@ pub enum DashboardDefinitionError {
     PanelInTwoBlocks { index: usize, panel: String },
     #[error("columns must be 2..=4")]
     Columns,
+    #[error("block {index}: width must be 1..=12")]
+    BlockWidth { index: usize },
 }
 
 impl DashboardDefinition {
@@ -445,6 +680,9 @@ impl DashboardDefinition {
             }
             if block.panels.is_empty() {
                 return Err(E::BlockPanels { index });
+            }
+            if block.width.is_some_and(|width| !(1..=GRID_COLUMNS).contains(&width)) {
+                return Err(E::BlockWidth { index });
             }
             for panel in &block.panels {
                 if !panels.contains(panel.as_str()) {
@@ -545,6 +783,8 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
     );
     let signals = names(GoldenSignal::ALL.iter().map(|value| json!(value)).collect());
     let ops = names(FilterOp::ALL.iter().map(|value| json!(value)).collect());
+    let kinds = names(PanelKind::ALL.iter().map(|value| json!(value)).collect());
+    let colors = names(SectionColor::ALL.iter().map(|value| json!(value)).collect());
     let strings = |max_items: usize| json!({"type": "array", "maxItems": max_items, "items": {"type": "string", "minLength": 1, "maxLength": 255}});
     json!({
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -605,21 +845,52 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
                 "properties": {
                     "label": {"type": "string", "minLength": 1, "maxLength": 80},
                     "text": {"type": "string", "description": "Plain text or Markdown.", "maxLength": MAX_BLOCK_TEXT_BYTES},
-                    "panels": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+                    "panels": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+                    "color": {"type": "string", "description": "Header band colour.", "enum": colors},
+                    "collapsed": {"type": "boolean", "description": "Starts folded.", "default": false},
+                    "width": {"type": "integer", "description": "Share of the page's 12 grid columns (absent: all).", "minimum": 1, "maximum": GRID_COLUMNS}
                 }
             },
             "PanelSpec": {
-                "type": "object", "additionalProperties": false, "required": ["id", "title", "metric", "aggregation"],
+                "type": "object", "additionalProperties": false, "required": ["id", "title"],
+                "description": "One panel. Metric kinds need `metric`; text, logs and traces have none. The Rust validate() enforces what each kind needs (group_by for donut/top_list/table, text only on text panels, columns only on tables, stream only on logs/traces).",
                 "properties": {
                     "id": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
                     "title": {"type": "string", "minLength": 1, "maxLength": 120},
-                    "metric": {"type": "string", "description": "Exact metric name as stored (OTel or Muse metric code).", "minLength": 1, "maxLength": 255},
-                    "aggregation": enumerate(aggregations),
+                    "kind": {"type": "string", "description": "What the panel draws.", "enum": kinds, "default": "time_series"},
+                    "size": {"$ref": "#/$defs/PanelSize"},
+                    "metric": {"type": "string", "description": "Exact metric name as stored (OTel or Muse metric code); absent for text, logs and traces panels.", "maxLength": 255},
+                    "aggregation": {"type": "string", "enum": aggregations.clone(), "default": "last"},
+                    "text": {"type": "string", "description": "Markdown of a text panel.", "minLength": 1, "maxLength": MAX_BLOCK_TEXT_BYTES},
+                    "columns": {"type": "array", "description": "Extra columns of a table panel.", "items": {"$ref": "#/$defs/PanelColumn"}},
+                    "stream": {"$ref": "#/$defs/PanelStream"},
                     "filters": {"type": "array", "items": {"$ref": "#/$defs/PanelFilter"}},
                     "group_by": {"$ref": "#/$defs/PanelGroupBy"},
                     "top_n": {"type": "integer", "description": "Series shown when grouped (any number).", "minimum": 1},
                     "signal": enumerate(signals),
                     "thresholds": {"$ref": "#/$defs/PanelThresholds"}
+                }
+            },
+            "PanelSize": {
+                "type": "object", "additionalProperties": false, "required": ["w", "h"],
+                "description": "Size in grid units: w of 12 columns, h rows of 72 px.",
+                "properties": {"w": {"type": "integer", "minimum": 1, "maximum": GRID_COLUMNS}, "h": {"type": "integer", "minimum": 1, "maximum": MAX_PANEL_ROWS}}
+            },
+            "PanelColumn": {
+                "type": "object", "additionalProperties": false, "required": ["title", "metric", "aggregation"],
+                "properties": {
+                    "title": {"type": "string", "minLength": 1, "maxLength": 120},
+                    "metric": {"type": "string", "minLength": 1, "maxLength": 255},
+                    "aggregation": enumerate(aggregations),
+                    "filters": {"type": "array", "items": {"$ref": "#/$defs/PanelFilter"}}
+                }
+            },
+            "PanelStream": {
+                "type": "object", "additionalProperties": false,
+                "properties": {
+                    "search": {"type": "string", "maxLength": 255},
+                    "errors_only": {"type": "boolean", "default": false},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": MAX_STREAM_LIMIT, "default": 20}
                 }
             },
             "PanelFilter": {

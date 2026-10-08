@@ -27,6 +27,21 @@ the tile; the Kubernetes cluster's "Health now" does this). A definition
 without blocks leaves the layout to the renderer. A panel listed in two blocks
 is refused.
 
+Sections and panel kinds. A block is a section: `color` gives it a coloured
+header band that folds it (`collapsed: true` starts folded) and `width` (1 to
+12) its share of the page, so sections sit side by side. Panels with a `size`
+(`w` of 12 columns, `h` rows of 72 px) or a `kind` other than `time_series`
+are laid on a 12-column grid. Kinds: `time_series` (thresholds drawn as
+lines), `stat` (one number coloured by its thresholds), `counter` (label,
+value, sparkline), `donut` (parts of a whole; needs `group_by` and an
+additive aggregation), `top_list` (bars; needs `group_by`), `table` (rows per
+group; extra `columns`, each another metric joined on the row), `text`
+(Markdown in `text`, no metric), `logs` and `traces` (the newest lines or
+traces of the dashboard's source and window; optional `stream` with
+`search`, `errors_only`, `limit`; no metric). Poet computes every value: a
+row's value is its group's newest bucket with data; the groups past `top_n`
+are counted, and summed when the aggregation is additive.
+
 Only input sizes are bounded, so that one faulty Muse cannot flood Poet: the
 byte length of ids, titles, descriptions, block texts and metric names (see the
 schema), the entries of each recognition list (32), and the request size of

@@ -72,6 +72,24 @@
       "additionalProperties": false,
       "description": "A titled group of panels drawn after the implicit Measurements row (panels with a golden signal).",
       "properties": {
+        "collapsed": {
+          "default": false,
+          "description": "Starts folded.",
+          "type": "boolean"
+        },
+        "color": {
+          "description": "Header band colour.",
+          "enum": [
+            "blue",
+            "green",
+            "purple",
+            "orange",
+            "red",
+            "teal",
+            "gray"
+          ],
+          "type": "string"
+        },
         "label": {
           "maxLength": 80,
           "minLength": 1,
@@ -88,11 +106,62 @@
           "description": "Plain text or Markdown.",
           "maxLength": 4096,
           "type": "string"
+        },
+        "width": {
+          "description": "Share of the page's 12 grid columns (absent: all).",
+          "maximum": 12,
+          "minimum": 1,
+          "type": "integer"
         }
       },
       "required": [
         "label",
         "panels"
+      ],
+      "type": "object"
+    },
+    "PanelColumn": {
+      "additionalProperties": false,
+      "properties": {
+        "aggregation": {
+          "enum": [
+            "avg",
+            "max",
+            "min",
+            "last",
+            "sum",
+            "rate",
+            "count",
+            "count_rate",
+            "mean",
+            "p50",
+            "p90",
+            "p95",
+            "p99"
+          ],
+          "type": "string"
+        },
+        "filters": {
+          "items": {
+            "$ref": "#/$defs/PanelFilter"
+          },
+          "type": "array"
+        },
+        "metric": {
+          "maxLength": 255,
+          "minLength": 1,
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "metric",
+        "aggregation"
       ],
       "type": "object"
     },
@@ -148,10 +217,33 @@
         }
       ]
     },
+    "PanelSize": {
+      "additionalProperties": false,
+      "description": "Size in grid units: w of 12 columns, h rows of 72 px.",
+      "properties": {
+        "h": {
+          "maximum": 12,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "w": {
+          "maximum": 12,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "w",
+        "h"
+      ],
+      "type": "object"
+    },
     "PanelSpec": {
       "additionalProperties": false,
+      "description": "One panel. Metric kinds need `metric`; text, logs and traces have none. The Rust validate() enforces what each kind needs (group_by for donut/top_list/table, text only on text panels, columns only on tables, stream only on logs/traces).",
       "properties": {
         "aggregation": {
+          "default": "last",
           "enum": [
             "avg",
             "max",
@@ -169,6 +261,13 @@
           ],
           "type": "string"
         },
+        "columns": {
+          "description": "Extra columns of a table panel.",
+          "items": {
+            "$ref": "#/$defs/PanelColumn"
+          },
+          "type": "array"
+        },
         "filters": {
           "items": {
             "$ref": "#/$defs/PanelFilter"
@@ -184,10 +283,25 @@
           "pattern": "^[A-Za-z0-9_.-]+$",
           "type": "string"
         },
+        "kind": {
+          "default": "time_series",
+          "description": "What the panel draws.",
+          "enum": [
+            "time_series",
+            "stat",
+            "counter",
+            "donut",
+            "top_list",
+            "table",
+            "text",
+            "logs",
+            "traces"
+          ],
+          "type": "string"
+        },
         "metric": {
-          "description": "Exact metric name as stored (OTel or Muse metric code).",
+          "description": "Exact metric name as stored (OTel or Muse metric code); absent for text, logs and traces panels.",
           "maxLength": 255,
-          "minLength": 1,
           "type": "string"
         },
         "signal": {
@@ -197,6 +311,18 @@
             "latency",
             "saturation"
           ],
+          "type": "string"
+        },
+        "size": {
+          "$ref": "#/$defs/PanelSize"
+        },
+        "stream": {
+          "$ref": "#/$defs/PanelStream"
+        },
+        "text": {
+          "description": "Markdown of a text panel.",
+          "maxLength": 4096,
+          "minLength": 1,
           "type": "string"
         },
         "thresholds": {
@@ -215,10 +341,28 @@
       },
       "required": [
         "id",
-        "title",
-        "metric",
-        "aggregation"
+        "title"
       ],
+      "type": "object"
+    },
+    "PanelStream": {
+      "additionalProperties": false,
+      "properties": {
+        "errors_only": {
+          "default": false,
+          "type": "boolean"
+        },
+        "limit": {
+          "default": 20,
+          "maximum": 2000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "search": {
+          "maxLength": 255,
+          "type": "string"
+        }
+      },
       "type": "object"
     },
     "PanelThresholds": {
