@@ -217,6 +217,28 @@
         }
       ]
     },
+    "PanelQuery": {
+      "additionalProperties": false,
+      "description": "A stored agent door read (data only): re-run over the dashboard's window and drawn by its answer's shape.",
+      "properties": {
+        "arguments": {
+          "description": "The door call's arguments.",
+          "type": "object"
+        },
+        "tool": {
+          "enum": [
+            "query",
+            "search"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "arguments"
+      ],
+      "type": "object"
+    },
     "PanelSize": {
       "additionalProperties": false,
       "description": "Size in grid units: w of 12 columns, h rows of 72 px.",
@@ -240,7 +262,7 @@
     },
     "PanelSpec": {
       "additionalProperties": false,
-      "description": "One panel. Metric kinds need `metric`; text, logs and traces have none. The Rust validate() enforces what each kind needs (group_by for donut/top_list/table, text only on text panels, columns only on tables, stream only on logs/traces).",
+      "description": "One panel. Metric kinds need `metric`; text, logs, traces, events, trace and query have none. The Rust validate() enforces what each kind needs (group_by for donut/top_list/table, text only on text panels, columns only on tables, stream only on logs/traces/events, trace_id only on (and required by) trace panels, query only on (and required by) query panels).",
       "properties": {
         "aggregation": {
           "default": "last",
@@ -295,14 +317,20 @@
             "table",
             "text",
             "logs",
-            "traces"
+            "traces",
+            "events",
+            "trace",
+            "query"
           ],
           "type": "string"
         },
         "metric": {
-          "description": "Exact metric name as stored (OTel or Muse metric code); absent for text, logs and traces panels.",
+          "description": "Exact metric name as stored (OTel or Muse metric code); absent for text, logs, traces, events, trace and query panels.",
           "maxLength": 255,
           "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/PanelQuery"
         },
         "signal": {
           "enum": [
@@ -337,6 +365,12 @@
           "description": "Series shown when grouped (any number).",
           "minimum": 1,
           "type": "integer"
+        },
+        "trace_id": {
+          "description": "The trace of a trace panel.",
+          "maxLength": 32,
+          "minLength": 32,
+          "type": "string"
         }
       },
       "required": [
