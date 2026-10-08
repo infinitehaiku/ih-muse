@@ -38,7 +38,13 @@ additive aggregation), `top_list` (bars; needs `group_by`), `table` (rows per
 group; extra `columns`, each another metric joined on the row), `text`
 (Markdown in `text`, no metric), `logs` and `traces` (the newest lines or
 traces of the dashboard's source and window; optional `stream` with
-`search`, `errors_only`, `limit`; no metric). Poet computes every value: a
+`search`, `errors_only`, `limit`; no metric), `events` (the dashboard's
+markers in its window on a time axis: points and ranges; optional `stream`
+to filter by text and cap the rows), `trace` (one trace's overview card;
+needs `trace_id`) and `query` (a stored agent door read, `query: {tool,
+arguments}` with `tool` `query` or `search`, re-run over the dashboard's
+window and drawn by its answer's shape; data only, at most 4096 bytes).
+Poet computes every value: a
 row's value is its group's newest bucket with data; the groups past `top_n`
 are counted, and summed when the aggregation is additive.
 

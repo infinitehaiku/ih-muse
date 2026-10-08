@@ -1,8 +1,8 @@
 {
   "id": "otel.rustvello",
-  "revision": 1,
+  "revision": 2,
   "title": "Rustvello",
-  "description": "Task throughput and failures per task from one Rustvello runner's OTLP lifecycle export; queue depth, retries, latency and heartbeat once the runner reports them.",
+  "description": "Rustvello tasks from its OTLP lifecycle export: throughput and failures as Rustvello counts them; tasks by state, run-time percentiles, busy time, retries and worker starts as Poet counts them from the lifecycle records.",
   "muse_kind": "otel",
   "applies_to": {
     "recognition": {
@@ -43,6 +43,75 @@
       ]
     },
     {
+      "id": "run_time_p95",
+      "title": "Run time p95",
+      "metric": "rustvello.task.duration",
+      "aggregation": "p95",
+      "signal": "latency"
+    },
+    {
+      "id": "busy",
+      "title": "Busy workers",
+      "metric": "rustvello.task.busy_time",
+      "aggregation": "rate",
+      "signal": "saturation"
+    },
+    {
+      "id": "tasks_by_state",
+      "title": "Tasks by state",
+      "metric": "rustvello.task.events",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "rustvello.event"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "submitted",
+      "title": "Submitted tasks",
+      "metric": "rustvello.task.events",
+      "aggregation": "rate",
+      "filters": [
+        {
+          "key": "rustvello.event",
+          "op": "eq",
+          "value": "task.submitted"
+        }
+      ]
+    },
+    {
+      "id": "run_time_p50",
+      "title": "Run time p50",
+      "metric": "rustvello.task.duration",
+      "aggregation": "p50"
+    },
+    {
+      "id": "run_time_p99",
+      "title": "Run time p99",
+      "metric": "rustvello.task.duration",
+      "aggregation": "p99"
+    },
+    {
+      "id": "latency_p95_by_task",
+      "title": "Run time p95 by task",
+      "metric": "rustvello.task.duration",
+      "aggregation": "p95",
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "busy_by_task",
+      "title": "Time by task",
+      "metric": "rustvello.task.busy_time",
+      "aggregation": "rate",
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
       "id": "throughput_by_task",
       "title": "Completed by task",
       "metric": "rustvello.task.completed",
@@ -70,6 +139,40 @@
       "top_n": 8
     },
     {
+      "id": "retries",
+      "title": "Retries by task",
+      "metric": "rustvello.task.events",
+      "aggregation": "rate",
+      "filters": [
+        {
+          "key": "rustvello.event",
+          "op": "eq",
+          "value": "task.retry_scheduled"
+        }
+      ],
+      "group_by": {
+        "attribute": "rustvello.task.id"
+      },
+      "top_n": 8
+    },
+    {
+      "id": "failures_by_error",
+      "title": "Failures by error type",
+      "metric": "rustvello.task.duration",
+      "aggregation": "count_rate",
+      "filters": [
+        {
+          "key": "outcome",
+          "op": "eq",
+          "value": "failed"
+        }
+      ],
+      "group_by": {
+        "attribute": "rustvello.error.type"
+      },
+      "top_n": 8
+    },
+    {
       "id": "throughput_by_queue",
       "title": "Completed by queue",
       "metric": "rustvello.task.completed",
@@ -80,62 +183,52 @@
       "top_n": 8
     },
     {
-      "id": "latency_p95_by_task",
-      "title": "Task duration p95 by task",
-      "metric": "rustvello.task.duration",
-      "aggregation": "p95",
-      "signal": "latency",
-      "group_by": {
-        "attribute": "rustvello.task.id"
-      },
-      "top_n": 8
-    },
-    {
-      "id": "queue_depth",
-      "title": "Queue depth",
-      "metric": "rustvello.queue.depth",
-      "aggregation": "last",
-      "signal": "saturation",
-      "group_by": {
-        "attribute": "rustvello.queue"
-      },
-      "top_n": 8
-    },
-    {
-      "id": "retries",
-      "title": "Retries",
-      "metric": "rustvello.task.retries",
+      "id": "worker_events",
+      "title": "Worker starts and stops",
+      "metric": "rustvello.worker.events",
       "aggregation": "rate",
       "group_by": {
-        "attribute": "rustvello.task.id"
+        "attribute": "rustvello.event"
       },
-      "top_n": 8
-    },
-    {
-      "id": "heartbeat_age",
-      "title": "Runner heartbeat age",
-      "metric": "rustvello.runner.heartbeat_age",
-      "aggregation": "max",
-      "thresholds": {
-        "warning": 5,
-        "critical": 15
-      }
+      "top_n": 4
     }
   ],
   "blocks": [
     {
-      "label": "By task",
+      "label": "Tasks",
       "panels": [
-        "throughput_by_task",
-        "failures_by_task",
-        "retries"
+        "tasks_by_state",
+        "submitted",
+        "throughput_by_queue"
       ]
     },
     {
-      "label": "Runner",
+      "label": "Run time",
       "panels": [
-        "throughput_by_queue",
-        "heartbeat_age"
+        "run_time_p50",
+        "run_time_p99",
+        "latency_p95_by_task"
+      ]
+    },
+    {
+      "label": "Top tasks",
+      "panels": [
+        "busy_by_task",
+        "throughput_by_task",
+        "failures_by_task"
+      ]
+    },
+    {
+      "label": "Failures and retries",
+      "panels": [
+        "retries",
+        "failures_by_error"
+      ]
+    },
+    {
+      "label": "Workers",
+      "panels": [
+        "worker_events"
       ]
     }
   ],
