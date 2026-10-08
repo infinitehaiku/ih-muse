@@ -277,23 +277,31 @@ fn every_dashboard_panel_metric_and_level_is_emitted() {
     );
     for definition in dashboard_definitions() {
         for panel in &definition.panels {
-            let emitted = levels.get(panel.metric.as_str()).unwrap_or_else(|| {
-                panic!(
-                    "panel {} names {}, which the Muse does not emit",
-                    panel.id, panel.metric
-                )
-            });
-            for filter in panel
-                .filters
-                .iter()
-                .filter(|filter| filter.key == LEVEL_ATTRIBUTE)
-            {
-                let level = filter.value.as_str().unwrap();
-                assert!(
-                    emitted.contains(level),
-                    "panel {} filters on level {level}, never emitted",
-                    panel.id
+            // Text, logs and traces panels read no metric; a table's
+            // columns each read one, with their own filters.
+            let reads = std::iter::once((panel.metric.as_str(), &panel.filters))
+                .filter(|_| panel.kind.reads_metric())
+                .chain(
+                    panel
+                        .columns
+                        .iter()
+                        .map(|column| (column.metric.as_str(), &column.filters)),
                 );
+            for (metric, filters) in reads {
+                let emitted = levels.get(metric).unwrap_or_else(|| {
+                    panic!("panel {} names {metric}, which the Muse does not emit", panel.id)
+                });
+                for filter in filters.iter().filter(|filter| filter.key == LEVEL_ATTRIBUTE) {
+                    let level = filter.value.as_str().unwrap();
+                    assert!(
+                        emitted.contains(level),
+                        "panel {} filters {metric} on level {level}, never emitted",
+                        panel.id
+                    );
+                }
+            }
+            if !panel.kind.reads_metric() {
+                assert!(panel.metric.is_empty() && panel.columns.is_empty(), "{}", panel.id);
             }
         }
     }

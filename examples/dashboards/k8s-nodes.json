@@ -1,0 +1,483 @@
+{
+  "id": "k8s.nodes",
+  "revision": 1,
+  "title": "Kubernetes nodes overview",
+  "description": "Every node: how many are ready, total CPU and memory, memory and CPU used and requested as % of allocatable with 80 % and 100 % lines, node conditions, allocatable resources and the cluster's log lines.",
+  "muse_kind": "k8s",
+  "applies_to": {
+    "muse_roots": {
+      "identity_kinds": [
+        "kubernetes"
+      ]
+    }
+  },
+  "panels": [
+    {
+      "id": "intro",
+      "title": "About this overview",
+      "kind": "text",
+      "size": {
+        "w": 12,
+        "h": 2
+      },
+      "aggregation": "last",
+      "filters": [],
+      "text": "**Every node of the cluster**: how many are ready, what they can give pods, and how full they are.\n\nMemory and CPU are shown as % of allocatable with lines at 80 % and 100 %. Pods per node and events per node are not shown: the Muse does not send them as metrics yet (Kubernetes events appear as markers on every graph)."
+    },
+    {
+      "id": "nodes",
+      "title": "Nodes",
+      "kind": "stat",
+      "size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric": "k8s.node.condition.status",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "eq",
+          "value": "Ready"
+        }
+      ]
+    },
+    {
+      "id": "cpu_total",
+      "title": "Total CPU (cores)",
+      "kind": "stat",
+      "size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric": "k8s.node.cpu.allocatable",
+      "aggregation": "sum",
+      "filters": []
+    },
+    {
+      "id": "memory_total",
+      "title": "Total memory",
+      "kind": "stat",
+      "size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric": "k8s.node.memory.allocatable",
+      "aggregation": "sum",
+      "filters": []
+    },
+    {
+      "id": "not_ready",
+      "title": "Nodes not ready",
+      "kind": "stat",
+      "size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric": "k8s.node.condition.status",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "eq",
+          "value": "Ready"
+        },
+        {
+          "key": "k8s.node.condition.status",
+          "op": "ne",
+          "value": "true"
+        }
+      ],
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1.0,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "kubelets_up",
+      "title": "Kubelets up (node Ready)",
+      "kind": "stat",
+      "size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric": "k8s.node.condition.status",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "eq",
+          "value": "Ready"
+        },
+        {
+          "key": "k8s.node.condition.status",
+          "op": "eq",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "id": "pressure",
+      "title": "Nodes under pressure",
+      "kind": "stat",
+      "size": {
+        "w": 2,
+        "h": 2
+      },
+      "metric": "k8s.node.condition.status",
+      "aggregation": "sum",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "ne",
+          "value": "Ready"
+        },
+        {
+          "key": "k8s.node.condition.status",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "signal": "errors",
+      "thresholds": {
+        "warning": 1.0,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "memory_utilization",
+      "title": "Memory % of allocatable per node",
+      "size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric": "k8s.node.memory.utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 500,
+      "signal": "saturation",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "cpu_utilization",
+      "title": "CPU % of allocatable per node",
+      "size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric": "k8s.node.cpu.utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 500,
+      "signal": "saturation",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "memory_requests",
+      "title": "Memory requested % of allocatable per node",
+      "size": {
+        "w": 6,
+        "h": 3
+      },
+      "metric": "k8s.node.memory.request_utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 500,
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "cpu_requests",
+      "title": "CPU requested % of allocatable per node",
+      "size": {
+        "w": 6,
+        "h": 3
+      },
+      "metric": "k8s.node.cpu.request_utilization",
+      "aggregation": "max",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 500,
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0,
+        "higher_is_worse": true
+      }
+    },
+    {
+      "id": "conditions",
+      "title": "Node conditions",
+      "kind": "table",
+      "size": {
+        "w": 12,
+        "h": 5
+      },
+      "metric": "k8s.node.condition.status",
+      "aggregation": "last",
+      "filters": [
+        {
+          "key": "k8s.node.condition.type",
+          "op": "eq",
+          "value": "Ready"
+        },
+        {
+          "key": "k8s.node.condition.status",
+          "op": "eq",
+          "value": "true"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 500,
+      "columns": [
+        {
+          "title": "Memory pressure",
+          "metric": "k8s.node.condition.status",
+          "aggregation": "last",
+          "filters": [
+            {
+              "key": "k8s.node.condition.type",
+              "op": "eq",
+              "value": "MemoryPressure"
+            },
+            {
+              "key": "k8s.node.condition.status",
+              "op": "eq",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "title": "Disk pressure",
+          "metric": "k8s.node.condition.status",
+          "aggregation": "last",
+          "filters": [
+            {
+              "key": "k8s.node.condition.type",
+              "op": "eq",
+              "value": "DiskPressure"
+            },
+            {
+              "key": "k8s.node.condition.status",
+              "op": "eq",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "title": "PID pressure",
+          "metric": "k8s.node.condition.status",
+          "aggregation": "last",
+          "filters": [
+            {
+              "key": "k8s.node.condition.type",
+              "op": "eq",
+              "value": "PIDPressure"
+            },
+            {
+              "key": "k8s.node.condition.status",
+              "op": "eq",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "title": "Network unavailable",
+          "metric": "k8s.node.condition.status",
+          "aggregation": "last",
+          "filters": [
+            {
+              "key": "k8s.node.condition.type",
+              "op": "eq",
+              "value": "NetworkUnavailable"
+            },
+            {
+              "key": "k8s.node.condition.status",
+              "op": "eq",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "allocatable",
+      "title": "Allocatable resources per node",
+      "kind": "table",
+      "size": {
+        "w": 12,
+        "h": 5
+      },
+      "metric": "k8s.node.cpu.allocatable",
+      "aggregation": "last",
+      "filters": [],
+      "group_by": "entity",
+      "top_n": 500,
+      "columns": [
+        {
+          "title": "Memory",
+          "metric": "k8s.node.memory.allocatable",
+          "aggregation": "last"
+        },
+        {
+          "title": "CPU used (cores)",
+          "metric": "k8s.cpu.usage",
+          "aggregation": "last",
+          "filters": [
+            {
+              "key": "k8s.level",
+              "op": "eq",
+              "value": "node"
+            }
+          ]
+        },
+        {
+          "title": "Memory used",
+          "metric": "k8s.memory.usage",
+          "aggregation": "last",
+          "filters": [
+            {
+              "key": "k8s.level",
+              "op": "eq",
+              "value": "node"
+            }
+          ]
+        },
+        {
+          "title": "CPU requested %",
+          "metric": "k8s.node.cpu.request_utilization",
+          "aggregation": "last"
+        },
+        {
+          "title": "Memory requested %",
+          "metric": "k8s.node.memory.request_utilization",
+          "aggregation": "last"
+        }
+      ]
+    },
+    {
+      "id": "memory_by_node",
+      "title": "Memory used by node",
+      "kind": "donut",
+      "size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric": "k8s.memory.usage",
+      "aggregation": "last",
+      "filters": [
+        {
+          "key": "k8s.level",
+          "op": "eq",
+          "value": "node"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 500
+    },
+    {
+      "id": "cpu_by_node",
+      "title": "CPU used by node (cores)",
+      "kind": "top_list",
+      "size": {
+        "w": 6,
+        "h": 4
+      },
+      "metric": "k8s.cpu.usage",
+      "aggregation": "last",
+      "filters": [
+        {
+          "key": "k8s.level",
+          "op": "eq",
+          "value": "node"
+        }
+      ],
+      "group_by": "entity",
+      "top_n": 500
+    },
+    {
+      "id": "log",
+      "title": "Log lines in the cluster",
+      "kind": "logs",
+      "size": {
+        "w": 12,
+        "h": 5
+      },
+      "aggregation": "last",
+      "filters": [],
+      "stream": {
+        "limit": 50
+      }
+    }
+  ],
+  "blocks": [
+    {
+      "label": "Overview",
+      "panels": [
+        "intro",
+        "nodes",
+        "cpu_total",
+        "memory_total",
+        "not_ready",
+        "kubelets_up",
+        "pressure"
+      ],
+      "color": "blue"
+    },
+    {
+      "label": "Utilization",
+      "text": "Usage and requests as % of what each node can give pods; dashed lines at 80 % and 100 %.",
+      "panels": [
+        "memory_utilization",
+        "cpu_utilization",
+        "memory_requests",
+        "cpu_requests"
+      ],
+      "color": "purple"
+    },
+    {
+      "label": "Conditions",
+      "text": "Ready should be 1 and every pressure 0.",
+      "panels": [
+        "conditions"
+      ],
+      "color": "red",
+      "width": 6
+    },
+    {
+      "label": "Capacity",
+      "text": "What each node can give pods, what it uses and what is promised.",
+      "panels": [
+        "allocatable",
+        "memory_by_node",
+        "cpu_by_node"
+      ],
+      "color": "teal",
+      "width": 6
+    },
+    {
+      "label": "Log",
+      "text": "Log lines of everything in the cluster, newest first.",
+      "panels": [
+        "log"
+      ],
+      "color": "orange"
+    }
+  ]
+}
