@@ -2,8 +2,11 @@
 
 use tokio::time::Duration;
 
-use super::common::{client_type_from_env, TestContext};
+use super::common::{client_type_from_env, eventually, wait_for_metrics, TestContext};
 use ih_muse::prelude::*;
+
+/// Gap the recording leaves before each metric, replayed as a sleep.
+const REPLAY_GAP: Duration = Duration::from_millis(200);
 
 #[tokio::test]
 async fn test_record_and_replay_with_timestamps() {
@@ -17,38 +20,36 @@ async fn test_record_and_replay_with_timestamps() {
     // Register an element
     let local_elem_id = ctx.register_test_element().await;
 
-    // Record metrics with delays
-    for value in [42.0, 43.0, 44.0].iter() {
+    let element_id = ctx
+        .muse
+        .get_state()
+        .get_element_id(&local_elem_id)
+        .expect("Element was not registered");
+
+    // On case of poet count existing metrics first (multiple tests may write)
+    let before_recording = ctx.wait_for_metrics(element_id, 0).await.len();
+
+    // Record metrics with delays. The replay sleeps the recorded gaps, and
+    // the Muse sends the latest value per interval: each gap must be far
+    // longer than one send interval, also on a loaded machine, so every
+    // replayed value goes out on its own.
+    for (sent, value) in [42.0, 43.0, 44.0].iter().enumerate() {
+        tokio::time::sleep(REPLAY_GAP).await;
         ctx.muse
             .send_metric(local_elem_id, "cpu_usage", *value)
             .await
             .expect("Failed to send metric");
-        ctx.wait_for_metrics_sending_task().await;
+        let delivered = ctx
+            .wait_for_metrics(element_id, before_recording + sent + 1)
+            .await;
+        assert_eq!(
+            delivered.len(),
+            before_recording + sent + 1,
+            "Recorded metric {value} was not delivered on its own"
+        );
     }
 
-    // On case of poet check existing metrics before replaying (multiple tests may write)
-    let mut previous_metrics = 0;
-    if client_type == ClientType::Poet {
-        let state = ctx.muse.get_state();
-        let element_id = state
-            .get_element_id(&local_elem_id)
-            .expect("Element was not registered");
-        // Retrieve metrics from the Mock client
-        let poet_client = ctx.muse.get_client();
-        let query = MetricQuery {
-            start_time: None,
-            end_time: None,
-            element_id: Some(element_id),
-            parent_id: None,
-            metric_id: None,
-        };
-
-        previous_metrics = poet_client
-            .get_metrics(&query, None)
-            .await
-            .expect("Failed to get metrics")
-            .len();
-    }
+    let previous_metrics = before_recording + 3;
 
     // Drop the Muse, should flush and close the recorder
     drop(ctx);
@@ -71,29 +72,22 @@ async fn test_record_and_replay_with_timestamps() {
     // Verify that the replayed metrics are present in the Mock client's state
     // Retrieve the remote element ID
     let state = replay_muse.get_state();
-    let element_id = state
-        .get_element_id(&local_elem_id)
-        .expect("Element was not registered");
+    assert!(
+        eventually(|| {
+            let state = state.clone();
+            async move { state.get_element_id(&local_elem_id).is_some() }
+        })
+        .await,
+        "Element was not registered"
+    );
+    let element_id = state.get_element_id(&local_elem_id).unwrap();
 
-    // Wait for the lat metric of the replay to be sent
-    let metric_task_duration = timing::metric_sending_interval(replay_muse.get_finest_resolution());
-    let wait_metric = timing::adjust_duration_by_modifier(metric_task_duration, 1.5);
-    tokio::time::sleep(wait_metric).await;
-
-    // Retrieve metrics from the Mock client
-    let poet_client = replay_muse.get_client();
-    let query = MetricQuery {
-        start_time: None,
-        end_time: None,
-        element_id: Some(element_id),
-        parent_id: None,
-        metric_id: None,
+    // Wait for the last metric of the replay to be sent
+    let expected = match client_type {
+        ClientType::Mock => 3,
+        _ => previous_metrics + 3,
     };
-
-    let metrics = poet_client
-        .get_metrics(&query, None)
-        .await
-        .expect("Failed to get metrics");
+    let metrics = wait_for_metrics(&replay_muse, element_id, expected).await;
 
     // If the client is Mock, we can create a new Muse instance and replay the events
     if client_type == ClientType::Mock {

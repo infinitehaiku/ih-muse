@@ -1,6 +1,5 @@
 // tests/it/test_metrics.rs
 use super::common::TestContext;
-use ih_muse_proto::MetricQuery;
 
 #[tokio::test]
 async fn test_send_and_receive_metric() {
@@ -18,22 +17,8 @@ async fn test_send_and_receive_metric() {
         .await
         .expect("Failed to send metric");
 
-    ctx.wait_for_metrics_sending_task().await;
-
-    // Retrieve and verify metrics
-    let poet_client = ctx.muse.get_client();
-    let query = MetricQuery {
-        start_time: None,
-        end_time: None,
-        element_id: Some(element_id),
-        parent_id: None,
-        metric_id: None,
-    };
-
-    let metrics = poet_client
-        .get_metrics(&query, None)
-        .await
-        .expect("Failed to get metrics");
+    // Retrieve and verify metrics, once the sender task delivered them
+    let metrics = ctx.wait_for_metrics(element_id, 1).await;
 
     assert!(!metrics.is_empty(), "No metrics retrieved");
     println!("Retrieved metrics: {:?}", metrics);

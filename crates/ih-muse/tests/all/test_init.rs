@@ -1,5 +1,5 @@
 // tests/it/test_init.rs
-use super::common::{client_type_from_env, TestContext};
+use super::common::{client_type_from_env, eventually, TestContext, INIT_TIMEOUT};
 use ih_muse::prelude::*;
 use std::time::Duration;
 
@@ -61,12 +61,9 @@ async fn test_muse_initialization_with_custom_config() {
 
     let mut muse = Muse::new(&config).expect("Failed to create the Muse");
 
-    muse.initialize(Some(timing::adjust_duration_by_modifier(
-        init_duration,
-        10.0,
-    )))
-    .await
-    .expect("Muse Initialization failed");
+    muse.initialize(Some(INIT_TIMEOUT))
+        .await
+        .expect("Muse Initialization failed");
 
     assert!(
         muse.is_initialized(),
@@ -82,15 +79,12 @@ async fn test_muse_initialization_with_custom_config() {
         .await
         .expect("Failed to register database element");
 
-    // Wait for element registration
-    let start_time = tokio::time::Instant::now();
-    let elem_reg_duration = timing::element_registration_interval(muse.get_finest_resolution());
-    let timeout = timing::adjust_duration_by_modifier(elem_reg_duration, 2.0);
-
-    while state.get_element_id(&local_elem_id).is_none() && start_time.elapsed() < timeout {
-        let elem_reg_duration = timing::element_registration_interval(muse.get_finest_resolution());
-        tokio::time::sleep(elem_reg_duration).await;
-    }
+    // Wait for the background task to register the element
+    eventually(|| {
+        let state = state.clone();
+        async move { state.get_element_id(&local_elem_id).is_some() }
+    })
+    .await;
 
     assert!(
         state.get_element_id(&local_elem_id).is_some(),
