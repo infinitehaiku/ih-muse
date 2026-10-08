@@ -451,6 +451,9 @@ mod tests {
                 PanelKind::Text => "text",
                 PanelKind::Logs => "logs",
                 PanelKind::Traces => "traces",
+                PanelKind::Events => "events",
+                PanelKind::Trace => "trace",
+                PanelKind::Query => "query",
             })
             .collect()
     }
