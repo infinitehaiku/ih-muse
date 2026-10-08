@@ -4,7 +4,7 @@
 use ih_muse_proto::dashboard::{
     dashboard_definition_schema, AttributeRule, DashboardError, FilterOp, GoldenSignal,
     PanelAggregation, PanelColumn, PanelFilter, PanelGroupBy, PanelKind, PanelSize, PanelSpec,
-    PanelStream, PanelThresholds, ProfileRecognition, SectionColor,
+    PanelQuery, PanelStream, PanelThresholds, ProfileRecognition, SectionColor,
 };
 use ih_muse_proto::{
     DashboardAppliesTo, DashboardBlock, DashboardDefinition, DashboardDefinitionError, GraphBatch,
@@ -76,6 +76,30 @@ fn full_definition() -> DashboardDefinition {
         }),
         ..PanelSpec::default()
     };
+    let events = PanelSpec {
+        id: "e".into(),
+        title: "What happened".into(),
+        kind: PanelKind::Events,
+        stream: Some(PanelStream { search: Some("deploy".into()), errors_only: false, limit: Some(50) }),
+        ..PanelSpec::default()
+    };
+    let trace = PanelSpec {
+        id: "tr".into(),
+        title: "Slow request".into(),
+        kind: PanelKind::Trace,
+        trace_id: Some("0af7651916cd43dd8448eb211c80319c".into()),
+        ..PanelSpec::default()
+    };
+    let query = PanelSpec {
+        id: "q".into(),
+        title: "Slow operations".into(),
+        kind: PanelKind::Query,
+        query: Some(PanelQuery {
+            tool: "search".into(),
+            arguments: json!({"signal": "spans", "entity": "kabuki", "group_by": "operation"}).as_object().unwrap().clone(),
+        }),
+        ..PanelSpec::default()
+    };
     DashboardDefinition {
         id: "otel-postgresql.server".into(),
         revision: 3,
@@ -94,11 +118,11 @@ fn full_definition() -> DashboardDefinition {
             metric_prefixes: vec!["postgresql.".into()],
             min_metrics: 2,
         }),
-        panels: vec![panel("a", PanelGroupBy::Entity), table, text, logs],
+        panels: vec![panel("a", PanelGroupBy::Entity), table, text, logs, events, trace, query],
         blocks: vec![DashboardBlock {
             label: "Queries".into(),
             text: Some("**Slow** first.".into()),
-            panels: vec!["a".into(), "b".into(), "t".into(), "l".into()],
+            panels: vec!["a".into(), "b".into(), "t".into(), "l".into(), "e".into(), "tr".into(), "q".into()],
             color: Some(SectionColor::Purple),
             collapsed: true,
             width: Some(6),
@@ -252,11 +276,16 @@ fn schema_errors_for(schema: &Value, root: &Value, value: &Value) -> Vec<String>
     errors
 }
 
+/// Every key the instance serializes; a query panel's `arguments` is the
+/// door call's own free-form object (the schema declares it as an open
+/// object), so its keys are not contract fields.
 fn serialized_keys(value: &Value, keys: &mut Vec<String>) {
     match value {
         Value::Object(object) => object.iter().for_each(|(key, item)| {
             keys.push(key.clone());
-            serialized_keys(item, keys);
+            if key != "arguments" {
+                serialized_keys(item, keys);
+            }
         }),
         Value::Array(values) => values.iter().for_each(|item| serialized_keys(item, keys)),
         _ => {}
@@ -654,6 +683,11 @@ fn every_panel_kind_round_trips_with_its_default_size() {
             aggregation: PanelAggregation::Sum,
             group_by: kind.has_rows().then_some(PanelGroupBy::Attribute("k8s.namespace.name".into())),
             text: (kind == PanelKind::Text).then(|| "Some **text**".into()),
+            trace_id: (kind == PanelKind::Trace).then(|| "0af7651916cd43dd8448eb211c80319c".into()),
+            query: (kind == PanelKind::Query).then(|| PanelQuery {
+                tool: "query".into(),
+                arguments: json!({"action": "run", "entity": "kabuki", "metric": "m", "aggregation": "p95"}).as_object().unwrap().clone(),
+            }),
             ..PanelSpec::default()
         };
         spec.validate().unwrap_or_else(|error| panic!("{kind:?}: {error}"));
@@ -703,6 +737,22 @@ fn each_panel_kind_is_validated_for_what_it_needs() {
     refused(&|spec| spec.stream = Some(PanelStream::default()), "stream belongs");
     refused(&|spec| { spec.kind = PanelKind::Logs; spec.metric.clear(); spec.stream = Some(PanelStream { limit: Some(0), ..PanelStream::default() }); }, "stream limit");
     refused(&|spec| spec.metric.clear(), "panel metric");
+    // WP incident-visuals: events, trace and query panels.
+    refused(&|spec| { spec.kind = PanelKind::Events; }, "panel metric");
+    refused(&|spec| { spec.kind = PanelKind::Trace; spec.metric.clear(); }, "trace panel needs trace_id");
+    refused(&|spec| { spec.kind = PanelKind::Trace; spec.metric.clear(); spec.trace_id = Some("xyz".into()); }, "trace panel needs trace_id");
+    refused(&|spec| spec.trace_id = Some("0af7651916cd43dd8448eb211c80319c".into()), "trace_id belongs");
+    refused(&|spec| { spec.kind = PanelKind::Query; spec.metric.clear(); }, "query panel needs");
+    let query = |tool: &str, arguments: Value| PanelQuery { tool: tool.into(), arguments: arguments.as_object().unwrap().clone() };
+    refused(&|spec| { spec.kind = PanelKind::Query; spec.metric.clear(); spec.query = Some(query("follow_work", json!({}))); }, "tool is query or search");
+    refused(&|spec| { spec.kind = PanelKind::Query; spec.metric.clear(); spec.query = Some(query("query", json!({"x": "y".repeat(5000)}))); }, "at most 4096 bytes");
+    refused(&|spec| spec.query = Some(query("query", json!({}))), "query belongs");
+    let mut events = base.clone();
+    events.kind = PanelKind::Events;
+    events.metric.clear();
+    events.group_by = None;
+    events.stream = Some(PanelStream::default());
+    events.validate().unwrap();
     let mut stat = base.clone();
     stat.kind = PanelKind::Stat;
     stat.group_by = None;

@@ -178,11 +178,21 @@ pub enum PanelKind {
     Logs,
     /// Newest traces of the dashboard's source.
     Traces,
+    /// Moments on a time axis (WP incident-visuals): the dashboard's
+    /// markers in its window (deploys, restarts, incidents' events), or an
+    /// incident's event blocks; points and ranges with kind icons.
+    Events,
+    /// One trace's overview card: root, duration, status, services and a
+    /// mini waterfall of its top spans (`trace_id`).
+    Trace,
+    /// A stored read of the agent door (`query`: its tool and arguments,
+    /// data only), re-run by Poet and drawn by the answer's shape.
+    Query,
 }
 
 impl PanelKind {
     /// Every kind, in declaration order (used by the JSON Schema).
-    pub const ALL: [Self; 9] = [
+    pub const ALL: [Self; 12] = [
         Self::TimeSeries,
         Self::Stat,
         Self::Counter,
@@ -192,6 +202,9 @@ impl PanelKind {
         Self::Text,
         Self::Logs,
         Self::Traces,
+        Self::Events,
+        Self::Trace,
+        Self::Query,
     ];
 
     fn is_time_series(&self) -> bool {
@@ -200,7 +213,10 @@ impl PanelKind {
 
     /// Whether Poet reads a metric for this kind.
     pub fn reads_metric(self) -> bool {
-        !matches!(self, Self::Text | Self::Logs | Self::Traces)
+        !matches!(
+            self,
+            Self::Text | Self::Logs | Self::Traces | Self::Events | Self::Trace | Self::Query
+        )
     }
 
     /// Whether Poet answers this kind as rows (one per group).
@@ -215,7 +231,8 @@ impl PanelKind {
             Self::Stat => (2, 2),
             Self::Counter => (3, 2),
             Self::Donut | Self::TopList => (4, 4),
-            Self::Table | Self::Logs | Self::Traces => (6, 4),
+            Self::Table | Self::Logs | Self::Traces | Self::Trace | Self::Query => (6, 4),
+            Self::Events => (12, 2),
         };
         PanelSize { w, h }
     }
@@ -262,6 +279,27 @@ pub struct PanelStream {
     /// Rows shown, 1..=[`MAX_STREAM_LIMIT`] (20 when absent).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limit: Option<u32>,
+}
+
+/// The agent door tools a `query` panel may store: Poet's read tools
+/// whose answers have a shape a panel draws (series, groups, rows).
+pub const QUERY_PANEL_TOOLS: [&str; 2] = ["query", "search"];
+/// Longest stored query (its arguments as JSON), in bytes.
+pub const MAX_QUERY_ARGUMENTS_BYTES: usize = 4096;
+
+/// What a `query` panel re-runs: one agent door read (WP
+/// incident-visuals). Data only: the tool's name and its declarative
+/// arguments (entity, metric, aggregation, group_by, filters, window),
+/// never code, URLs or credentials.
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct PanelQuery {
+    /// `query` or `search` ([`QUERY_PANEL_TOOLS`]).
+    pub tool: String,
+    /// The door call's arguments, a JSON object. A stored `from`/`to` is
+    /// the window the query was asked over; a dashboard replaces both
+    /// with its own window.
+    pub arguments: serde_json::Map<String, serde_json::Value>,
 }
 
 /// Header band colour of a dashboard section.
@@ -324,9 +362,15 @@ pub struct PanelSpec {
     /// Extra columns of a `table` panel.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub columns: Vec<PanelColumn>,
-    /// What a `logs` or `traces` panel lists.
+    /// What a `logs`, `traces` or `events` panel lists.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stream: Option<PanelStream>,
+    /// The trace a `trace` panel shows (32 hex digits).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trace_id: Option<String>,
+    /// The door read a `query` panel re-runs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub query: Option<PanelQuery>,
 }
 
 impl PanelSpec {
@@ -353,7 +397,7 @@ impl PanelSpec {
             return Err(DashboardError::Invalid(if self.kind.reads_metric() {
                 "panel metric".into()
             } else {
-                "panel metric (text, logs and traces panels read none)".into()
+                "panel metric (text, logs, traces, events, trace and query panels read none)".into()
             }));
         }
         self.validate_kind()?;
@@ -417,8 +461,29 @@ impl PanelSpec {
             }
         }
         match (&self.stream, self.kind) {
-            (Some(_), PanelKind::Logs | PanelKind::Traces) | (None, _) => {}
-            (Some(_), _) => return invalid("panel stream belongs to logs and traces panels"),
+            (Some(_), PanelKind::Logs | PanelKind::Traces | PanelKind::Events) | (None, _) => {}
+            (Some(_), _) => return invalid("panel stream belongs to logs, traces and events panels"),
+        }
+        match (self.kind, &self.trace_id) {
+            (PanelKind::Trace, Some(id))
+                if id.len() == 32 && id.bytes().all(|byte| byte.is_ascii_hexdigit()) => {}
+            (PanelKind::Trace, _) => return invalid("trace panel needs trace_id (32 hex digits)"),
+            (_, Some(_)) => return invalid("panel trace_id belongs to trace panels"),
+            _ => {}
+        }
+        match (self.kind, &self.query) {
+            (PanelKind::Query, Some(query)) => {
+                if !QUERY_PANEL_TOOLS.contains(&query.tool.as_str()) {
+                    return invalid("query panel tool is query or search");
+                }
+                let bytes = serde_json::to_vec(&query.arguments).map_or(usize::MAX, |bytes| bytes.len());
+                if bytes > MAX_QUERY_ARGUMENTS_BYTES {
+                    return invalid("query panel arguments (at most 4096 bytes of JSON)");
+                }
+            }
+            (PanelKind::Query, None) => return invalid("query panel needs query {tool, arguments}"),
+            (_, Some(_)) => return invalid("panel query belongs to query panels"),
+            _ => {}
         }
         if let Some(stream) = &self.stream {
             if stream.limit.is_some_and(|limit| !(1..=MAX_STREAM_LIMIT).contains(&limit)) {
@@ -853,17 +918,19 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
             },
             "PanelSpec": {
                 "type": "object", "additionalProperties": false, "required": ["id", "title"],
-                "description": "One panel. Metric kinds need `metric`; text, logs and traces have none. The Rust validate() enforces what each kind needs (group_by for donut/top_list/table, text only on text panels, columns only on tables, stream only on logs/traces).",
+                "description": "One panel. Metric kinds need `metric`; text, logs, traces, events, trace and query have none. The Rust validate() enforces what each kind needs (group_by for donut/top_list/table, text only on text panels, columns only on tables, stream only on logs/traces/events, trace_id only on (and required by) trace panels, query only on (and required by) query panels).",
                 "properties": {
                     "id": {"type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[A-Za-z0-9_.-]+$"},
                     "title": {"type": "string", "minLength": 1, "maxLength": 120},
                     "kind": {"type": "string", "description": "What the panel draws.", "enum": kinds, "default": "time_series"},
                     "size": {"$ref": "#/$defs/PanelSize"},
-                    "metric": {"type": "string", "description": "Exact metric name as stored (OTel or Muse metric code); absent for text, logs and traces panels.", "maxLength": 255},
+                    "metric": {"type": "string", "description": "Exact metric name as stored (OTel or Muse metric code); absent for text, logs, traces, events, trace and query panels.", "maxLength": 255},
                     "aggregation": {"type": "string", "enum": aggregations.clone(), "default": "last"},
                     "text": {"type": "string", "description": "Markdown of a text panel.", "minLength": 1, "maxLength": MAX_BLOCK_TEXT_BYTES},
                     "columns": {"type": "array", "description": "Extra columns of a table panel.", "items": {"$ref": "#/$defs/PanelColumn"}},
                     "stream": {"$ref": "#/$defs/PanelStream"},
+                    "trace_id": {"type": "string", "description": "The trace of a trace panel.", "minLength": 32, "maxLength": 32},
+                    "query": {"$ref": "#/$defs/PanelQuery"},
                     "filters": {"type": "array", "items": {"$ref": "#/$defs/PanelFilter"}},
                     "group_by": {"$ref": "#/$defs/PanelGroupBy"},
                     "top_n": {"type": "integer", "description": "Series shown when grouped (any number).", "minimum": 1},
@@ -891,6 +958,14 @@ pub fn dashboard_definition_schema() -> serde_json::Value {
                     "search": {"type": "string", "maxLength": 255},
                     "errors_only": {"type": "boolean", "default": false},
                     "limit": {"type": "integer", "minimum": 1, "maximum": MAX_STREAM_LIMIT, "default": 20}
+                }
+            },
+            "PanelQuery": {
+                "type": "object", "additionalProperties": false, "required": ["tool", "arguments"],
+                "description": "A stored agent door read (data only): re-run over the dashboard's window and drawn by its answer's shape.",
+                "properties": {
+                    "tool": {"type": "string", "enum": QUERY_PANEL_TOOLS},
+                    "arguments": {"type": "object", "description": "The door call's arguments."}
                 }
             },
             "PanelFilter": {
