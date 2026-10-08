@@ -99,15 +99,22 @@ impl PyDashboardDelivery {
     }
 
     /// Call after a Poet acknowledged `batch`; marks the chunk that batch
-    /// carried delivered.
-    pub fn acknowledge(&mut self, batch: &Bound<'_, PyDict>) -> PyResult<()> {
-        let Some(carried) = batch.get_item("dashboards")? else {
-            return Ok(());
+    /// carried delivered. `definitions_epoch` is the Poet answer's field of
+    /// that name: when it differs from the epoch that acknowledged the
+    /// definitions, they are sent again (the Poet may have lost them).
+    #[pyo3(signature = (batch, definitions_epoch = None))]
+    pub fn acknowledge(
+        &mut self,
+        batch: &Bound<'_, PyDict>,
+        definitions_epoch: Option<&str>,
+    ) -> PyResult<()> {
+        let epoch = definitions_epoch.unwrap_or_default();
+        let carried = match batch.get_item("dashboards")? {
+            // A batch whose field does not parse cannot have carried ours.
+            Some(carried) => parse_dashboard_definitions(&json_text(&carried)?).unwrap_or_default(),
+            None => Vec::new(),
         };
-        // A batch whose field does not parse cannot have carried ours.
-        if let Ok(carried) = parse_dashboard_definitions(&json_text(&carried)?) {
-            self.inner.acknowledge_carried(&carried);
-        }
+        self.inner.acknowledge_carried(&carried, epoch);
         Ok(())
     }
 

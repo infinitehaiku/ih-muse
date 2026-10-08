@@ -220,7 +220,7 @@ async fn main() {
             let mut consecutive_failures = 0u32;
             loop {
                 match client.publish(&request).await {
-                    Ok(()) => break,
+                    Ok(_) => break,
                     Err(
                         error @ (MuseError::Unavailable(_)
                         | MuseError::Backpressure(_)

@@ -43,8 +43,14 @@ does this for you:
 1. `attach(batch)` puts the first chunk no Poet has acknowledged yet on the
    batch. Every batch carries it until a Poet acknowledges one of them, so a
    queue that drops its oldest batches cannot lose it.
-2. `acknowledge(batch)` after a Poet accepted the batch marks the chunk it
-   carried as delivered; the next batch carries the next chunk.
+2. `acknowledge(batch, answer)` after a Poet accepted the batch marks the
+   chunk it carried as delivered; the next batch carries the next chunk.
+   `answer` is the Poet's 201 body (`GraphIntakeAnswer`), whose
+   `definitions_epoch` is new for each Poet process. When an answer names
+   another epoch than the one that acknowledged the definitions (the Poet
+   restarted, perhaps on a wiped store), every chunk is sent again, once.
+   An empty body names no epoch and never resends. Python passes the
+   field as `acknowledge(batch, definitions_epoch=...)`.
 3. Once every chunk is delivered, batches leave the field out.
 4. `resend()` starts again from the first chunk, for example after the Muse
    changed its definitions.

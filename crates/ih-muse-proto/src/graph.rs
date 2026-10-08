@@ -297,8 +297,10 @@ pub struct GraphBatch {
     pub derivations: Vec<Derivation>,
     pub availability: Vec<Availability>,
     /// Default dashboards the sending Muse defines. A Muse sends its
-    /// definitions in its first batch after start and again whenever one
-    /// changes; receivers deduplicate by `(id, revision)`. Absent from the
+    /// definitions in its first batch after start, again whenever one
+    /// changes, and again when the acknowledging Poet's
+    /// [`GraphIntakeAnswer::definitions_epoch`] changes; receivers
+    /// deduplicate by `(id, revision)`. Absent from the
     /// JSON when empty, so senders and receivers that predate the field are
     /// unaffected.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -319,6 +321,20 @@ pub struct GraphIntakeRequest {
     pub organization: String,
     pub owner_id: String,
     pub batch: GraphBatch,
+}
+
+/// What a Poet answers when it accepted a [`GraphIntakeRequest`] (HTTP 201).
+///
+/// `definitions_epoch` names the answering Poet's current store lifetime:
+/// it changes whenever that Poet may no longer hold the dashboard
+/// definitions it acknowledged before (a restart, a wiped store). A Muse
+/// remembers the epoch of the answer that acknowledged its definitions and
+/// sends them again, once, when a later answer names another epoch. Empty
+/// when the Poet does not say (an empty body), which never triggers a resend.
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+pub struct GraphIntakeAnswer {
+    #[serde(default)]
+    pub definitions_epoch: String,
 }
 
 /// Fail-closed reasons a graph batch cannot enter the canonical store.

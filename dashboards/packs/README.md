@@ -35,9 +35,11 @@ the same purpose. An installed pack takes the place of that built-in profile.
 Poet bundles the Piceli pack: it compiles in `piceli.json` and
 `event-mappings/piceli.json` and uses them for every tenant, so a cluster
 whose Piceli controller sends OTLP to Poet gets the Deployments dashboard
-and the deployment markers with nothing installed and no Muse running. A
-stored definition or mapping with the same id and an equal or higher
-revision takes the bundled one's place.
+and the deployment markers with nothing installed and no Muse running.
+Poet also stores the bundled dashboards at every start, as if installed,
+so a new or wiped store lists them and replicates them to its peers (a
+kept revision is unchanged). A stored definition or mapping with the same
+id and an equal or higher revision takes the bundled one's place.
 
 An event mapping (`ih_muse_proto::event_mapping`) names a system's own
 OpenTelemetry in the shared deployment vocabulary: which resource is the

@@ -25,11 +25,11 @@ pub use element::{generate_local_element_id, ElementRegistration, NewElementsRes
 pub use element_kind::ElementKindRegistration;
 pub use graph::{
     AdditiveProjection, Availability, Derivation, EdgeDirection, Entity, EntityIdentity, EntityKey,
-    Event, EventKind, GraphBatch, GraphImportError, GraphIntakeError, GraphIntakeRequest,
-    GraphValidationError, JoinStatus, Observation, OrganizationId, ProjectionEdge, ProjectionError,
-    ProjectionSpec, Provenance, RelationCardinality, RelationKind, RelationSemantics,
-    ResidualPolicy, TemporalRelation, GRAPH_CONTRACT_REVISION, GRAPH_INTAKE_CONTRACT_REVISION,
-    GRAPH_INTAKE_SCHEMA_VERSION, GRAPH_SCHEMA_VERSION,
+    Event, EventKind, GraphBatch, GraphImportError, GraphIntakeAnswer, GraphIntakeError,
+    GraphIntakeRequest, GraphValidationError, JoinStatus, Observation, OrganizationId,
+    ProjectionEdge, ProjectionError, ProjectionSpec, Provenance, RelationCardinality, RelationKind,
+    RelationSemantics, ResidualPolicy, TemporalRelation, GRAPH_CONTRACT_REVISION,
+    GRAPH_INTAKE_CONTRACT_REVISION, GRAPH_INTAKE_SCHEMA_VERSION, GRAPH_SCHEMA_VERSION,
 };
 pub use metric::{
     metric_id_from_code, MetricDefinition, MetricDisplay, MetricPayload, MetricQuery,

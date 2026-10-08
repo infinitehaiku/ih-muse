@@ -20,7 +20,7 @@ use ih_muse_k8s::graph::{
 use ih_muse_k8s::identity::MuseIdentity;
 use ih_muse_k8s::model::{List, Namespace, Node, NodeMetrics, Pod, PodMetrics};
 use ih_muse_k8s::K8sMuse;
-use ih_muse_proto::{AttributeValue, GraphBatch};
+use ih_muse_proto::{AttributeValue, GraphBatch, GraphIntakeAnswer};
 use serde_json::Value;
 
 const NOW: u64 = 1_791_108_000_000_000_000; // 2026-10-04T10:00:00Z, as in gen_expected.py
@@ -325,7 +325,7 @@ fn the_first_batch_carries_the_definition_until_a_poet_acknowledges_it() {
     // Unacknowledged (no Poet yet): the next batch carries it too.
     let second = muse.intake(&snapshot, NOW + 5_000_000_000);
     assert_eq!(second.batch.dashboards, first.batch.dashboards);
-    muse.acknowledge(&second);
+    muse.acknowledge(&second, &GraphIntakeAnswer::default());
     let later = muse.intake(&snapshot, NOW + 10_000_000_000);
     assert!(
         later.batch.dashboards.is_empty(),
@@ -368,7 +368,7 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
 
     let sent = muse.send_pending(usize::MAX, |request| async move {
         assert!(!request.batch.dashboards.is_empty());
-        Ok(())
+        Ok(GraphIntakeAnswer::default())
     });
     assert_eq!(sent.await.unwrap(), 1);
     assert_eq!(muse.pending(), 0);
@@ -380,6 +380,60 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
         muse.lost().dropped_intervals,
         1,
         "the rejected batch's interval is counted as dropped"
+    );
+}
+
+/// A Poet restarted on a wiped store answers with another definitions
+/// epoch: the next batch sent carries the definitions again (also one
+/// queued before), once; answers with the same epoch resend nothing.
+#[tokio::test]
+async fn a_new_poet_epoch_sends_the_definitions_again_once() {
+    let mut muse = muse();
+    let snapshot = snapshot(true, true);
+    fn answer(epoch: &str) -> GraphIntakeAnswer {
+        GraphIntakeAnswer {
+            definitions_epoch: epoch.into(),
+        }
+    }
+    let mut carried = Vec::new();
+    for (step, epoch) in ["a", "a", "a", "b", "b", "b"].into_iter().enumerate() {
+        let now = NOW + step as u64;
+        let request = muse.intake(&snapshot, now);
+        muse.enqueue(request, now);
+        let sent = muse
+            .send_pending(usize::MAX, |request| {
+                carried.push(!request.batch.dashboards.is_empty());
+                let answer = answer(epoch);
+                async move { Ok(answer) }
+            })
+            .await
+            .unwrap();
+        assert_eq!(sent, 1);
+    }
+    // Step 3 is acknowledged by epoch "b": step 4 carries them, once.
+    assert_eq!(carried, [true, false, false, false, true, false]);
+    assert!(muse.intake(&snapshot, NOW + 9).batch.dashboards.is_empty());
+
+    // Two batches queued while delivered (no definitions): the first is
+    // answered by epoch "c", so the second carries them when it is sent.
+    for now in [NOW + 10, NOW + 11] {
+        let queued = muse.intake(&snapshot, now);
+        assert!(queued.batch.dashboards.is_empty());
+        muse.enqueue(queued, now);
+    }
+    let mut seen = Vec::new();
+    for _ in 0..2 {
+        muse.send_pending(1, |request| {
+            seen.push(!request.batch.dashboards.is_empty());
+            async { Ok(answer("c")) }
+        })
+        .await
+        .unwrap();
+    }
+    assert_eq!(
+        seen,
+        [false, true],
+        "epoch c asked for them; the next send carried them"
     );
 }
 
