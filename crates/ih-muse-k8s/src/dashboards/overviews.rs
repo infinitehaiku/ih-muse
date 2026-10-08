@@ -41,9 +41,11 @@ const EVERY_NODE: usize = 500;
 /// Rows of a "busiest" table or list.
 const BUSIEST: usize = 10;
 
-/// Applies to the cluster root, as the cluster dashboard. The root's
-/// `ih.dashboard.profile` still names the cluster dashboard, so these two
-/// are opened from the dashboard library (Duplicate on the k-lab source).
+/// Applies to the cluster root, as the cluster dashboard does. The root's
+/// `ih.dashboard.profile` names the cluster dashboard (the source's own);
+/// Poet lists every other definition of this Muse whose `applies_to`
+/// matches the same root as that source's other dashboards, so these two
+/// open from the cluster's own entry in the sources list.
 fn cluster_roots() -> DashboardAppliesTo {
     DashboardAppliesTo::MuseRoots {
         entity_kinds: Vec::new(),
@@ -580,6 +582,19 @@ mod tests {
         // Errors and failed traces only.
         for stream in pods.panels.iter().filter_map(|panel| panel.stream.as_ref()) {
             assert!(stream.errors_only);
+        }
+    }
+
+    /// Poet makes the overviews the cluster source's other dashboards
+    /// because they match the same root as the cluster dashboard and come
+    /// from the same Muse (WP k8s-overviews-source): keep it so.
+    #[test]
+    fn the_overviews_apply_where_the_cluster_dashboard_applies() {
+        let cluster = crate::dashboards::cluster_dashboard();
+        for overview in [pods_dashboard(), nodes_dashboard()] {
+            assert_eq!(overview.applies_to, cluster.applies_to, "{}", overview.id);
+            assert_eq!(overview.muse_kind, cluster.muse_kind, "{}", overview.id);
+            assert_ne!(overview.id, cluster.id);
         }
     }
 
