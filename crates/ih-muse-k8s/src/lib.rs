@@ -21,8 +21,8 @@ use std::collections::BTreeMap;
 
 use ih_muse::dashboards::{DashboardDelivery, DashboardSetError};
 use ih_muse_proto::{
-    AttributeValue, EntityIdentity, EntityKey, Event, EventKind, GraphBatch, GraphIntakeRequest,
-    InstrumentationScope, JoinStatus, OrganizationId, Provenance, TimeRange,
+    AttributeValue, EntityIdentity, EntityKey, Event, EventKind, GraphBatch, GraphIntakeAnswer,
+    GraphIntakeRequest, InstrumentationScope, JoinStatus, OrganizationId, Provenance, TimeRange,
     GRAPH_INTAKE_CONTRACT_REVISION, GRAPH_INTAKE_SCHEMA_VERSION,
 };
 
@@ -126,9 +126,10 @@ impl K8sMuse {
         }
     }
 
-    /// Records that a Poet acknowledged `request`.
-    pub fn acknowledge(&mut self, request: &GraphIntakeRequest) {
-        self.delivery.acknowledge(&request.batch);
+    /// Records that a Poet acknowledged `request` with `answer`; a new
+    /// definitions epoch in the answer sends the definitions again.
+    pub fn acknowledge(&mut self, request: &GraphIntakeRequest, answer: &GraphIntakeAnswer) {
+        self.delivery.acknowledge(&request.batch, answer);
     }
 
     /// Queues a request collected at `now`. Returns what queueing it
@@ -165,13 +166,18 @@ impl K8sMuse {
     ) -> Result<usize, ih_muse_core::MuseError>
     where
         F: FnMut(GraphIntakeRequest) -> Fut,
-        Fut: std::future::Future<Output = Result<(), ih_muse_core::MuseError>>,
+        Fut: std::future::Future<Output = Result<GraphIntakeAnswer, ih_muse_core::MuseError>>,
     {
         let mut sent = 0;
         while sent < max {
             let Some(mut request) = self.backlog.front() else {
                 break;
             };
+            // A request queued after the definitions were acknowledged
+            // carries them when a new Poet epoch asked for them again.
+            if request.batch.dashboards.is_empty() {
+                self.delivery.attach(&mut request.batch);
+            }
             let report = self.backlog.take_unreported();
             if let Some(loss) = &report {
                 request.batch.events.push(self.loss_event(loss));
@@ -181,8 +187,8 @@ impl K8sMuse {
                 self.backlog.restore_unreported(loss);
             }
             match result {
-                Ok(()) => {
-                    self.acknowledge(&request);
+                Ok(answer) => {
+                    self.acknowledge(&request, &answer);
                     self.backlog.pop_acknowledged();
                     sent += 1;
                 }

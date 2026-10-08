@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use ih_muse_core::{MuseError, MuseResult};
 use ih_muse_proto::trace::{DeliveryTrace, Sampler, TRACEPARENT, TRACESTATE};
-use ih_muse_proto::GraphIntakeRequest;
+use ih_muse_proto::{GraphIntakeAnswer, GraphIntakeRequest};
 use reqwest::{Client, StatusCode};
 use tokio::time::sleep;
 
@@ -153,12 +153,13 @@ impl GraphPoetClient {
         DeliveryTrace::start(&self.sampler, created)
     }
 
-    /// Deliver a prevalidated graph batch, retrying only transient failures.
+    /// Deliver a prevalidated graph batch, retrying only transient failures,
+    /// and return the accepting Poet's answer (its definitions epoch).
     ///
     /// Starts at the preferred Poet and moves on after `MAX_ATTEMPTS`
     /// transient failures. A 4xx answer is final: another Poet of the same
     /// cluster would reject the same batch for the same reason.
-    pub async fn publish(&self, request: &GraphIntakeRequest) -> MuseResult<()> {
+    pub async fn publish(&self, request: &GraphIntakeRequest) -> MuseResult<GraphIntakeAnswer> {
         let trace = self.delivery_trace(request);
         self.publish_traced(request, &trace).await
     }
@@ -169,7 +170,7 @@ impl GraphPoetClient {
         &self,
         request: &GraphIntakeRequest,
         trace: &DeliveryTrace,
-    ) -> MuseResult<()> {
+    ) -> MuseResult<GraphIntakeAnswer> {
         let traceparent = trace.context.traceparent();
         let tracestate = trace.tracestate();
         request
@@ -193,7 +194,10 @@ impl GraphPoetClient {
                 {
                     Ok(response) if response.status() == StatusCode::CREATED => {
                         self.preferred.store(index, Ordering::Relaxed);
-                        return Ok(());
+                        // Stored already: an answer that does not parse (an
+                        // empty body) only means the Poet named no epoch.
+                        let body = response.bytes().await.unwrap_or_default();
+                        return Ok(serde_json::from_slice(&body).unwrap_or_default());
                     }
                     Ok(response) if response.status().is_client_error() => {
                         return Err(MuseError::Validation(format!(

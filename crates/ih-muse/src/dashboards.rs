@@ -6,11 +6,17 @@
 //! While no Poet is reachable every queued batch carries them, so a queue
 //! that drops its oldest batches cannot lose the definitions. Receivers
 //! deduplicate by `(id, revision)`.
+//!
+//! A Poet that lost them (restarted on a wiped store) gets them back
+//! without a Muse restart: each acknowledgement names the Poet's
+//! [`GraphIntakeAnswer::definitions_epoch`], and an answer with another
+//! epoch than the one that acknowledged the definitions sends them again,
+//! once. Nothing is resent periodically.
 
 use std::collections::BTreeSet;
 
 use ih_muse_proto::dashboard::MAX_BATCH_DASHBOARDS;
-use ih_muse_proto::{DashboardDefinition, DashboardDefinitionError, GraphBatch};
+use ih_muse_proto::{DashboardDefinition, DashboardDefinitionError, GraphBatch, GraphIntakeAnswer};
 
 /// Why a set of dashboard definitions cannot be delivered.
 #[derive(Debug, PartialEq, thiserror::Error)]
@@ -81,13 +87,16 @@ pub fn check_definitions(definitions: &[DashboardDefinition]) -> Result<(), Dash
 }
 
 /// A Muse's validated definitions, split into chunks of at most
-/// [`MAX_BATCH_DASHBOARDS`] (one per batch), and which chunks a Poet has
-/// acknowledged.
+/// [`MAX_BATCH_DASHBOARDS`] (one per batch), which chunks a Poet has
+/// acknowledged, and under which Poet definitions epoch.
 #[derive(Clone, Debug, Default)]
 pub struct DashboardDelivery {
     definitions: Vec<DashboardDefinition>,
     /// One flag per chunk: a Poet acknowledged a batch that carried it.
     delivered: Vec<bool>,
+    /// The epoch of the answers that acknowledged the delivered chunks;
+    /// `None` while no chunk is delivered.
+    epoch: Option<String>,
 }
 
 impl DashboardDelivery {
@@ -98,6 +107,7 @@ impl DashboardDelivery {
         Ok(Self {
             definitions,
             delivered: vec![false; chunks],
+            epoch: None,
         })
     }
 
@@ -139,26 +149,44 @@ impl DashboardDelivery {
         }
     }
 
-    /// Call after a Poet acknowledged `batch`; it marks the chunk that
-    /// batch carried delivered (a batch that carried none proves nothing).
-    pub fn acknowledge(&mut self, batch: &GraphBatch) {
-        self.acknowledge_carried(&batch.dashboards);
+    /// Call after a Poet acknowledged `batch` with `answer`. When the
+    /// answer names another definitions epoch than the one that
+    /// acknowledged the delivered chunks, that Poet may have lost them:
+    /// every chunk is sent again from the next batch. Then the chunk the
+    /// batch carried is marked delivered (a batch that carried none proves
+    /// nothing).
+    pub fn acknowledge(&mut self, batch: &GraphBatch, answer: &GraphIntakeAnswer) {
+        self.acknowledge_carried(&batch.dashboards, &answer.definitions_epoch);
     }
 
     /// [`Self::acknowledge`] for a Muse that builds batches itself (for
     /// example as JSON through the Python binding): `carried` is the
-    /// acknowledged batch's `dashboards` field.
-    pub fn acknowledge_carried(&mut self, carried: &[DashboardDefinition]) {
+    /// acknowledged batch's `dashboards` field, `definitions_epoch` the
+    /// answer's (empty when the Poet did not say).
+    pub fn acknowledge_carried(
+        &mut self,
+        carried: &[DashboardDefinition],
+        definitions_epoch: &str,
+    ) {
+        if self
+            .epoch
+            .as_deref()
+            .is_some_and(|epoch| epoch != definitions_epoch)
+        {
+            self.resend();
+        }
         if carried.is_empty() {
             return;
         }
         let Self {
             definitions,
             delivered,
+            epoch,
         } = self;
         for (chunk, delivered) in definitions.chunks(MAX_BATCH_DASHBOARDS).zip(delivered) {
             if chunk == carried {
                 *delivered = true;
+                *epoch = Some(definitions_epoch.to_owned());
             }
         }
     }
@@ -169,6 +197,7 @@ impl DashboardDelivery {
         self.delivered
             .iter_mut()
             .for_each(|delivered| *delivered = false);
+        self.epoch = None;
     }
 }
 
@@ -266,22 +295,22 @@ mod tests {
         assert_eq!(again.dashboards, first.dashboards);
 
         // Acknowledged: the next batch carries the second chunk, and so on.
-        delivery.acknowledge(&first);
+        delivery.acknowledge(&first, &GraphIntakeAnswer::default());
         let mut second = batch();
         delivery.attach(&mut second);
         assert_eq!(
             second.dashboards,
             definitions[MAX_BATCH_DASHBOARDS..2 * MAX_BATCH_DASHBOARDS]
         );
-        delivery.acknowledge(&again); // the first chunk again: no change
+        delivery.acknowledge(&again, &GraphIntakeAnswer::default()); // the first chunk again: no change
         assert_eq!(delivery.pending_chunks(), 2);
-        delivery.acknowledge(&second);
+        delivery.acknowledge(&second, &GraphIntakeAnswer::default());
         let mut third = batch();
         delivery.attach(&mut third);
         assert_eq!(third.dashboards, definitions[2 * MAX_BATCH_DASHBOARDS..]);
         third.validate().unwrap();
         assert!(!delivery.is_delivered());
-        delivery.acknowledge(&third);
+        delivery.acknowledge(&third, &GraphIntakeAnswer::default());
         assert!(delivery.is_delivered());
 
         // Every definition rode exactly one acknowledged batch, in order.
@@ -321,10 +350,10 @@ mod tests {
         assert_eq!(second.dashboards, definitions);
 
         // A batch that did not carry them proves nothing.
-        delivery.acknowledge(&batch());
+        delivery.acknowledge(&batch(), &GraphIntakeAnswer::default());
         assert!(!delivery.is_delivered());
 
-        delivery.acknowledge(&second);
+        delivery.acknowledge(&second, &GraphIntakeAnswer::default());
         assert!(delivery.is_delivered());
         let mut later = batch();
         delivery.attach(&mut later);
@@ -336,6 +365,66 @@ mod tests {
         let mut again = batch();
         delivery.attach(&mut again);
         assert_eq!(again.dashboards, definitions);
+    }
+
+    /// A Poet that lost the definitions (wiped store, restart) answers
+    /// with another epoch: they go out again once, in every chunk, and are
+    /// delivered under the new epoch; the same epoch never resends, and
+    /// an answer naming no epoch (an older Poet) changes nothing.
+    #[test]
+    fn a_new_definitions_epoch_sends_every_chunk_again_once() {
+        let answer = |epoch: &str| GraphIntakeAnswer {
+            definitions_epoch: epoch.into(),
+        };
+        let definitions = many(MAX_BATCH_DASHBOARDS + 1);
+        let mut delivery = DashboardDelivery::new(definitions.clone()).unwrap();
+        for _ in 0..2 {
+            let mut carrying = batch();
+            delivery.attach(&mut carrying);
+            delivery.acknowledge(&carrying, &answer("a"));
+        }
+        assert!(delivery.is_delivered());
+        delivery.acknowledge(&batch(), &answer("a"));
+        assert!(delivery.is_delivered(), "the same epoch resends nothing");
+
+        delivery.acknowledge(&batch(), &answer("b"));
+        assert_eq!(
+            delivery.pending_chunks(),
+            2,
+            "a new epoch resends every chunk"
+        );
+        let mut sent = Vec::new();
+        while !delivery.is_delivered() {
+            let mut carrying = batch();
+            delivery.attach(&mut carrying);
+            sent.extend(carrying.dashboards.clone());
+            delivery.acknowledge(&carrying, &answer("b"));
+        }
+        assert_eq!(sent, definitions, "each definition once");
+        delivery.acknowledge(&batch(), &answer("b"));
+        assert!(delivery.is_delivered());
+
+        // A chunk acknowledged under one epoch and another chunk under a
+        // newer one: the first is sent again too.
+        let mut delivery = DashboardDelivery::new(definitions.clone()).unwrap();
+        let mut first = batch();
+        delivery.attach(&mut first);
+        delivery.acknowledge(&first, &answer("a"));
+        let mut second = batch();
+        delivery.attach(&mut second);
+        delivery.acknowledge(&second, &answer("b"));
+        assert_eq!(delivery.pending_chunks(), 1);
+        let mut again = batch();
+        delivery.attach(&mut again);
+        assert_eq!(again.dashboards, first.dashboards);
+
+        // An older Poet names no epoch: nothing is resent.
+        let mut delivery = DashboardDelivery::new(definitions[..1].to_vec()).unwrap();
+        let mut only = batch();
+        delivery.attach(&mut only);
+        delivery.acknowledge(&only, &GraphIntakeAnswer::default());
+        delivery.acknowledge(&batch(), &GraphIntakeAnswer::default());
+        assert!(delivery.is_delivered());
     }
 
     #[test]

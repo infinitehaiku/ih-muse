@@ -10,7 +10,7 @@ use ih_muse_k8s::graph::Snapshot;
 use ih_muse_k8s::identity::MuseIdentity;
 use ih_muse_k8s::model::{List, Node, NodeMetrics, Pod, PodMetrics};
 use ih_muse_k8s::{K8sMuse, BACKLOG_EVENT_NAME};
-use ih_muse_proto::{AttributeValue, GraphIntakeRequest};
+use ih_muse_proto::{AttributeValue, GraphIntakeAnswer, GraphIntakeRequest};
 
 const INTERVAL: u64 = 5_000_000_000;
 const START: u64 = 1_791_108_000_000_000_000;
@@ -86,7 +86,7 @@ async fn reachable(muse: &mut K8sMuse) -> Vec<GraphIntakeRequest> {
     let sent = muse
         .send_pending(REPLAY, |request| {
             accepted.push(request);
-            async { Ok(()) }
+            async { Ok(GraphIntakeAnswer::default()) }
         })
         .await
         .unwrap();
