@@ -24,7 +24,7 @@ Each file here is one `DashboardDefinition` (see
 | `rabbitmq.json` | `otel.rabbitmq` | `rabbitmq_prometheus` plugin scraped by the Collector |
 | `otel-collector.json` | `otel.collector` | The Collector's own telemetry |
 | `redis.json` | `otel.redis` | Redis INFO read beside the server |
-| `rustvello.json` | `otel.rustvello` | Rustvello runner OTLP export |
+| `rustvello.json` | `otel.rustvello` | Rustvello's OTLP lifecycle export (`rustvello-otel`); Poet counts task states, run time, busy time, retries and worker starts from its records |
 | `piceli.json` | `otel.piceli` | Piceli's GitOps controller (0.16 and later), its own OTLP |
 
 The first seven packs have the same panels as Poet's built-in profiles of
