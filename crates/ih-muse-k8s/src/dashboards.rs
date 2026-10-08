@@ -7,7 +7,8 @@
 //! build or the tests, not the dashboard.
 
 use ih_muse_proto::dashboard::{
-    FilterOp, GoldenSignal, PanelAggregation, PanelFilter, PanelGroupBy, PanelSpec, PanelThresholds,
+    FilterOp, GoldenSignal, PanelAggregation, PanelColumn, PanelFilter, PanelGroupBy, PanelKind,
+    PanelSize, PanelSpec, PanelThresholds,
 };
 use ih_muse_proto::{DashboardAppliesTo, DashboardBlock, DashboardDefinition};
 
@@ -22,12 +23,16 @@ use crate::graph::{
 };
 use crate::identity::MUSE_KIND;
 
+mod overviews;
+
+pub use overviews::{nodes_dashboard, pods_dashboard, NODES_DASHBOARD_ID, PODS_DASHBOARD_ID};
+
 /// Id of the cluster dashboard.
 pub const CLUSTER_DASHBOARD_ID: &str = "k8s.cluster";
 
 /// Every default dashboard this Muse defines.
 pub fn dashboard_definitions() -> Vec<DashboardDefinition> {
-    vec![cluster_dashboard()]
+    vec![cluster_dashboard(), pods_dashboard(), nodes_dashboard()]
 }
 
 /// The cluster, revision 3 (k8s and Redis metrics research, 2026-10-04):
@@ -127,7 +132,7 @@ pub fn cluster_dashboard() -> DashboardDefinition {
 fn block(label: &str, text: &str, panels: &[&str]) -> DashboardBlock {
     DashboardBlock {
         label: label.into(),
-        text: Some(text.into()),
+        text: (!text.is_empty()).then(|| text.into()),
         panels: panels.iter().map(|panel| panel.to_string()).collect(),
         ..Default::default()
     }
@@ -156,6 +161,17 @@ trait PanelSpecExt {
     fn top(self, top_n: usize) -> Self;
     fn by(self, attribute: &str) -> Self;
     fn condition(self, kind: &str, op: FilterOp, status: &str) -> Self;
+    fn kind(self, kind: PanelKind) -> Self;
+    fn size(self, w: u8, h: u8) -> Self;
+    fn filter(self, key: &str, op: FilterOp, value: &str) -> Self;
+    fn column(
+        self,
+        title: &str,
+        metric: &str,
+        aggregation: PanelAggregation,
+        filters: &[(&str, &str)],
+    ) -> Self;
+    fn condition_column(self, title: &str, kind: &str) -> Self;
 }
 
 impl PanelSpecExt for PanelSpec {
@@ -207,6 +223,64 @@ impl PanelSpecExt for PanelSpec {
         self
     }
 
+    fn kind(mut self, kind: PanelKind) -> Self {
+        self.kind = kind;
+        self
+    }
+
+    /// Size on the section's 12-column grid.
+    fn size(mut self, w: u8, h: u8) -> Self {
+        self.size = Some(PanelSize { w, h });
+        self
+    }
+
+    fn filter(mut self, key: &str, op: FilterOp, value: &str) -> Self {
+        self.filters.push(PanelFilter {
+            key: key.into(),
+            op,
+            value: serde_json::Value::String(value.into()),
+        });
+        self
+    }
+
+    /// A table column: another metric with the panel's grouping, each
+    /// filter an equality on an attribute.
+    fn column(
+        mut self,
+        title: &str,
+        metric: &str,
+        aggregation: PanelAggregation,
+        filters: &[(&str, &str)],
+    ) -> Self {
+        self.columns.push(PanelColumn {
+            title: title.into(),
+            metric: metric.into(),
+            aggregation,
+            filters: filters
+                .iter()
+                .map(|(key, value)| PanelFilter {
+                    key: (*key).into(),
+                    op: FilterOp::Eq,
+                    value: serde_json::Value::String((*value).into()),
+                })
+                .collect(),
+        });
+        self
+    }
+
+    /// A node condition column: 1 where condition `kind` holds now.
+    fn condition_column(self, title: &str, kind: &str) -> Self {
+        self.column(
+            title,
+            NODE_CONDITION_METRIC,
+            PanelAggregation::Last,
+            &[
+                ("k8s.node.condition.type", kind),
+                ("k8s.node.condition.status", "true"),
+            ],
+        )
+    }
+
     /// One series per entity, the top `top_n`.
     fn top(mut self, top_n: usize) -> Self {
         self.group_by = Some(PanelGroupBy::Entity);
@@ -236,21 +310,42 @@ mod tests {
     /// the version requirement only the Muse knows. Compared as typed values,
     /// since serde defaults may be written or omitted.
     #[test]
-    #[ignore = "prints the definition for examples/dashboards/k8s-cluster.json"]
+    #[ignore = "prints the definitions for examples/dashboards/k8s-*.json"]
     fn print_example() {
-        let mut definition = cluster_dashboard();
-        definition.muse_versions = None;
-        println!("{}", serde_json::to_string_pretty(&definition).unwrap());
+        for mut definition in dashboard_definitions() {
+            definition.muse_versions = None;
+            println!("{}", serde_json::to_string_pretty(&definition).unwrap());
+        }
+    }
+
+    /// The code-built definition equals the SDK's reference JSON apart from
+    /// the version requirement only the Muse knows (compared as typed
+    /// values, since serde defaults may be written or omitted), and reads
+    /// back from its own JSON unchanged.
+    fn matches_example(definition: DashboardDefinition, example: &str) {
+        let mut example: DashboardDefinition = serde_json::from_str(example).unwrap();
+        assert_eq!(example.muse_versions, None);
+        example.muse_versions = Some(concat!(">=", env!("CARGO_PKG_VERSION")).into());
+        assert_eq!(definition, example, "{}", definition.id);
+        let round_trip: DashboardDefinition =
+            serde_json::from_str(&serde_json::to_string(&definition).unwrap()).unwrap();
+        assert_eq!(round_trip, definition);
     }
 
     #[test]
     fn cluster_dashboard_matches_the_sdk_example() {
-        let mut example: DashboardDefinition = serde_json::from_str(EXAMPLE).unwrap();
-        assert_eq!(example.muse_versions, None);
-        example.muse_versions = Some(concat!(">=", env!("CARGO_PKG_VERSION")).into());
-        assert_eq!(cluster_dashboard(), example);
-        let round_trip: DashboardDefinition =
-            serde_json::from_str(&serde_json::to_string(&cluster_dashboard()).unwrap()).unwrap();
-        assert_eq!(round_trip, cluster_dashboard());
+        matches_example(cluster_dashboard(), EXAMPLE);
+    }
+
+    #[test]
+    fn overviews_match_the_sdk_examples() {
+        matches_example(
+            pods_dashboard(),
+            include_str!("../../../examples/dashboards/k8s-pods.json"),
+        );
+        matches_example(
+            nodes_dashboard(),
+            include_str!("../../../examples/dashboards/k8s-nodes.json"),
+        );
     }
 }

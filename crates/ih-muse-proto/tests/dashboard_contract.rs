@@ -382,7 +382,7 @@ fn every_shipped_example_is_valid_and_places_each_panel_once() {
         ids.push(definition.id);
     }
     ids.sort();
-    assert_eq!(ids, ["k8s.cluster", "macos.host"]);
+    assert_eq!(ids, ["k8s.cluster", "k8s.nodes", "k8s.pods", "macos.host"]);
 }
 
 /// Panels a definition draws nowhere or in the wrong place. A panel's chart
