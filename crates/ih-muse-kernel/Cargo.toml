@@ -1,0 +1,32 @@
+[package]
+name = "ih-muse-kernel"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
+description = "Kernel-faults Muse: a node's segfaults, GPFs, machine-check, I/O and filesystem errors and OOM kills from the host journal, sent to Poet as graph events"
+
+[[bin]]
+name = "ih-muse-kernel"
+path = "src/main.rs"
+
+[dependencies]
+ih-muse = { workspace = true }
+ih-muse-client = { workspace = true }
+ih-muse-core = { workspace = true }
+ih-muse-k8s = { version = "0.0.25", path = "../ih-muse-k8s" }
+ih-muse-proto = { workspace = true }
+
+clap = { version = "4.5.20", features = ["derive", "env"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
+
+[dev-dependencies]
+tempfile = "3.13.0"
+
+[lints]
+workspace = true

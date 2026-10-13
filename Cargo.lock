@@ -805,6 +805,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ih-muse-kernel"
+version = "0.0.25"
+dependencies = [
+ "clap",
+ "ih-muse",
+ "ih-muse-client",
+ "ih-muse-core",
+ "ih-muse-k8s",
+ "ih-muse-proto",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "ih-muse-proto"
 version = "0.0.25"
 dependencies = [
