@@ -24,6 +24,12 @@ use tokio::time::sleep;
 /// `tracestate` headers, [`DeliveryTrace`]), sampled by [`Sampler`] from
 /// `IH_TRACE_SAMPLE_RATIO`: the Poet that accepts it records the Muse's
 /// delivery and its own intake as one trace. The body is unchanged.
+///
+/// A Poet that is busy answers `429 Too Many Requests` (or `503 Service
+/// Unavailable`) with `Retry-After`: the client waits that long (clamped to
+/// [`Self::RETRY_AFTER_CAP`]) and sends the same delivery to the same Poet
+/// again. When the Poet is still busy after that much waiting in total, the
+/// call ends in [`MuseError::Backpressure`], which callers keep queued.
 #[derive(Clone)]
 pub struct GraphPoetClient {
     endpoints: Vec<String>,
@@ -33,12 +39,19 @@ pub struct GraphPoetClient {
     client: Client,
     /// Head sampling of the delivery traces this client starts.
     sampler: Sampler,
+    /// Longest single `Retry-After` wait, and the total waiting per call.
+    retry_after_cap: Duration,
 }
 
 impl GraphPoetClient {
     /// Attempts per Poet before moving to the next one.
     const MAX_ATTEMPTS: usize = 2;
     const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+    /// Default bound on one `Retry-After` wait and on the total waiting of
+    /// one call; a busy Poet cannot stall a Muse longer than this.
+    pub const RETRY_AFTER_CAP: Duration = Duration::from_secs(60);
+    /// The wait when a busy answer names no usable `Retry-After`.
+    const DEFAULT_RETRY_AFTER: Duration = Duration::from_secs(1);
 
     /// Build a bounded graph client for an HTTPS or loopback HTTP Poet endpoint.
     pub fn new(endpoint: impl Into<String>, token: impl Into<String>) -> MuseResult<Self> {
@@ -126,7 +139,36 @@ impl GraphPoetClient {
             token,
             client,
             sampler: Sampler::from_env(),
+            retry_after_cap: Self::RETRY_AFTER_CAP,
         })
+    }
+
+    /// Replaces the bound on `Retry-After` waits ([`Self::RETRY_AFTER_CAP`]).
+    pub fn with_retry_after_cap(mut self, cap: Duration) -> Self {
+        self.retry_after_cap = cap;
+        self
+    }
+
+    /// The wait a busy answer asks for: `Retry-After` in seconds (an HTTP
+    /// date or a missing header waits [`Self::DEFAULT_RETRY_AFTER`]),
+    /// clamped to `cap`.
+    fn retry_after(headers: &reqwest::header::HeaderMap, cap: Duration) -> Duration {
+        headers
+            .get(reqwest::header::RETRY_AFTER)
+            .and_then(|value| value.to_str().ok())
+            .and_then(|value| value.trim().parse::<u64>().ok())
+            .map_or(Self::DEFAULT_RETRY_AFTER, Duration::from_secs)
+            .min(cap)
+    }
+
+    /// A Poet asking the Muse to slow down: 429, or 503 naming a
+    /// `Retry-After`. A bare 503 is an outage and fails over instead.
+    fn is_busy(response: &reqwest::Response) -> bool {
+        response.status() == StatusCode::TOO_MANY_REQUESTS
+            || (response.status() == StatusCode::SERVICE_UNAVAILABLE
+                && response
+                    .headers()
+                    .contains_key(reqwest::header::RETRY_AFTER))
     }
 
     /// Replaces the sampling of the delivery traces this client starts.
@@ -157,8 +199,10 @@ impl GraphPoetClient {
     /// and return the accepting Poet's answer (its definitions epoch).
     ///
     /// Starts at the preferred Poet and moves on after `MAX_ATTEMPTS`
-    /// transient failures. A 4xx answer is final: another Poet of the same
-    /// cluster would reject the same batch for the same reason.
+    /// transient failures. A busy answer (429, or 503 with `Retry-After`)
+    /// is retried on the same Poet after the asked delay; see the type's
+    /// documentation. Any other 4xx answer is final: another Poet of the
+    /// same cluster would reject the same batch for the same reason.
     pub async fn publish(&self, request: &GraphIntakeRequest) -> MuseResult<GraphIntakeAnswer> {
         let trace = self.delivery_trace(request);
         self.publish_traced(request, &trace).await
@@ -178,10 +222,12 @@ impl GraphPoetClient {
             .map_err(|error| MuseError::Validation(error.to_string()))?;
         let start = self.preferred.load(Ordering::Relaxed);
         let mut failures = Vec::new();
+        let mut waited = Duration::ZERO;
         for offset in 0..self.endpoints.len() {
             let index = (start + offset) % self.endpoints.len();
             let url = format!("{}/api/v1/graph/batches", self.endpoints[index]);
-            for attempt in 0..Self::MAX_ATTEMPTS {
+            let mut attempt = 0;
+            while attempt < Self::MAX_ATTEMPTS {
                 match self
                     .client
                     .post(&url)
@@ -192,12 +238,29 @@ impl GraphPoetClient {
                     .send()
                     .await
                 {
-                    Ok(response) if response.status() == StatusCode::CREATED => {
+                    Ok(response)
+                        if matches!(response.status(), StatusCode::CREATED | StatusCode::OK) =>
+                    {
                         self.preferred.store(index, Ordering::Relaxed);
                         // Stored already: an answer that does not parse (an
                         // empty body) only means the Poet named no epoch.
                         let body = response.bytes().await.unwrap_or_default();
                         return Ok(serde_json::from_slice(&body).unwrap_or_default());
+                    }
+                    Ok(response) if Self::is_busy(&response) => {
+                        let delay = Self::retry_after(response.headers(), self.retry_after_cap);
+                        if waited + delay > self.retry_after_cap {
+                            return Err(MuseError::Backpressure(format!(
+                                "graph intake busy on Poet {index} after {}s of waiting: HTTP {}",
+                                waited.as_secs(),
+                                response.status()
+                            )));
+                        }
+                        waited += delay;
+                        sleep(delay).await;
+                        // Back-pressure is not a failure: same Poet, same
+                        // delivery, without using up an attempt.
+                        continue;
                     }
                     Ok(response) if response.status().is_client_error() => {
                         return Err(MuseError::Validation(format!(
@@ -213,6 +276,7 @@ impl GraphPoetClient {
                 if attempt + 1 < Self::MAX_ATTEMPTS {
                     sleep(Duration::from_millis(25_u64 << attempt)).await;
                 }
+                attempt += 1;
             }
         }
         Err(MuseError::Unavailable(format!(
@@ -416,5 +480,171 @@ mod tests {
             .unwrap()
             .created_unix_nano;
         assert!(created > 0, "an empty batch starts its trace now");
+    }
+    /// A graph intake that answers its requests with `replies` in order
+    /// (the last one repeats), each a status line plus optional headers.
+    /// It records the delivery id of every request and stores those it
+    /// answered 2xx, as a Poet does.
+    struct Intake {
+        url: String,
+        sent: Arc<std::sync::Mutex<Vec<String>>>,
+        stored: Arc<std::sync::Mutex<std::collections::BTreeSet<String>>>,
+    }
+
+    async fn intake(replies: &'static [&'static str]) -> Intake {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let sent = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let stored = Arc::new(std::sync::Mutex::new(std::collections::BTreeSet::new()));
+        let (seen, kept) = (sent.clone(), stored.clone());
+        tokio::spawn(async move {
+            for turn in 0.. {
+                let Ok((mut socket, _)) = listener.accept().await else {
+                    return;
+                };
+                // Read the head, then the body its Content-Length names.
+                let mut data = Vec::new();
+                let mut chunk = vec![0_u8; 64 * 1024];
+                let body = loop {
+                    let read = socket.read(&mut chunk).await.unwrap_or(0);
+                    data.extend_from_slice(&chunk[..read]);
+                    let text = String::from_utf8_lossy(&data).to_string();
+                    if let Some((head, body)) = text.split_once("\r\n\r\n") {
+                        let length = head
+                            .lines()
+                            .find_map(|line| {
+                                line.to_ascii_lowercase()
+                                    .strip_prefix("content-length: ")
+                                    .and_then(|value| value.trim().parse::<usize>().ok())
+                            })
+                            .unwrap_or(0);
+                        if body.len() >= length || read == 0 {
+                            break body.to_owned();
+                        }
+                    } else if read == 0 {
+                        break String::new();
+                    }
+                };
+                let delivery: serde_json::Value = serde_json::from_str(&body).unwrap_or_default();
+                let delivery = delivery["delivery_id"].as_str().unwrap_or("").to_owned();
+                let reply = replies[turn.min(replies.len() - 1)];
+                seen.lock().unwrap().push(delivery.clone());
+                if reply.starts_with('2') {
+                    kept.lock().unwrap().insert(delivery);
+                }
+                let reply =
+                    format!("HTTP/1.1 {reply}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                let _ = socket.write_all(reply.as_bytes()).await;
+            }
+        });
+        Intake {
+            url: format!("http://{address}"),
+            sent,
+            stored,
+        }
+    }
+
+    #[tokio::test]
+    async fn too_many_requests_waits_retry_after_and_resends_the_same_delivery() {
+        let poet = intake(&["429 Too Many Requests\r\nRetry-After: 2", "201 Created"]).await;
+        let client = GraphPoetClient::new(poet.url.clone(), "token").unwrap();
+        let started = std::time::Instant::now();
+        client.publish(&request()).await.unwrap();
+        let elapsed = started.elapsed();
+        assert!(elapsed >= Duration::from_secs(2), "waited {elapsed:?}");
+        assert!(elapsed < Duration::from_secs(5), "waited {elapsed:?}");
+        assert_eq!(
+            *poet.sent.lock().unwrap(),
+            ["muse-test-1", "muse-test-1"],
+            "sent twice, with the same delivery id"
+        );
+        assert_eq!(poet.stored.lock().unwrap().len(), 1, "stored once");
+    }
+
+    #[tokio::test]
+    async fn unavailable_with_retry_after_waits_on_the_same_poet_and_ok_is_success() {
+        let busy = intake(&["503 Service Unavailable\r\nRetry-After: 1", "200 OK"]).await;
+        let other = intake(&["201 Created"]).await;
+        let client =
+            GraphPoetClient::cluster(vec![busy.url.clone(), other.url.clone()], "token").unwrap();
+        let started = std::time::Instant::now();
+        client.publish(&request()).await.unwrap();
+        assert!(started.elapsed() >= Duration::from_secs(1));
+        assert_eq!(busy.sent.lock().unwrap().len(), 2);
+        assert!(other.sent.lock().unwrap().is_empty(), "not a failover");
+        assert_eq!(client.preferred_endpoint(), busy.url);
+    }
+
+    #[tokio::test]
+    async fn a_long_retry_after_is_clamped_to_the_cap() {
+        let poet = intake(&["429 Too Many Requests\r\nRetry-After: 3600", "201 Created"]).await;
+        let client = GraphPoetClient::new(poet.url.clone(), "token")
+            .unwrap()
+            .with_retry_after_cap(Duration::from_secs(1));
+        let started = std::time::Instant::now();
+        client.publish(&request()).await.unwrap();
+        let elapsed = started.elapsed();
+        assert!(elapsed >= Duration::from_secs(1), "waited {elapsed:?}");
+        assert!(
+            elapsed < Duration::from_secs(5),
+            "clamped: waited {elapsed:?}"
+        );
+        assert_eq!(poet.stored.lock().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn retry_after_is_read_in_seconds_and_clamped() {
+        use reqwest::header::{HeaderMap, HeaderValue, RETRY_AFTER};
+        let wait = |value: Option<&'static str>| {
+            let mut headers = HeaderMap::new();
+            if let Some(value) = value {
+                headers.insert(RETRY_AFTER, HeaderValue::from_static(value));
+            }
+            GraphPoetClient::retry_after(&headers, GraphPoetClient::RETRY_AFTER_CAP)
+        };
+        assert_eq!(wait(Some("2")), Duration::from_secs(2));
+        assert_eq!(wait(Some("0")), Duration::ZERO);
+        assert_eq!(
+            wait(Some("3600")),
+            Duration::from_secs(60),
+            "clamped to 60 s"
+        );
+        assert_eq!(wait(None), Duration::from_secs(1));
+        assert_eq!(
+            wait(Some("Wed, 21 Oct 2026 07:28:00 GMT")),
+            Duration::from_secs(1),
+            "an HTTP date waits the default"
+        );
+    }
+
+    #[tokio::test]
+    async fn a_poet_busy_beyond_the_cap_ends_in_backpressure_not_a_rejection() {
+        let poet = intake(&["429 Too Many Requests\r\nRetry-After: 1"]).await;
+        let client = GraphPoetClient::new(poet.url.clone(), "token")
+            .unwrap()
+            .with_retry_after_cap(Duration::from_secs(1));
+        let result = client.publish(&request()).await;
+        assert!(
+            matches!(result, Err(MuseError::Backpressure(_))),
+            "{result:?}"
+        );
+        assert_eq!(
+            poet.sent.lock().unwrap().len(),
+            2,
+            "one wait, then given back"
+        );
+        assert!(poet.stored.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn a_bad_request_is_still_a_rejection() {
+        let poet = intake(&["400 Bad Request\r\nRetry-After: 1"]).await;
+        let client = GraphPoetClient::new(poet.url.clone(), "token").unwrap();
+        assert!(matches!(
+            client.publish(&request()).await,
+            Err(MuseError::Validation(_))
+        ));
+        assert_eq!(poet.sent.lock().unwrap().len(), 1, "not retried");
     }
 }

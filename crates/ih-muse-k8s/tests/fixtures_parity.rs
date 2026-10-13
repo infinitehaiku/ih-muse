@@ -289,9 +289,15 @@ fn every_dashboard_panel_metric_and_level_is_emitted() {
                 );
             for (metric, filters) in reads {
                 let emitted = levels.get(metric).unwrap_or_else(|| {
-                    panic!("panel {} names {metric}, which the Muse does not emit", panel.id)
+                    panic!(
+                        "panel {} names {metric}, which the Muse does not emit",
+                        panel.id
+                    )
                 });
-                for filter in filters.iter().filter(|filter| filter.key == LEVEL_ATTRIBUTE) {
+                for filter in filters
+                    .iter()
+                    .filter(|filter| filter.key == LEVEL_ATTRIBUTE)
+                {
                     let level = filter.value.as_str().unwrap();
                     assert!(
                         emitted.contains(level),
@@ -301,7 +307,11 @@ fn every_dashboard_panel_metric_and_level_is_emitted() {
                 }
             }
             if !panel.kind.reads_metric() {
-                assert!(panel.metric.is_empty() && panel.columns.is_empty(), "{}", panel.id);
+                assert!(
+                    panel.metric.is_empty() && panel.columns.is_empty(),
+                    "{}",
+                    panel.id
+                );
             }
         }
     }
@@ -388,6 +398,76 @@ async fn queued_batches_survive_an_unavailable_poet_and_a_rejection_is_dropped()
         muse.lost().dropped_intervals,
         1,
         "the rejected batch's interval is counted as dropped"
+    );
+}
+
+/// The k8s Muse's backlog sends through [`GraphPoetClient`]: a Poet that
+/// stays busy (429 with `Retry-After`) beyond the client's cap leaves the
+/// batch queued (back-pressure is not a rejection), and it goes out once
+/// the Poet accepts it.
+#[tokio::test]
+async fn a_busy_poet_keeps_the_batch_queued() {
+    use ih_muse_client::GraphPoetClient;
+    use ih_muse_core::MuseError;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let busy = Arc::new(std::sync::atomic::AtomicBool::new(true));
+    let hits = Arc::new(AtomicUsize::new(0));
+    let (switch, counter) = (busy.clone(), hits.clone());
+    tokio::spawn(async move {
+        loop {
+            let Ok((mut socket, _)) = listener.accept().await else {
+                return;
+            };
+            counter.fetch_add(1, Ordering::SeqCst);
+            let mut buffer = vec![0_u8; 1024 * 1024];
+            let _ = socket.read(&mut buffer).await;
+            let status = if switch.load(Ordering::SeqCst) {
+                "429 Too Many Requests\r\nRetry-After: 1"
+            } else {
+                "201 Created"
+            };
+            let reply =
+                format!("HTTP/1.1 {status}\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+            let _ = socket.write_all(reply.as_bytes()).await;
+        }
+    });
+    let client = GraphPoetClient::new(format!("http://{address}"), "token")
+        .unwrap()
+        .with_retry_after_cap(std::time::Duration::from_secs(1));
+    let mut muse = muse();
+    let snapshot = snapshot(true, true);
+    let request = muse.intake(&snapshot, NOW);
+    muse.enqueue(request, NOW);
+
+    let result = muse
+        .send_pending(usize::MAX, |request| {
+            let client = client.clone();
+            async move { client.publish(&request).await }
+        })
+        .await;
+    assert!(
+        matches!(result, Err(MuseError::Backpressure(_))),
+        "{result:?}"
+    );
+    assert_eq!(muse.pending(), 1, "kept queued, not dropped");
+    assert_eq!(muse.lost().dropped_intervals, 0);
+
+    busy.store(false, Ordering::SeqCst);
+    let sent = muse
+        .send_pending(usize::MAX, |request| {
+            let client = client.clone();
+            async move { client.publish(&request).await }
+        })
+        .await
+        .unwrap();
+    assert_eq!(sent, 1);
+    assert_eq!(muse.pending(), 0);
+    assert_eq!(
+        hits.load(Ordering::SeqCst),
+        3,
+        "two busy answers, one accepted"
     );
 }
 
