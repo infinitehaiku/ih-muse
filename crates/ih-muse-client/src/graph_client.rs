@@ -215,46 +215,93 @@ impl GraphPoetClient {
         request: &GraphIntakeRequest,
         trace: &DeliveryTrace,
     ) -> MuseResult<GraphIntakeAnswer> {
-        let traceparent = trace.context.traceparent();
-        let tracestate = trace.tracestate();
         request
             .validate()
             .map_err(|error| MuseError::Validation(error.to_string()))?;
+        let traceparent = trace.context.traceparent();
+        let tracestate = trace.tracestate();
+        let body = self
+            .post(
+                "/api/v1/graph/batches",
+                "graph intake",
+                Body::Json(request),
+                Some((&traceparent, &tracestate)),
+            )
+            .await
+            .map_err(|failure| failure.error)?;
+        // Stored already: an answer that does not parse (an empty body)
+        // only means the Poet named no epoch.
+        Ok(serde_json::from_slice(&body).unwrap_or_default())
+    }
+
+    /// Deliver an OTLP/HTTP logs export (`ExportLogsServiceRequest`,
+    /// protobuf) to `POST /v1/logs`, with the same failover and
+    /// back-pressure as [`Self::publish`], and return the accepting Poet's
+    /// `ExportLogsServiceResponse` bytes (empty when it sent none).
+    ///
+    /// A refused export (another 4xx) is [`MuseError::Validation`]: the
+    /// same bytes would be refused again. A refused token (401, 403) is
+    /// [`MuseError::Client`]: the export is fine and is kept for when the
+    /// token is fixed.
+    pub async fn publish_otlp_logs(&self, export: &[u8]) -> MuseResult<Vec<u8>> {
+        self.post("/v1/logs", "OTLP logs intake", Body::Protobuf(export), None)
+            .await
+            .map_err(|failure| match failure.status {
+                Some(StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN) => {
+                    MuseError::Client(failure.error.to_string())
+                }
+                _ => failure.error,
+            })
+    }
+
+    /// One delivery to `path` on the preferred Poet, failing over and
+    /// waiting out back-pressure as the type's documentation says; the
+    /// accepting Poet's answer body.
+    async fn post(
+        &self,
+        path: &str,
+        what: &str,
+        body: Body<'_>,
+        trace: Option<(&str, &str)>,
+    ) -> Result<Vec<u8>, Failure> {
         let start = self.preferred.load(Ordering::Relaxed);
         let mut failures = Vec::new();
         let mut waited = Duration::ZERO;
         for offset in 0..self.endpoints.len() {
             let index = (start + offset) % self.endpoints.len();
-            let url = format!("{}/api/v1/graph/batches", self.endpoints[index]);
+            let url = format!("{}{path}", self.endpoints[index]);
             let mut attempt = 0;
             while attempt < Self::MAX_ATTEMPTS {
-                match self
-                    .client
-                    .post(&url)
-                    .bearer_auth(&self.token)
-                    .header(TRACEPARENT, &traceparent)
-                    .header(TRACESTATE, &tracestate)
-                    .json(request)
-                    .send()
-                    .await
-                {
+                let mut builder = self.client.post(&url).bearer_auth(&self.token);
+                if let Some((traceparent, tracestate)) = trace {
+                    builder = builder
+                        .header(TRACEPARENT, traceparent)
+                        .header(TRACESTATE, tracestate);
+                }
+                builder = match body {
+                    Body::Json(request) => builder.json(request),
+                    Body::Protobuf(bytes) => builder
+                        .header(reqwest::header::CONTENT_TYPE, "application/x-protobuf")
+                        .body(bytes.to_vec()),
+                };
+                match builder.send().await {
                     Ok(response)
                         if matches!(response.status(), StatusCode::CREATED | StatusCode::OK) =>
                     {
                         self.preferred.store(index, Ordering::Relaxed);
-                        // Stored already: an answer that does not parse (an
-                        // empty body) only means the Poet named no epoch.
-                        let body = response.bytes().await.unwrap_or_default();
-                        return Ok(serde_json::from_slice(&body).unwrap_or_default());
+                        return Ok(response.bytes().await.unwrap_or_default().to_vec());
                     }
                     Ok(response) if Self::is_busy(&response) => {
                         let delay = Self::retry_after(response.headers(), self.retry_after_cap);
                         if waited + delay > self.retry_after_cap {
-                            return Err(MuseError::Backpressure(format!(
-                                "graph intake busy on Poet {index} after {}s of waiting: HTTP {}",
-                                waited.as_secs(),
-                                response.status()
-                            )));
+                            return Err(Failure {
+                                error: MuseError::Backpressure(format!(
+                                    "{what} busy on Poet {index} after {}s of waiting: HTTP {}",
+                                    waited.as_secs(),
+                                    response.status()
+                                )),
+                                status: Some(response.status()),
+                            });
                         }
                         waited += delay;
                         sleep(delay).await;
@@ -263,10 +310,13 @@ impl GraphPoetClient {
                         continue;
                     }
                     Ok(response) if response.status().is_client_error() => {
-                        return Err(MuseError::Validation(format!(
-                            "graph intake rejected delivery: HTTP {}",
-                            response.status()
-                        )));
+                        return Err(Failure {
+                            error: MuseError::Validation(format!(
+                                "{what} rejected delivery: HTTP {}",
+                                response.status()
+                            )),
+                            status: Some(response.status()),
+                        });
                     }
                     Ok(response) => {
                         failures.push(format!("Poet {index}: HTTP {}", response.status()))
@@ -279,12 +329,28 @@ impl GraphPoetClient {
                 attempt += 1;
             }
         }
-        Err(MuseError::Unavailable(format!(
-            "graph intake unavailable on {} Poet(s): {}",
-            self.endpoints.len(),
-            failures.join("; ")
-        )))
+        Err(Failure {
+            error: MuseError::Unavailable(format!(
+                "{what} unavailable on {} Poet(s): {}",
+                self.endpoints.len(),
+                failures.join("; ")
+            )),
+            status: None,
+        })
     }
+}
+
+/// What a delivery carries.
+#[derive(Clone, Copy)]
+enum Body<'a> {
+    Json(&'a GraphIntakeRequest),
+    Protobuf(&'a [u8]),
+}
+
+/// A delivery that did not end in a 2xx, with the final answer's status.
+struct Failure {
+    error: MuseError,
+    status: Option<StatusCode>,
 }
 
 #[cfg(test)]
@@ -646,5 +712,48 @@ mod tests {
             Err(MuseError::Validation(_))
         ));
         assert_eq!(poet.sent.lock().unwrap().len(), 1, "not retried");
+    }
+
+    #[tokio::test]
+    async fn otlp_logs_go_to_v1_logs_as_protobuf_and_wait_out_retry_after() {
+        let poet = intake(&["429 Too Many Requests\r\nRetry-After: 1", "200 OK"]).await;
+        let client = GraphPoetClient::new(poet.url.clone(), "token").unwrap();
+        let started = std::time::Instant::now();
+        client.publish_otlp_logs(b"\x0a\x00").await.unwrap();
+        assert!(started.elapsed() >= Duration::from_secs(1));
+        assert_eq!(
+            poet.sent.lock().unwrap().len(),
+            2,
+            "the same export, resent once"
+        );
+        let (up, heads) = recording_server("200 OK").await;
+        let client = GraphPoetClient::new(up, "token").unwrap();
+        client.publish_otlp_logs(b"\x0a\x00").await.unwrap();
+        let head = heads.lock().unwrap()[0].clone();
+        assert!(head.starts_with("post /v1/logs "), "{head}");
+        assert_eq!(
+            header(&head, "content-type"),
+            Some("application/x-protobuf")
+        );
+        assert_eq!(header(&head, "authorization"), Some("bearer token"));
+    }
+
+    #[tokio::test]
+    async fn a_refused_token_keeps_the_export_and_a_refused_export_does_not() {
+        for (status, kept) in [
+            ("401 Unauthorized", true),
+            ("403 Forbidden", true),
+            ("400 Bad Request", false),
+            ("413 Payload Too Large", false),
+        ] {
+            let (poet, _) = server(status).await;
+            let client = GraphPoetClient::new(poet, "token").unwrap();
+            let result = client.publish_otlp_logs(b"").await;
+            match result {
+                Err(MuseError::Client(_)) => assert!(kept, "{status}"),
+                Err(MuseError::Validation(_)) => assert!(!kept, "{status}"),
+                other => panic!("{status}: {other:?}"),
+            }
+        }
     }
 }

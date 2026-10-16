@@ -808,6 +808,7 @@ dependencies = [
 name = "ih-muse-kernel"
 version = "0.0.25"
 dependencies = [
+ "chrono",
  "clap",
  "ih-muse",
  "ih-muse-client",

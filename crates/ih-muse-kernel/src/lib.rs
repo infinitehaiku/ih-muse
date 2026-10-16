@@ -22,6 +22,7 @@
 pub mod dashboards;
 pub mod fault;
 pub mod journal;
+pub mod podlogs;
 
 use std::collections::BTreeMap;
 use std::path::Path;

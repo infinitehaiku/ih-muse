@@ -26,6 +26,7 @@
 installation
 getting_started
 configuration/index
+pod-logs
 recording/index
 contract/index
 cli/index
