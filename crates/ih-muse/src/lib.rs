@@ -72,6 +72,7 @@ pub mod dashboards;
 pub mod graph_muse;
 mod muse;
 pub mod prelude;
+pub mod redis_dashboard;
 pub mod secret_file;
 mod tasks;
 pub mod timing;

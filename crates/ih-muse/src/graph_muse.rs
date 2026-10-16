@@ -156,6 +156,51 @@ pub struct DatabaseSnapshot {
     pub evictions: Option<u64>,
     /// Keys stored across all logical databases (Redis `# Keyspace` totals).
     pub keys: Option<u64>,
+    /// Facts only Redis (and Valkey) report; sent only when measured.
+    pub redis: RedisFacts,
+}
+
+/// What Redis/Valkey `INFO` says beyond the source-neutral facts: memory
+/// as the system sees it, refused clients, expiries, network bytes,
+/// unsaved writes and the health of persistence and replication. Each is
+/// `None` when the reply lacks it (never a guessed zero).
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct RedisFacts {
+    /// Bytes the process holds as the system sees them (`used_memory_rss`).
+    pub resident_bytes: Option<u64>,
+    /// The configured memory limit (`maxmemory`); 0 means none.
+    pub max_memory_bytes: Option<u64>,
+    /// Cumulative connections refused at `maxclients` (`rejected_connections`).
+    pub rejected_connections: Option<u64>,
+    /// Cumulative keys removed because their time to live ran out (`expired_keys`).
+    pub expired_keys: Option<u64>,
+    /// Cumulative bytes read from and written to clients and replicas.
+    pub network_in_bytes: Option<u64>,
+    pub network_out_bytes: Option<u64>,
+    /// Writes since the last snapshot (`rdb_changes_since_last_save`).
+    pub unsaved_changes: Option<u64>,
+    /// 1 when the last snapshot and the last append-only write succeeded,
+    /// 0 when either failed (`rdb_last_bgsave_status`, `aof_last_write_status`).
+    pub persistence_ok: Option<u64>,
+    /// Replicas connected to this primary (`connected_slaves`).
+    pub replicas: Option<u64>,
+    /// On a replica: 1 while its link to the primary is up, else 0
+    /// (`master_link_status`); `None` on a primary.
+    pub primary_link_up: Option<u64>,
+}
+
+/// One database service a Muse observes beside its server.
+#[derive(Clone, Copy, Debug)]
+pub struct DatabaseService<'a> {
+    /// The protocol it speaks (`redis`, `postgresql`): what recognises its
+    /// dashboard (`ih.database.role`).
+    pub role: &'a str,
+    /// Its name people read (`valkey`).
+    pub service_name: &'a str,
+    /// The instance (the pod UID in Kubernetes).
+    pub instance_id: &'a str,
+    /// The server's process, when measured: the service executes on it.
+    pub process_pid: Option<u32>,
 }
 
 /// Read-only Redis `INFO` response adapter. It never requests or stores keys.
@@ -172,6 +217,7 @@ impl RedisInfoAdapter {
         let response = std::str::from_utf8(response)
             .map_err(|_| MuseError::Validation("Redis INFO response is not UTF-8".into()))?;
         let mut values = BTreeMap::new();
+        let mut words = BTreeMap::new();
         let mut keys: Option<u64> = None;
         for line in response.lines() {
             if line.trim_end() == "# Keyspace" {
@@ -187,6 +233,11 @@ impl RedisInfoAdapter {
                 if key.len() <= 128 && value.len() <= 64 {
                     if let Ok(number) = value.trim().parse::<u64>() {
                         values.insert(key, number);
+                    } else if matches!(
+                        key,
+                        "rdb_last_bgsave_status" | "aof_last_write_status" | "master_link_status"
+                    ) {
+                        words.insert(key, value.trim());
                     }
                 }
             }
@@ -207,6 +258,28 @@ impl RedisInfoAdapter {
             checkpoint_write_seconds_total: None,
             evictions: values.get("evicted_keys").copied(),
             keys,
+            redis: RedisFacts {
+                resident_bytes: values.get("used_memory_rss").copied(),
+                max_memory_bytes: values.get("maxmemory").copied(),
+                rejected_connections: values.get("rejected_connections").copied(),
+                expired_keys: values.get("expired_keys").copied(),
+                network_in_bytes: values.get("total_net_input_bytes").copied(),
+                network_out_bytes: values.get("total_net_output_bytes").copied(),
+                unsaved_changes: values.get("rdb_changes_since_last_save").copied(),
+                // Append-only writes count only while the file is on.
+                persistence_ok: words.get("rdb_last_bgsave_status").map(|rdb| {
+                    let aof = if values.get("aof_enabled") == Some(&1) {
+                        words.get("aof_last_write_status").copied()
+                    } else {
+                        None
+                    };
+                    u64::from(*rdb == "ok" && aof.map_or(true, |aof| aof == "ok"))
+                }),
+                replicas: values.get("connected_slaves").copied(),
+                primary_link_up: words
+                    .get("master_link_status")
+                    .map(|status| u64::from(*status == "up")),
+            },
         })
     }
 }
@@ -582,8 +655,13 @@ impl GraphMuse {
         // A runner id is new in every process: the stable key says which
         // runner this is (its application, in its container), so Poet lists
         // every run as one source with its instances.
-        let declared = attrs([(ELEMENT_KEY, self.stable_key("runner", &context.application_id))]);
-        batch.entities.push(entity(runner.clone(), now, u64::MAX, declared));
+        let declared = attrs([(
+            ELEMENT_KEY,
+            self.stable_key("runner", &context.application_id),
+        )]);
+        batch
+            .entities
+            .push(entity(runner.clone(), now, u64::MAX, declared));
         batch.relations.push(relation(
             runner,
             process,
@@ -635,6 +713,35 @@ impl GraphMuse {
         snapshot: &DatabaseSnapshot,
         process_pid: Option<u32>,
     ) -> MuseResult<()> {
+        self.append_database_service(
+            batch,
+            DatabaseService {
+                role: service_name,
+                service_name,
+                instance_id,
+                process_pid,
+            },
+            snapshot,
+        )
+    }
+
+    /// Add one database service's observations: its role (the protocol it
+    /// speaks, `redis` for Valkey too) names the dashboard, its name is
+    /// what people read. In a trusted Kubernetes context the service also
+    /// names its cluster, namespace and pod, so it is listed where it runs.
+    pub fn append_database_service(
+        &self,
+        batch: &mut GraphBatch,
+        service: DatabaseService<'_>,
+        snapshot: &DatabaseSnapshot,
+    ) -> MuseResult<()> {
+        let DatabaseService {
+            role,
+            service_name,
+            instance_id,
+            process_pid,
+        } = service;
+        validate_instance(role)?;
         validate_instance(service_name)?;
         validate_instance(instance_id)?;
         let now = now_ns();
@@ -646,12 +753,22 @@ impl GraphMuse {
             },
         );
         if !batch.entities.iter().any(|item| item.key == entity_key) {
-            batch.entities.push(entity(
-                entity_key.clone(),
-                0,
-                u64::MAX,
-                attrs([("ih.database.role", service_name.to_owned())]),
-            ));
+            let mut attributes = attrs([("ih.database.role", role.to_owned())]);
+            let k8s = &self.config.kubernetes;
+            if k8s.trusted {
+                for (key, value) in [
+                    ("k8s.cluster.name", &k8s.cluster_name),
+                    ("k8s.namespace.name", &k8s.namespace_name),
+                    ("k8s.pod.name", &k8s.pod_name),
+                ] {
+                    if let Some(value) = value {
+                        attributes.insert(key.into(), AttributeValue::String(value.clone()));
+                    }
+                }
+            }
+            batch
+                .entities
+                .push(entity(entity_key.clone(), 0, u64::MAX, attributes));
         }
         if let Some(pid) = process_pid {
             let process = batch.entities.iter().find_map(|entity| {
@@ -735,6 +852,77 @@ impl GraphMuse {
                 now,
                 None,
                 metric_value,
+                provenance(&self.config, now, JoinStatus::Resolved),
+            ));
+        }
+        // Redis-only facts: sent when measured, so other databases never
+        // report them as missing.
+        let redis = &snapshot.redis;
+        for (name, unit, value, cumulative) in [
+            (
+                "database.memory.resident.bytes",
+                "By",
+                redis.resident_bytes,
+                false,
+            ),
+            (
+                "database.memory.limit.bytes",
+                "By",
+                redis.max_memory_bytes,
+                false,
+            ),
+            (
+                "database.connections.rejected",
+                "{connection}",
+                redis.rejected_connections,
+                true,
+            ),
+            ("database.keys.expired", "{key}", redis.expired_keys, true),
+            (
+                "database.network.received.bytes",
+                "By",
+                redis.network_in_bytes,
+                true,
+            ),
+            (
+                "database.network.sent.bytes",
+                "By",
+                redis.network_out_bytes,
+                true,
+            ),
+            (
+                "database.persistence.unsaved_changes",
+                "{change}",
+                redis.unsaved_changes,
+                false,
+            ),
+            ("database.persistence.ok", "1", redis.persistence_ok, false),
+            (
+                "database.replication.replicas",
+                "{replica}",
+                redis.replicas,
+                false,
+            ),
+            (
+                "database.replication.link_up",
+                "1",
+                redis.primary_link_up,
+                false,
+            ),
+        ] {
+            let Some(value) = value else { continue };
+            batch.observations.push(observation(
+                entity_key.clone(),
+                descriptor(name, unit, cumulative),
+                now,
+                None,
+                MetricObservation::Measured {
+                    value: if cumulative {
+                        TypedMetricValue::Sum(Number::U64(value))
+                    } else {
+                        TypedMetricValue::Gauge(Number::U64(value))
+                    },
+                },
                 provenance(&self.config, now, JoinStatus::Resolved),
             ));
         }
@@ -988,7 +1176,10 @@ impl GraphMuse {
             if let Some(name) = process_name(pid) {
                 // A pid and start are new in every run: the executable (in
                 // its container) is the stable thing observed.
-                attributes.insert(ELEMENT_KEY.into(), AttributeValue::String(self.stable_key("process", &name)));
+                attributes.insert(
+                    ELEMENT_KEY.into(),
+                    AttributeValue::String(self.stable_key("process", &name)),
+                );
                 attributes.insert(
                     "process.executable.name".into(),
                     AttributeValue::String(name),
@@ -1454,7 +1645,13 @@ impl GraphMuse {
     /// (`process:redis-server@redis`): stable across restarts, distinct for
     /// two containers of one host.
     fn stable_key(&self, kind: &str, name: &str) -> String {
-        match self.config.kubernetes.container_name.as_deref().filter(|container| !container.is_empty()) {
+        match self
+            .config
+            .kubernetes
+            .container_name
+            .as_deref()
+            .filter(|container| !container.is_empty())
+        {
             Some(container) => format!("{kind}:{name}@{container}"),
             None => format!("{kind}:{name}"),
         }
@@ -1666,7 +1863,9 @@ fn process_facts(pid: u32, _now: u64) -> Option<ProcessFacts> {
             mach_ticks_to_seconds(usage.ri_user_time.saturating_add(usage.ri_system_time))
         }),
         rss_bytes: usage.as_ref().map(|usage| usage.ri_resident_size),
-        peak_rss_bytes: usage.as_ref().map(|usage| usage.ri_lifetime_max_phys_footprint),
+        peak_rss_bytes: usage
+            .as_ref()
+            .map(|usage| usage.ri_lifetime_max_phys_footprint),
     })
 }
 
@@ -1677,7 +1876,11 @@ fn mach_ticks_to_seconds(ticks: u64) -> f64 {
     let mut timebase = libc::mach_timebase_info { numer: 0, denom: 0 };
     // `mach_timebase_info` fills both fields on success; fall back to 1:1 (Intel).
     let ok = unsafe { libc::mach_timebase_info(&mut timebase) } == 0 && timebase.denom != 0;
-    let (numer, denom) = if ok { (timebase.numer, timebase.denom) } else { (1, 1) };
+    let (numer, denom) = if ok {
+        (timebase.numer, timebase.denom)
+    } else {
+        (1, 1)
+    };
     ticks as f64 * f64::from(numer) / f64::from(denom) / 1e9
 }
 
@@ -1700,14 +1903,19 @@ mod tests {
     fn macos_process_facts_describe_the_observed_process_not_the_collector() {
         // A child that burns CPU while this test process stays idle.
         let mut child = std::process::Command::new("/bin/sh")
-            .args(["-c", "i=0; while [ $i -lt 3000000 ]; do i=$((i+1)); done; sleep 5"])
+            .args([
+                "-c",
+                "i=0; while [ $i -lt 3000000 ]; do i=$((i+1)); done; sleep 5",
+            ])
             .spawn()
             .expect("spawn busy child");
         let pid = child.id();
         let mut child_cpu = 0.0;
         for _ in 0..100 {
             std::thread::sleep(std::time::Duration::from_millis(50));
-            child_cpu = process_facts(pid, 0).and_then(|facts| facts.cpu_seconds).unwrap_or(0.0);
+            child_cpu = process_facts(pid, 0)
+                .and_then(|facts| facts.cpu_seconds)
+                .unwrap_or(0.0);
             if child_cpu > 0.5 {
                 break;
             }
@@ -1717,7 +1925,10 @@ mod tests {
         let _ = child.kill();
         let _ = child.wait();
         assert!(child_cpu > 0.5, "child CPU was {child_cpu}s");
-        assert!(own.cpu_seconds.unwrap() < child_cpu, "facts must not be the collector's own");
+        assert!(
+            own.cpu_seconds.unwrap() < child_cpu,
+            "facts must not be the collector's own"
+        );
         assert!(child_facts.rss_bytes.unwrap() > 0);
         assert!(child_facts.peak_rss_bytes.unwrap() >= child_facts.rss_bytes.unwrap() / 2);
     }
@@ -1986,7 +2197,6 @@ mod tests {
         )));
     }
 
-
     #[test]
     fn database_adapters_are_allow_list_only_and_secret_free() {
         let redis = RedisInfoAdapter::parse(b"connected_clients:2\r\ntotal_commands_processed:7\r\nused_memory:42\r\nkey:secret\r\n").unwrap();
@@ -2160,6 +2370,82 @@ mod tests {
     }
 
     #[test]
+    fn redis_info_reports_persistence_and_replication_health() {
+        let primary = RedisInfoAdapter::parse(
+            b"rdb_last_bgsave_status:ok\r\naof_enabled:1\r\naof_last_write_status:err\r\nconnected_slaves:2\r\n",
+        )
+        .unwrap();
+        assert_eq!(
+            primary.redis.persistence_ok,
+            Some(0),
+            "a failed append is a failed save"
+        );
+        assert_eq!(primary.redis.replicas, Some(2));
+        assert_eq!(
+            primary.redis.primary_link_up, None,
+            "a primary has no primary link"
+        );
+        // The append-only status counts only while the file is on.
+        let snapshots_only = RedisInfoAdapter::parse(
+            b"rdb_last_bgsave_status:ok\r\naof_enabled:0\r\naof_last_write_status:err\r\n",
+        )
+        .unwrap();
+        assert_eq!(snapshots_only.redis.persistence_ok, Some(1));
+        let replica = RedisInfoAdapter::parse(
+            b"role:slave\r\nmaster_link_status:down\r\nconnected_slaves:0\r\n",
+        )
+        .unwrap();
+        assert_eq!(replica.redis.primary_link_up, Some(0));
+        // A reply without the persistence section claims nothing.
+        assert_eq!(replica.redis.persistence_ok, None);
+        assert_eq!(replica.redis.unsaved_changes, None);
+    }
+
+    #[test]
+    fn a_database_service_in_a_trusted_pod_names_where_it_runs() {
+        let mut config = config();
+        config.kubernetes = KubernetesContext {
+            trusted: true,
+            cluster_name: Some("k-lab".into()),
+            namespace_name: Some("ih-main".into()),
+            pod_name: Some("ih-valkey-0".into()),
+            ..KubernetesContext::default()
+        };
+        let mut muse = GraphMuse::new(config).unwrap();
+        let mut batch = muse.collect(&[]).unwrap();
+        let snapshot = RedisInfoAdapter::parse(b"connected_clients:1\r\n").unwrap();
+        muse.append_database_service(
+            &mut batch,
+            DatabaseService {
+                role: "redis",
+                service_name: "valkey",
+                instance_id: "uid-1",
+                process_pid: None,
+            },
+            &snapshot,
+        )
+        .unwrap();
+        let service = batch
+            .entities
+            .iter()
+            .find(|e| matches!(&e.key.identity, EntityIdentity::Service { service_name, .. } if service_name == "valkey"))
+            .expect("the service");
+        let attribute = |key: &str| match service.attributes.get(key) {
+            Some(AttributeValue::String(value)) => Some(value.as_str()),
+            _ => None,
+        };
+        assert_eq!(attribute("ih.database.role"), Some("redis"));
+        assert_eq!(attribute("k8s.cluster.name"), Some("k-lab"));
+        assert_eq!(attribute("k8s.namespace.name"), Some("ih-main"));
+        assert_eq!(attribute("k8s.pod.name"), Some("ih-valkey-0"));
+        // Facts the reply lacks are not sent at all.
+        assert!(batch
+            .observations
+            .iter()
+            .all(|o| o.descriptor.name != "database.replication.replicas"));
+    }
+
+    #[test]
     fn database_service_is_bound_only_to_a_measured_process() {
         let mut muse = GraphMuse::new(config()).unwrap();
         let mut batch = muse.collect(&[std::process::id()]).unwrap();
@@ -2197,14 +2483,44 @@ mod tests {
         };
         let sum = MongoOtelKind::CumulativeSum { monotonic: true };
         let qualified = MongoOtelAdapter::from_metrics(&[
-            point("mongodb.connections.current", 12.0, "1", MongoOtelKind::Gauge, &[]),
+            point(
+                "mongodb.connections.current",
+                12.0,
+                "1",
+                MongoOtelKind::Gauge,
+                &[],
+            ),
             point("mongodb.operations", 150.0, "{operation}", sum, &[]),
             point("mongodb.data_size", 4096.0, "By", MongoOtelKind::Gauge, &[]),
-            point("mongodb.cache.operations", 80.0, "1", sum, &[("type", "hit")]),
-            point("mongodb.cache.operations", 20.0, "1", sum, &[("type", "miss")]),
-            point("mongodb.replication.lag.bytes", 512.0, "By", MongoOtelKind::Gauge, &[]),
+            point(
+                "mongodb.cache.operations",
+                80.0,
+                "1",
+                sum,
+                &[("type", "hit")],
+            ),
+            point(
+                "mongodb.cache.operations",
+                20.0,
+                "1",
+                sum,
+                &[("type", "miss")],
+            ),
+            point(
+                "mongodb.replication.lag.bytes",
+                512.0,
+                "By",
+                MongoOtelKind::Gauge,
+                &[],
+            ),
             // Unsafe query string and credentials must be completely ignored/redacted
-            point("db.statement", 1.0, "1", sum, &[("statement", "SELECT * FROM users WHERE password = 'secret'")]),
+            point(
+                "db.statement",
+                1.0,
+                "1",
+                sum,
+                &[("statement", "SELECT * FROM users WHERE password = 'secret'")],
+            ),
         ]);
         assert_eq!(qualified.connections, Some(12));
         assert_eq!(qualified.commands_or_transactions, Some(150));
@@ -2215,22 +2531,44 @@ mod tests {
 
         // Wrong units stay absent
         let wrong_units = MongoOtelAdapter::from_metrics(&[
-            point("mongodb.connections.current", 12.0, "By", MongoOtelKind::Gauge, &[]),
+            point(
+                "mongodb.connections.current",
+                12.0,
+                "By",
+                MongoOtelKind::Gauge,
+                &[],
+            ),
             point("mongodb.data_size", 4096.0, "s", MongoOtelKind::Gauge, &[]),
         ]);
         assert_eq!(wrong_units.connections, None);
         assert_eq!(wrong_units.storage_bytes, None);
 
         // Fractional values stay absent
-        let fractional = MongoOtelAdapter::from_metrics(&[
-            point("mongodb.connections.current", 12.5, "1", MongoOtelKind::Gauge, &[]),
-        ]);
+        let fractional = MongoOtelAdapter::from_metrics(&[point(
+            "mongodb.connections.current",
+            12.5,
+            "1",
+            MongoOtelKind::Gauge,
+            &[],
+        )]);
         assert_eq!(fractional.connections, None);
 
         // Ambiguous duplicate series stay absent
         let ambiguous = MongoOtelAdapter::from_metrics(&[
-            point("mongodb.connections.current", 12.0, "1", MongoOtelKind::Gauge, &[]),
-            point("mongodb.connections.current", 15.0, "1", MongoOtelKind::Gauge, &[]),
+            point(
+                "mongodb.connections.current",
+                12.0,
+                "1",
+                MongoOtelKind::Gauge,
+                &[],
+            ),
+            point(
+                "mongodb.connections.current",
+                15.0,
+                "1",
+                MongoOtelKind::Gauge,
+                &[],
+            ),
         ]);
         assert_eq!(ambiguous.connections, None);
     }
@@ -2323,7 +2661,8 @@ mod tests {
             k8s_node_name: None,
             ambiguous_placement: true,
         };
-        muse.append_service_trace(&mut graph, &ambiguous_span).unwrap();
+        muse.append_service_trace(&mut graph, &ambiguous_span)
+            .unwrap();
         let unplaced_relation = graph
             .relations
             .iter()
@@ -2332,7 +2671,10 @@ mod tests {
                     && matches!(&r.subject.identity, EntityIdentity::Service { service_name, .. } if service_name == "unplaced-service")
             })
             .expect("ambiguous placement relation exists");
-        assert_eq!(unplaced_relation.provenance.join_status, JoinStatus::Ambiguous);
+        assert_eq!(
+            unplaced_relation.provenance.join_status,
+            JoinStatus::Ambiguous
+        );
 
         // Canonical graph validation succeeds
         graph.validate().unwrap();
