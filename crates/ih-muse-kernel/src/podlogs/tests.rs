@@ -140,18 +140,69 @@ fn a_container_file_is_sent_under_the_identity_the_k8s_muse_uses() {
     assert_eq!(scalar(&records[0], 11), Some(NOW), "observed now");
     assert_eq!(scalar(&records[0], 2), Some(17), "ERROR");
     assert_eq!(scalar(&records[1], 2), None, "no level stated");
+    let record_attributes = attributes(&records[0], 6);
     assert_eq!(
-        attributes(&records[0], 6),
+        record_attributes[..2],
         [
             ("log.iostream".to_string(), "stdout".to_string()),
             ("log.file.name".to_string(), "0.log".to_string())
         ]
+    );
+    assert_eq!(record_attributes[2].0, "log.record.uid");
+    assert!(
+        record_attributes[2].1.ends_with(&format!(":{T0}")),
+        "<device>:<inode>:<end offset>:<time>: {}",
+        record_attributes[2].1
     );
     logs.commit(&batch, false);
     assert_eq!(logs.stats().records_sent, 2);
     assert!(logs.poll(NOW).is_none(), "nothing new");
     node.append(&dir.join("0.log"), &["later"]);
     assert_eq!(drain(&mut logs), ["later"]);
+}
+
+/// Each record's `log.record.uid`, in export order.
+fn uids(batch: &Batch) -> Vec<String> {
+    all(&batch.export, 1)
+        .iter()
+        .flat_map(|resource_logs| all(&one(resource_logs, 2), 2))
+        .map(|record| {
+            attributes(&record, 6)
+                .into_iter()
+                .find(|(key, _)| key == "log.record.uid")
+                .expect("every record has an id")
+                .1
+        })
+        .collect()
+}
+
+#[test]
+fn equal_lines_have_their_own_ids_and_a_line_read_again_keeps_its_id() {
+    let node = Node::new();
+    let dir = node.container_dir("shop", "web-0", "uid-1", "app");
+    // Two equal lines in the same nanosecond, read in two passes.
+    node.append(&dir.join("0.log"), &["same"]);
+    let mut logs = PodLogs::new(node.config(), None);
+    let first = logs.poll(NOW).unwrap();
+    logs.commit(&first, false);
+    node.append(&dir.join("0.log"), &["same"]);
+    let second = logs.poll(NOW).unwrap();
+    assert_eq!(bodies(&first), bodies(&second));
+    assert_ne!(uids(&first), uids(&second), "two lines, two ids");
+    // Not acknowledged: read again later (another observed time) with
+    // one more line; the lines read before keep their ids.
+    node.append(&dir.join("0.log"), &["same"]);
+    let again = logs.poll(NOW + 1).unwrap();
+    assert_eq!(uids(&again)[..1], uids(&second)[..]);
+    assert_eq!(bodies(&again), ["same", "same"]);
+    let all_ids: std::collections::HashSet<_> =
+        uids(&first).into_iter().chain(uids(&again)).collect();
+    assert_eq!(all_ids.len(), 3);
+    // A restart without a checkpoint reads the file from its start: the
+    // same ids again.
+    let mut restarted = PodLogs::new(node.config(), None);
+    let reread = restarted.poll(NOW + 2).unwrap();
+    assert_eq!(uids(&reread), [uids(&first), uids(&again)].concat());
 }
 
 #[test]

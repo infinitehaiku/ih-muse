@@ -33,6 +33,15 @@ Each record has the runtime's time for the line, the line as its body,
 the line starts with or states a level (`ERROR …`, `level=warn`,
 `"level":"info"`).
 
+Each record also has `log.record.uid` (OpenTelemetry's unique record id):
+`<device>:<inode>:<end offset>:<time>` of the line in its file. The Poet
+stores each id once, so a line read again (an export no Poet acknowledged,
+a restart before the checkpoint) is not stored twice, and two equal lines
+printed in the same nanosecond are two records even when they travel in
+different exports. Without an id (the Collector below sends none) the Poet
+keys a record by its content, and equal records of two different exports
+are stored once.
+
 ## The node Muse
 
 Reads `/var/log/pods/*/*/*.log`:
