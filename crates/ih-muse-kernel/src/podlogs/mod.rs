@@ -195,6 +195,19 @@ pub fn workload_of(pod: &str) -> &str {
     pod
 }
 
+/// The record's `log.record.uid`: its file (device and inode), where it
+/// ends in that file and its time. Reading the same bytes again (an export
+/// a Poet never acknowledged, a restart before the checkpoint) gives the
+/// same id, so the Poet stores the record once; two equal lines are two
+/// ids, so both are kept. The time tells a reused inode or a truncated
+/// file's new lines from the old ones at the same offset.
+fn record_uid(file: FileKey, record: &parse::Record) -> String {
+    format!(
+        "{}:{}:{}:{}",
+        file.dev, file.ino, record.end_offset, record.time_unix_nano
+    )
+}
+
 fn read_range(path: &Path, offset: u64, len: usize) -> std::io::Result<Vec<u8>> {
     let mut file = std::fs::File::open(path)?;
     file.seek(SeekFrom::Start(offset))?;
@@ -373,6 +386,7 @@ impl PodLogs {
                     .records
                     .into_iter()
                     .map(|record| {
+                        let uid = record_uid(file.key, &record);
                         let (severity_number, severity_text) =
                             parse::severity(&record.body).unwrap_or((0, ""));
                         LogRecord {
@@ -387,6 +401,7 @@ impl PodLogs {
                                     Value::Text(record.stream.as_str().into()),
                                 ),
                                 ("log.file.name".into(), Value::Text(file_name.clone())),
+                                ("log.record.uid".into(), Value::Text(uid)),
                             ],
                         }
                     })
