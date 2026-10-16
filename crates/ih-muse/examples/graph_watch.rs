@@ -5,9 +5,12 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{SocketAddr, TcpStream};
 use std::time::Duration;
 
+use ih_muse::dashboards::DashboardDelivery;
 use ih_muse::graph_muse::{
-    GraphMuse, GraphMuseConfig, KubernetesContext, RedisInfoAdapter, RustvelloRunnerContext,
+    DatabaseService, GraphMuse, GraphMuseConfig, KubernetesContext, RedisInfoAdapter,
+    RustvelloRunnerContext,
 };
+use ih_muse::redis_dashboard::{redis_dashboard_definitions, REDIS_ROLE};
 use ih_muse::secret_file::read_secret_file;
 use ih_muse_client::GraphPoetClient;
 use ih_muse_core::MuseError;
@@ -88,11 +91,15 @@ fn bounded_file(path: &str, label: &str) -> Vec<u8> {
     fs::read(path).unwrap_or_else(|_| panic!("{label} file could not be read"))
 }
 
+/// The Redis or Valkey server beside this Muse: where to read its `INFO`,
+/// and the service name people read (`IH_GRAPH_REDIS_SERVICE_NAME`,
+/// `redis` by default; `valkey` for a Valkey server).
 struct RedisProbe {
     address: SocketAddr,
     password: String,
     instance_id: String,
     process_pid: u32,
+    service_name: String,
 }
 
 impl RedisProbe {
@@ -117,6 +124,8 @@ impl RedisProbe {
                     process_pid: process_pid
                         .parse()
                         .expect("IH_GRAPH_REDIS_PROCESS_PID is invalid"),
+                    service_name: std::env::var("IH_GRAPH_REDIS_SERVICE_NAME")
+                        .unwrap_or_else(|_| REDIS_ROLE.to_string()),
                 })
             }
             _ => panic!("all IH_GRAPH_REDIS_* values must be set together"),
@@ -197,6 +206,13 @@ async fn main() {
             .expect("invalid Poet endpoint")
         });
 
+    // The Redis dashboard travels with the batches until a Poet keeps it.
+    let mut delivery = DashboardDelivery::new(if redis.is_some() {
+        redis_dashboard_definitions()
+    } else {
+        Vec::new()
+    })
+    .expect("the Redis dashboard is valid");
     let mut samples = 0usize;
     let mut delivery_failures = 0u64;
     'collect: loop {
@@ -204,15 +220,19 @@ async fn main() {
         if let Some(redis) = &redis {
             let snapshot =
                 RedisInfoAdapter::parse(&redis.info()).expect("Redis INFO response is invalid");
-            muse.append_database_snapshot_at_process(
+            muse.append_database_service(
                 &mut batch,
-                "redis",
-                &redis.instance_id,
+                DatabaseService {
+                    role: REDIS_ROLE,
+                    service_name: &redis.service_name,
+                    instance_id: &redis.instance_id,
+                    process_pid: Some(redis.process_pid),
+                },
                 &snapshot,
-                Some(redis.process_pid),
             )
             .expect("Redis observations are invalid");
         }
+        delivery.attach(&mut batch);
         let request = muse
             .intake_request(Uuid::new_v4().to_string(), batch)
             .expect("native graph batch is invalid");
@@ -220,7 +240,10 @@ async fn main() {
             let mut consecutive_failures = 0u32;
             loop {
                 match client.publish(&request).await {
-                    Ok(_) => break,
+                    Ok(answer) => {
+                        delivery.acknowledge(&request.batch, &answer);
+                        break;
+                    }
                     Err(
                         error @ (MuseError::Unavailable(_)
                         | MuseError::Backpressure(_)
