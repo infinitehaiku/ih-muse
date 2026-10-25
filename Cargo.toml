@@ -19,7 +19,7 @@ edition = "2021"
 rust-version = "1.78"
 homepage = "https://infinitehaiku.com"
 repository = "https://github.com/infinitehaiku/ih-muse"
-authors = ["Luis Diaz <code.luis.diaz@proton.me"]
+authors = ["Luis Diaz <code.luis.diaz@proton.me>"]
 license = "MIT"
 
 [workspace.dependencies]
